@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"strings"
 	"time"
@@ -139,11 +140,7 @@ func rabbitHole(node *yaml.Node) {
 func extractOrbs(orbs []*yaml.Node) {
 	for i := 0; i < len(orbs); i = i + 2 {
 		orb := orbs[i+1]
-		var err error
-		orb.Value, err = findNewestOrbVersion(orb.Value)
-		if err != nil {
-			fmt.Printf("WHAT DO HERE ?: %v", err)
-		}
+		orb.Value = findNewestOrbVersion(orb.Value)
 	}
 }
 
@@ -159,28 +156,54 @@ func extractImages(orbs []*yaml.Node) {
 	}
 }
 
-func findNewestOrbVersion(orb string) (string, error) {
+func findNewestOrbVersion(orb string) string {
 
 	orbSplitString := strings.Split(orb, "@")
 
 	// check if orb is always updated
 	if orbSplitString[1] == "volatile" {
-		return "volatile", nil
+		return "volatile"
 	}
 
 	client := graphql.NewClient("https://circleci.com/", "graphql-unstable", "", false)
 
+	// if requests fails, return current version
 	orbInfo, err := api.OrbInfo(client, orbSplitString[0])
 	if err != nil {
-		return "", err
+		log.Printf("finding latests orb version failed: %v", err)
+		return orbSplitString[1]
 	}
 
-	fmt.Printf("%+v", orbInfo.Orb.HighestVersion)
-
-	return orbInfo.Orb.HighestVersion, nil
+	return orbInfo.Orb.HighestVersion
 }
 
 func findNewestDockerVersion(currentVersion string) string {
+
+	current := strings.Split(currentVersion, ":")
+
+	fmt.Println(current)
+	fmt.Println(len(current))
+
+	// check if image has no version tag
+	if len(current) == 1 {
+		return currentVersion
+	}
+
+	// check if tag is latest
+	if strings.ToLower(current[1]) == "latest" {
+		return currentVersion
+	}
+
+	// define registry
+	registry := "registry.hub.docker.com"
+	registryImage := strings.Split(current[0], "/")
+
+	if len(registryImage) > 1 {
+		registry = fmt.Sprintf("%s", strings.Join(registryImage[:len(registryImage)-1], "/"))
+	}
+
+	fmt.Println(registry)
+
 	return "latest"
 	// This one is a bit tricky actually! Watchtower seems to do this by utilising a docker client, but then we need
 	// Docker in docker i guess ? Maybe there is a smart api endpoint, all registries should use the same to communicate with docker i guess ?
