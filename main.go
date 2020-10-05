@@ -9,12 +9,13 @@ import (
 	"time"
 
 	"github.com/BESTSELLER/dependabot-circleci/config"
+	"github.com/CircleCI-Public/circleci-cli/api"
+	"github.com/CircleCI-Public/circleci-cli/api/graphql"
 	"github.com/google/go-github/v32/github"
 	"github.com/gregjones/httpcache"
 	"github.com/palantir/go-baseapp/baseapp"
 	"github.com/palantir/go-githubapp/githubapp"
 	"github.com/rs/zerolog"
-	"github.com/shurcooL/graphql"
 	"gopkg.in/yaml.v3"
 )
 
@@ -167,28 +168,16 @@ func findNewestOrbVersion(orb string) (string, error) {
 		return "volatile", nil
 	}
 
-	// declare graphql request
-	var q struct {
-		Orb struct {
-			Name     graphql.String
-			Versions []struct {
-				Version graphql.String
-			}
-		} `graphql:"orb(name: $orbName)"`
-	}
+	client := graphql.NewClient("https://circleci.com/", "graphql-unstable", "", false)
 
-	variables := map[string]interface{}{
-		"orbName": graphql.String(orbSplitString[0]),
-	}
-
-	client := graphql.NewClient("https://circleci.com/graphql-unstable", nil)
-
-	err := client.Query(context.Background(), &q, variables)
+	orbInfo, err := api.OrbInfo(client, orbSplitString[0])
 	if err != nil {
 		return "", err
 	}
 
-	return fmt.Sprintf("%s", q.Orb.Versions[0].Version), nil
+	fmt.Printf("%+v", orbInfo.Orb.HighestVersion)
+
+	return orbInfo.Orb.HighestVersion, nil
 }
 
 func findNewestDockerVersion(currentVersion string) string {
