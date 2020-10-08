@@ -3,15 +3,13 @@ package config
 import (
 	"io/ioutil"
 
-	"github.com/palantir/go-baseapp/baseapp"
 	"github.com/palantir/go-githubapp/githubapp"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
 
 type Config struct {
-	Server baseapp.HTTPConfig `yaml:"server"`
-	Github githubapp.Config   `yaml:"github"`
+	Github githubapp.Config `yaml:"github"`
 }
 
 func ReadConfig(path string) (*Config, error) {
