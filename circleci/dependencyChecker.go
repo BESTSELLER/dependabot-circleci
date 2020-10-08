@@ -37,8 +37,19 @@ func GetUpdates(node *yaml.Node) []*yaml.Node {
 	return orbUpdates
 }
 
-func replaceVersion(orb *yaml.Node, content string) {
+func ReplaceVersion(orb *yaml.Node, content string) string {
 
+	lines := strings.Split(content, "\n")
+
+	for i, line := range lines {
+		if strings.Contains(line, strings.Split(orb.Value, "@")[0]) {
+			lines[i] = orb.Value
+		}
+	}
+	output := strings.Join(lines, "\n")
+	fmt.Println(output)
+
+	return ""
 }
 
 func extractOrbs(orbs []*yaml.Node) []*yaml.Node {
