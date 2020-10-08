@@ -10,13 +10,14 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func GetUpdates(node *yaml.Node, orbUpdates []*yaml.Node) []*yaml.Node {
+func GetUpdates(node *yaml.Node) []*yaml.Node {
 	//fmt.Printf("start: %d\n", len(orbUpdates))
+	orbUpdates := []*yaml.Node{}
+
 	for i, nextHole := range node.Content {
-		fmt.Println(nextHole.Value)
 		if nextHole.Value == "orbs" {
 			orbs := node.Content[i+1]
-			orbUpdates = append(orbUpdates, extractOrbs(orbs.Content)...)
+			orbUpdates = append(extractOrbs(orbs.Content), orbUpdates...)
 		}
 
 		// *** ready for docker image check ***
@@ -28,7 +29,8 @@ func GetUpdates(node *yaml.Node, orbUpdates []*yaml.Node) []*yaml.Node {
 		// 	orbs := node.Content[i+1]
 		// 	extractImages(orbs.Content)
 		// }
-		GetUpdates(nextHole, orbUpdates)
+
+		orbUpdates = append(GetUpdates(nextHole), orbUpdates...)
 	}
 
 	//fmt.Printf("end: %d\n", len(orbUpdates))

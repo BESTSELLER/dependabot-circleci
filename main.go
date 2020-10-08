@@ -54,9 +54,8 @@ func main() {
 			}
 
 			// check for updates
-			array := []*yaml.Node{}
-			updates := circleci.GetUpdates(&cciconfig, array)
-			fmt.Println(updates)
+			updates := circleci.GetUpdates(&cciconfig)
+			fmt.Printf("%+v", updates[0])
 
 			// patch and pull request
 
