@@ -10,14 +10,17 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func GetUpdates(node *yaml.Node) []*yaml.Node {
+func GetUpdates(node *yaml.Node) map[string]*yaml.Node {
 	//fmt.Printf("start: %d\n", len(orbUpdates))
-	orbUpdates := []*yaml.Node{}
+	orbUpdates := make(map[string]*yaml.Node)
 
 	for i, nextHole := range node.Content {
 		if nextHole.Value == "orbs" {
 			orbs := node.Content[i+1]
-			orbUpdates = append(extractOrbs(orbs.Content), orbUpdates...)
+			orbUpdates := extractOrbs(orbs.Content)
+			for k, v := range orbUpdates {
+				orbUpdates[k] = v
+			}
 		}
 
 		// *** ready for docker image check ***
@@ -30,37 +33,37 @@ func GetUpdates(node *yaml.Node) []*yaml.Node {
 		// 	extractImages(orbs.Content)
 		// }
 
-		orbUpdates = append(GetUpdates(nextHole), orbUpdates...)
+		next := GetUpdates(nextHole)
+		for k, v := range next {
+			orbUpdates[k] = v
+		}
 	}
 
 	//fmt.Printf("end: %d\n", len(orbUpdates))
 	return orbUpdates
 }
 
-func ReplaceVersion(orb *yaml.Node, content string) string {
+func ReplaceVersion(orb *yaml.Node, oldVersion string, content string) string {
 
 	lines := strings.Split(content, "\n")
+	lines[orb.Line] = strings.ReplaceAll(lines[orb.Line], oldVersion, orb.Value)
 
-	for i, line := range lines {
-		if strings.Contains(line, strings.Split(orb.Value, "@")[0]) {
-			lines[i] = orb.Value
-		}
-	}
 	output := strings.Join(lines, "\n")
 	fmt.Println(output)
 
-	return ""
+	return output
 }
 
-func extractOrbs(orbs []*yaml.Node) []*yaml.Node {
-	updates := []*yaml.Node{}
+func extractOrbs(orbs []*yaml.Node) map[string]*yaml.Node {
+	updates := make(map[string]*yaml.Node)
 	for i := 0; i < len(orbs); i = i + 2 {
 		orb := orbs[i+1]
 		orbVersion := findNewestOrbVersion(orb.Value)
 
 		if orb.Value != orbVersion {
+			oldVersion := orb.Value
 			orb.Value = orbVersion
-			updates = append(updates, orb)
+			updates[oldVersion] = orb
 		}
 	}
 	return updates
