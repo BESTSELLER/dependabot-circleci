@@ -47,12 +47,14 @@ func main() {
 				return
 			}
 
+			// unmarshal
 			var cciconfig yaml.Node
 			err = yaml.Unmarshal(content, &cciconfig)
 			if err != nil {
 				panic(err)
 			}
 
+			// determine repo details
 			repoOwner := repo.GetOwner().GetLogin()
 			repoName := repo.GetName()
 			baseBranch := repo.GetDefaultBranch()
@@ -65,28 +67,24 @@ func main() {
 				commitMessage := github.String("this is a test")
 				commitBranch := github.String("test")
 
-				var baseRef *github.Reference
-				if baseRef, _, err = client.Git.GetRef(ctx, repoOwner, repoName, "refs/heads/"+baseBranch); err != nil {
-					panic(err)
-				}
-
-				newRef := &github.Reference{Ref: github.String("refs/heads/" + *commitBranch), Object: &github.GitObject{SHA: baseRef.Object.SHA}}
-				_, _, err := client.Git.CreateRef(ctx, repoOwner, repoName, newRef)
+				// err := check and create branch
+				err := gh.CreateBranch(ctx, client, repoOwner, repoName, baseBranch, commitBranch)
 				if err != nil {
-					panic(err)
+					log.Printf("could not create branch: %v", err)
 				}
 
-				_, _, err = client.Repositories.UpdateFile(ctx, repo.GetOwner().GetLogin(), repo.GetName(), ".circleci/config.yml",
-					&github.RepositoryContentFileOptions{
-						Message: commitMessage,
-						Content: []byte(newYaml),
-						Branch:  commitBranch,
-						SHA:     SHA,
-					})
+				// commit file
+				err = gh.UpdateFile(ctx, client, repoOwner, repoName, &github.RepositoryContentFileOptions{
+					Message: commitMessage,
+					Content: []byte(newYaml),
+					Branch:  commitBranch,
+					SHA:     SHA,
+				})
 				if err != nil {
 					log.Printf("could not update file: %v", err)
 				}
 
+				// create pull req
 				_, _, err = client.PullRequests.Create(ctx, repoOwner, repoName, &github.NewPullRequest{
 					Title:               github.String("TEST!"),
 					Head:                commitBranch,
@@ -99,8 +97,6 @@ func main() {
 				}
 
 			}
-
-			// patch and pull request
 
 		}(repository)
 	}
