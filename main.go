@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"strings"
 	"sync"
 
 	"github.com/BESTSELLER/dependabot-circleci/circleci"
@@ -64,8 +66,12 @@ func main() {
 			for old, update := range updates {
 				newYaml := circleci.ReplaceVersion(update, old, string(content))
 
-				commitMessage := github.String("this is a test")
-				commitBranch := github.String("test")
+				// commit vars
+				oldVersion := strings.Split(old, "@")
+				newVersion := strings.Split(update.Value, "@")
+
+				commitMessage := github.String(fmt.Sprintf("Bump @%s from %s to %s", oldVersion[0], oldVersion[1], newVersion[1]))
+				commitBranch := github.String(fmt.Sprintf("dependabot-circleci/orb/%s", update.Value))
 
 				// err := check and create branch
 				err := gh.CreateBranch(ctx, client, repoOwner, repoName, baseBranch, commitBranch)
@@ -85,8 +91,8 @@ func main() {
 				}
 
 				// create pull req
-				_, _, err = client.PullRequests.Create(ctx, repoOwner, repoName, &github.NewPullRequest{
-					Title:               github.String("TEST!"),
+				err = gh.CreatePR(ctx, client, repoOwner, repoName, &github.NewPullRequest{
+					Title:               commitMessage,
 					Head:                commitBranch,
 					Base:                github.String(baseBranch),
 					Body:                commitMessage,

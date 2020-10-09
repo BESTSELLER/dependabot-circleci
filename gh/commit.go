@@ -31,3 +31,12 @@ func UpdateFile(ctx context.Context, client *github.Client, repoOwner string, re
 	}
 	return nil
 }
+
+func CreatePR(ctx context.Context, client *github.Client, repoOwner string, repoName string, options *github.NewPullRequest) error {
+	_, _, err := client.PullRequests.Create(ctx, repoOwner, repoName, options)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
