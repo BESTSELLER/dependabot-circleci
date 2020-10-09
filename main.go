@@ -42,7 +42,7 @@ func main() {
 			defer wg.Done()
 
 			// get content of configfile
-			content, err := gh.GetRepoContent(ctx, client, repo)
+			content, SHA, err := gh.GetRepoContent(ctx, client, repo)
 			if err != nil {
 				return
 			}
@@ -53,42 +53,56 @@ func main() {
 				panic(err)
 			}
 
+			repoOwner := repo.GetOwner().GetLogin()
+			repoName := repo.GetName()
+			baseBranch := repo.GetDefaultBranch()
+
 			// check for updates
 			updates := circleci.GetUpdates(&cciconfig)
 			for old, update := range updates {
 				newYaml := circleci.ReplaceVersion(update, old, string(content))
-				//fmt.Println(newYaml)
 
-				message := "this is a test"
-				branch := "test"
+				commitMessage := github.String("this is a test")
+				commitBranch := github.String("test")
 
-				_, _, err := client.Repositories.UpdateFile(ctx, repo.GetOwner().GetLogin(), repo.GetName(), ".circleci/config.yml",
+				var baseRef *github.Reference
+				if baseRef, _, err = client.Git.GetRef(ctx, repoOwner, repoName, "refs/heads/"+baseBranch); err != nil {
+					panic(err)
+				}
+
+				newRef := &github.Reference{Ref: github.String("refs/heads/" + *commitBranch), Object: &github.GitObject{SHA: baseRef.Object.SHA}}
+				_, _, err := client.Git.CreateRef(ctx, repoOwner, repoName, newRef)
+				if err != nil {
+					panic(err)
+				}
+
+				_, _, err = client.Repositories.UpdateFile(ctx, repo.GetOwner().GetLogin(), repo.GetName(), ".circleci/config.yml",
 					&github.RepositoryContentFileOptions{
-						Message: &message,
+						Message: commitMessage,
 						Content: []byte(newYaml),
-						Branch:  &branch,
+						Branch:  commitBranch,
+						SHA:     SHA,
 					})
 				if err != nil {
 					log.Printf("could not update file: %v", err)
 				}
 
-			}
+				_, _, err = client.PullRequests.Create(ctx, repoOwner, repoName, &github.NewPullRequest{
+					Title:               github.String("TEST!"),
+					Head:                commitBranch,
+					Base:                github.String(baseBranch),
+					Body:                commitMessage,
+					MaintainerCanModify: github.Bool(true),
+				})
+				if err != nil {
+					log.Printf("could not create pr: %v", err)
+				}
 
-			// fmt.Printf("%+v", updates[0])
+			}
 
 			// patch and pull request
 
 		}(repository)
-
-		// by, err := yaml.Marshal(&some)
-		// if err != nil {
-		// 	panic(err)
-		// }
-
-		// err = ioutil.WriteFile("output.yml", by, 0644)
-		// if err != nil {
-		// 	panic(err)
-		// }
 	}
 
 	wg.Wait()

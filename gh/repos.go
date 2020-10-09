@@ -15,16 +15,16 @@ func GetRepos(ctx context.Context, client *github.Client, org string) ([]*github
 	return repos, nil
 }
 
-func GetRepoContent(ctx context.Context, client *github.Client, repo *github.Repository) ([]byte, error) {
+func GetRepoContent(ctx context.Context, client *github.Client, repo *github.Repository) ([]byte, *string, error) {
 	fileContent, _, _, err := client.Repositories.GetContents(ctx, repo.GetOwner().GetLogin(), repo.GetName(), ".circleci/config.yml", nil)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	content, err := fileContent.GetContent()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return []byte(content), nil
+	return []byte(content), fileContent.SHA, nil
 }

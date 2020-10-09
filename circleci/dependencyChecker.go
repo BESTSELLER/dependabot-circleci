@@ -11,7 +11,6 @@ import (
 )
 
 func GetUpdates(node *yaml.Node) map[string]*yaml.Node {
-	//fmt.Printf("start: %d\n", len(orbUpdates))
 	orbUpdates := map[string]*yaml.Node{}
 
 	for i, nextHole := range node.Content {
@@ -40,7 +39,6 @@ func GetUpdates(node *yaml.Node) map[string]*yaml.Node {
 		}
 	}
 
-	//fmt.Printf("end: %d\n", len(orbUpdates))
 	return orbUpdates
 }
 
@@ -52,7 +50,6 @@ func ReplaceVersion(orb *yaml.Node, oldVersion string, content string) string {
 	lines[lineNumber] = strings.ReplaceAll(theLine, oldVersion, orb.Value)
 
 	output := strings.Join(lines, "\n")
-	fmt.Println(output)
 
 	return output
 }
