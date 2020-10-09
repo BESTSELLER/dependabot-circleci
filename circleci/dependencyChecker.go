@@ -12,7 +12,7 @@ import (
 
 func GetUpdates(node *yaml.Node) map[string]*yaml.Node {
 	//fmt.Printf("start: %d\n", len(orbUpdates))
-	orbUpdates := make(map[string]*yaml.Node)
+	orbUpdates := map[string]*yaml.Node{}
 
 	for i, nextHole := range node.Content {
 		if nextHole.Value == "orbs" {
@@ -21,6 +21,7 @@ func GetUpdates(node *yaml.Node) map[string]*yaml.Node {
 			for k, v := range orbUpdates {
 				orbUpdates[k] = v
 			}
+			return orbUpdates
 		}
 
 		// *** ready for docker image check ***
@@ -46,7 +47,9 @@ func GetUpdates(node *yaml.Node) map[string]*yaml.Node {
 func ReplaceVersion(orb *yaml.Node, oldVersion string, content string) string {
 
 	lines := strings.Split(content, "\n")
-	lines[orb.Line] = strings.ReplaceAll(lines[orb.Line], oldVersion, orb.Value)
+	lineNumber := orb.Line + -1
+	theLine := lines[lineNumber]
+	lines[lineNumber] = strings.ReplaceAll(theLine, oldVersion, orb.Value)
 
 	output := strings.Join(lines, "\n")
 	fmt.Println(output)
@@ -55,7 +58,7 @@ func ReplaceVersion(orb *yaml.Node, oldVersion string, content string) string {
 }
 
 func extractOrbs(orbs []*yaml.Node) map[string]*yaml.Node {
-	updates := make(map[string]*yaml.Node)
+	updates := map[string]*yaml.Node{}
 	for i := 0; i < len(orbs); i = i + 2 {
 		orb := orbs[i+1]
 		orbVersion := findNewestOrbVersion(orb.Value)
