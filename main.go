@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"sync"
 
 	"github.com/BESTSELLER/dependabot-circleci/circleci"
@@ -57,8 +57,21 @@ func main() {
 			updates := circleci.GetUpdates(&cciconfig)
 			for old, update := range updates {
 				newYaml := circleci.ReplaceVersion(update, old, string(content))
-				fmt.Println(newYaml)
-				// create pull request now !
+				//fmt.Println(newYaml)
+
+				message := "this is a test"
+				branch := "test"
+
+				_, _, err := client.Repositories.UpdateFile(ctx, repo.GetOwner().GetLogin(), repo.GetName(), ".circleci/config.yml",
+					&github.RepositoryContentFileOptions{
+						Message: &message,
+						Content: []byte(newYaml),
+						Branch:  &branch,
+					})
+				if err != nil {
+					log.Printf("could not update file: %v", err)
+				}
+
 			}
 
 			// fmt.Printf("%+v", updates[0])
