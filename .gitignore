@@ -4,6 +4,7 @@
 *.dll
 *.so
 *.dylib
+dependabot-circleci
 
 # Test binary, built with `go test -c`
 *.test
@@ -13,3 +14,5 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+config.yml
+config.json

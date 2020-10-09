@@ -55,8 +55,13 @@ func main() {
 
 			// check for updates
 			updates := circleci.GetUpdates(&cciconfig)
-			circleci.ReplaceVersion(updates[0], string(content))
-			fmt.Printf("%+v", updates[0])
+			for old, update := range updates {
+				newYaml := circleci.ReplaceVersion(update, old, string(content))
+				fmt.Println(newYaml)
+				// create pull request now !
+			}
+
+			// fmt.Printf("%+v", updates[0])
 
 			// patch and pull request
 
