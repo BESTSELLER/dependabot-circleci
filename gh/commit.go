@@ -2,6 +2,8 @@ package gh
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/google/go-github/v32/github"
 )
@@ -9,7 +11,27 @@ import (
 func CreateBranch(ctx context.Context, client *github.Client, repoOwner string, repoName string, baseBranch string, commitBranch *string) error {
 	var baseRef *github.Reference
 
-	baseRef, _, err := client.Git.GetRef(ctx, repoOwner, repoName, "refs/heads/"+baseBranch)
+	// check if branch exists or if an older update exists
+	branches, _, err := client.Repositories.ListBranches(ctx, repoOwner, repoName, nil)
+	if err != nil {
+		return err
+	}
+
+	branchComponent := strings.Split(*commitBranch, "@")
+
+	for _, branch := range branches {
+		branchName := branch.GetName()
+		if strings.Contains(branchName, branchComponent[0]) && branchName != *commitBranch {
+			// delete the branch
+			fmt.Println("delete")
+			_, err := client.Git.DeleteRef(ctx, repoOwner, repoName, "refs/heads/"+branchName)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	baseRef, _, err = client.Git.GetRef(ctx, repoOwner, repoName, "refs/heads/"+baseBranch)
 	if err != nil {
 		return err
 	}
