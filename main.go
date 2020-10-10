@@ -53,7 +53,8 @@ func main() {
 			var cciconfig yaml.Node
 			err = yaml.Unmarshal(content, &cciconfig)
 			if err != nil {
-				panic(err)
+				log.Printf("could not unmarshal yaml: %v", err)
+				return
 			}
 
 			// determine repo details
