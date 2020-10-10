@@ -8,41 +8,47 @@ import (
 	"github.com/google/go-github/v32/github"
 )
 
-func CreateBranch(ctx context.Context, client *github.Client, repoOwner string, repoName string, baseBranch string, commitBranch *string) error {
-	var baseRef *github.Reference
-
+func CreateBranch(ctx context.Context, client *github.Client, repoOwner string, repoName string, baseBranch string, commitBranch *string) (bool, error) {
 	// check if branch exists or if an older update exists
 	branches, _, err := client.Repositories.ListBranches(ctx, repoOwner, repoName, nil)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	branchComponent := strings.Split(*commitBranch, "@")
 
 	for _, branch := range branches {
 		branchName := branch.GetName()
+
+		// exists ?
+		if branchName != *commitBranch {
+			return true, nil
+		}
+
+		// older update ?
 		if strings.Contains(branchName, branchComponent[0]) && branchName != *commitBranch {
 			// delete the branch
 			fmt.Println("delete")
 			_, err := client.Git.DeleteRef(ctx, repoOwner, repoName, "refs/heads/"+branchName)
 			if err != nil {
-				return err
+				return false, err
 			}
 		}
 	}
 
+	var baseRef *github.Reference
 	baseRef, _, err = client.Git.GetRef(ctx, repoOwner, repoName, "refs/heads/"+baseBranch)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	newRef := &github.Reference{Ref: github.String("refs/heads/" + *commitBranch), Object: &github.GitObject{SHA: baseRef.Object.SHA}}
 	_, _, err = client.Git.CreateRef(ctx, repoOwner, repoName, newRef)
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	return nil
+	return false, nil
 
 }
 

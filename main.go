@@ -74,9 +74,13 @@ func main() {
 				commitBranch := github.String(fmt.Sprintf("dependabot-circleci/orb/%s", update.Value))
 
 				// err := check and create branch
-				err := gh.CreateBranch(ctx, client, repoOwner, repoName, baseBranch, commitBranch)
+				exists, err := gh.CreateBranch(ctx, client, repoOwner, repoName, baseBranch, commitBranch)
 				if err != nil {
 					log.Printf("could not create branch: %v", err)
+					return
+				}
+				if exists {
+					return
 				}
 
 				// commit file
@@ -88,6 +92,7 @@ func main() {
 				})
 				if err != nil {
 					log.Printf("could not update file: %v", err)
+					return
 				}
 
 				// create pull req
@@ -100,6 +105,7 @@ func main() {
 				})
 				if err != nil {
 					log.Printf("could not create pr: %v", err)
+					return
 				}
 
 			}
