@@ -1,0 +1,90 @@
+version: 2.1
+executors:
+  go_image:
+    docker:
+      - image: cimg/go:1.15
+
+orbs:
+  secret-injector: bestsellerit/secret-injector@1.0.4
+
+jobs:
+  test:
+    executor: go_image
+    steps:
+      - checkout
+      - run:
+          name: go get
+          command: |
+            go get ./...
+      - run:
+          name: install gotestsum
+          command: go get -u gotest.tools/gotestsum
+      - run:
+          name: go test
+          command: |
+            mkdir junit
+            gotestsum --junitfile junit/unit-tests.xml
+      - store_test_results:
+          path: ~/project/junit
+      - run:
+          name: go build
+          command: |
+            GOOS=linux \
+            GOARCH=amd64 \
+            go build -ldflags="-w -s"
+  test-sonar:
+    executor: go_image
+    steps:
+      - attach_workspace:
+          at: /tmp
+      - checkout
+      - run:
+          name: Install Sonarqube scanner
+          command: |
+            wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.4.0.2170-linux.zip -P /tmp/
+            cd /tmp/
+            unzip sonar-scanner-cli-4.4.0.2170-linux.zip
+      - run:
+          name: go get
+          command: |
+            go get ./...
+      - run:
+          name: go test - sonar
+          command: |
+            go test ./... -coverprofile=coverage.out
+      - run:
+          name: Run SonarCloud Scanner
+          command: |
+            source /tmp/secrets
+            export SONAR_SCANNER_OPTS="-Xmx2048m"
+            eval /tmp/sonar-scanner-4.4.0.2170-linux/bin/sonar-scanner \
+              -Dsonar.projectKey=$K8S_CLUSTER_SONAR_KEY_GH"_"$CIRCLE_PROJECT_REPONAME \
+              -Dsonar.projectName=$CIRCLE_PROJECT_REPONAME \
+              -Dsonar.organization=$K8S_CLUSTER_SONAR_ORG_GH \
+              -Dsonar.sources=. \
+              -Dsonar.test.inclusions=**/**_test.go \
+              -Dsonar.sources.inclusions=**/**.go \
+              -Dsonar.host.url=$K8S_CLUSTER_SONAR_HOST \
+              -Dsonar.login=$K8S_CLUSTER_SONAR_LOGIN_GH \
+              -Dsonar.links.scm=$CIRCLE_REPOSITORY_URL \
+              -Dsonar.go.coverage.reportPaths=coverage.out
+
+workflows:
+  test:
+    jobs:
+      - secret-injector/dump-secrets:
+          context: es02-prod
+          filters:
+            tags:
+              ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
+      - test:
+          filters:
+            tags:
+              ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
+      - test-sonar:
+          context: es02-prod
+          requires:
+            - secret-injector/dump-secrets
+          filters:
+            tags:
+              ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
