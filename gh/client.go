@@ -9,6 +9,7 @@ import (
 	"github.com/palantir/go-githubapp/githubapp"
 )
 
+// GetOrganizationClient returns a github client
 func GetOrganizationClient(ctx context.Context, config githubapp.Config, org string) (*github.Client, error) {
 
 	cc, err := createGHClient(config)

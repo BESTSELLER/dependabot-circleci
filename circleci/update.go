@@ -6,6 +6,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// GetUpdates returns a list of updated yaml nodes
 func GetUpdates(node *yaml.Node) map[string]*yaml.Node {
 	orbUpdates := map[string]*yaml.Node{}
 
@@ -38,6 +39,7 @@ func GetUpdates(node *yaml.Node) map[string]*yaml.Node {
 	return orbUpdates
 }
 
+// ReplaceVersion replaces a specific line in the yaml
 func ReplaceVersion(orb *yaml.Node, oldVersion string, content string) string {
 
 	lines := strings.Split(content, "\n")

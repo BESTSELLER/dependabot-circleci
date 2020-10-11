@@ -8,10 +8,12 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// Config contains global config
 type Config struct {
 	Github githubapp.Config `yaml:"github"`
 }
 
+// ReadConfig reads a yaml config file
 func ReadConfig(path string) (*Config, error) {
 	var c Config
 

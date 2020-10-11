@@ -8,6 +8,7 @@ import (
 	"github.com/google/go-github/v32/github"
 )
 
+// CreateBranch creates a new commit branch for a specific update
 func CreateBranch(ctx context.Context, client *github.Client, repoOwner string, repoName string, baseBranch string, commitBranch *string) (bool, error) {
 	// check if branch exists or if an older update exists
 	branches, _, err := client.Repositories.ListBranches(ctx, repoOwner, repoName, nil)
@@ -52,6 +53,7 @@ func CreateBranch(ctx context.Context, client *github.Client, repoOwner string, 
 
 }
 
+// UpdateFile updates the circleci config and creates a commit
 func UpdateFile(ctx context.Context, client *github.Client, repoOwner string, repoName string, options *github.RepositoryContentFileOptions) error {
 	_, _, err := client.Repositories.UpdateFile(ctx, repoOwner, repoName, ".circleci/config.yml", options)
 	if err != nil {
@@ -60,6 +62,7 @@ func UpdateFile(ctx context.Context, client *github.Client, repoOwner string, re
 	return nil
 }
 
+// CreatePR creates a pull request with the new config
 func CreatePR(ctx context.Context, client *github.Client, repoOwner string, repoName string, options *github.NewPullRequest) error {
 	_, _, err := client.PullRequests.Create(ctx, repoOwner, repoName, options)
 	if err != nil {
