@@ -9,36 +9,44 @@ import (
 )
 
 // CreateBranch creates a new commit branch for a specific update
-func CreateBranch(ctx context.Context, client *github.Client, repoOwner string, repoName string, baseBranch string, commitBranch *string) (bool, error) {
-	// check if branch exists or if an older update exists
-	branches, _, err := client.Repositories.ListBranches(ctx, repoOwner, repoName, nil)
-	if err != nil {
-		return false, err
-	}
+func CreateBranch(ctx context.Context, client *github.Client, repoOwner string, repoName string, baseBranch string, commitBranch *string, commitMessage *string, component string) (bool, error) {
 
-	branchComponent := strings.Split(*commitBranch, "@")
+	pullreqs, _, _ := client.PullRequests.List(ctx, repoOwner, repoName, nil)
+	for _, pr := range pullreqs {
 
-	for _, branch := range branches {
-		branchName := branch.GetName()
+		if pr.GetUser().GetLogin() != "dependabot-circleci[bot]" {
+			continue
+		}
+
+		title := pr.GetTitle()
 
 		// exists ?
-		if branchName != *commitBranch {
+		if title == *commitMessage {
 			return true, nil
 		}
 
 		// older update ?
-		if strings.Contains(branchName, branchComponent[0]) && branchName != *commitBranch {
-			// delete the branch
-			fmt.Println("delete")
-			_, err := client.Git.DeleteRef(ctx, repoOwner, repoName, "refs/heads/"+branchName)
+		if strings.Contains(title, fmt.Sprintf("@%s", component)) {
+			message := &github.PullRequestComment{
+				Body: github.String(fmt.Sprintf("pullRequest superseeded by %s", *commitMessage)),
+			}
+			_, _, err := client.PullRequests.CreateComment(ctx, repoOwner, repoName, pr.GetNumber(), message)
 			if err != nil {
 				return false, err
 			}
+
+			// delete old branch
+			_, err = client.Git.DeleteRef(ctx, repoOwner, repoName, "refs/heads/"+pr.GetHead().GetRef())
+			if err != nil {
+				return false, err
+			}
+
 		}
+
 	}
 
 	var baseRef *github.Reference
-	baseRef, _, err = client.Git.GetRef(ctx, repoOwner, repoName, "refs/heads/"+baseBranch)
+	baseRef, _, err := client.Git.GetRef(ctx, repoOwner, repoName, "refs/heads/"+baseBranch)
 	if err != nil {
 		return false, err
 	}

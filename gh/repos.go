@@ -7,8 +7,9 @@ import (
 )
 
 // GetRepos returns a list of repos for an orginasation
-func GetRepos(ctx context.Context, client *github.Client, org string) ([]*github.Repository, error) {
-	repos, _, err := client.Repositories.List(ctx, org, nil)
+func GetRepos(ctx context.Context, client *github.Client) ([]*github.Repository, error) {
+
+	repos, _, err := client.Apps.ListRepos(ctx, nil)
 	if err != nil {
 		return nil, err
 	}

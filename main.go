@@ -15,9 +15,8 @@ import (
 )
 
 var ctx = context.Background()
-
-// create wait group
 var wg sync.WaitGroup
+var org = "brondum"
 
 func main() {
 	config, err := config.ReadConfig("./config.yml")
@@ -26,13 +25,13 @@ func main() {
 	}
 
 	// create client
-	client, err := gh.GetOrganizationClient(ctx, config.Github, "brondum")
+	client, err := gh.GetOrganizationClient(ctx, config.Github, org)
 	if err != nil {
 		panic(err)
 	}
 
 	// get repos
-	repos, err := gh.GetRepos(ctx, client, "brondum")
+	repos, err := gh.GetRepos(ctx, client)
 	if err != nil {
 		panic(err)
 	}
@@ -50,7 +49,7 @@ func main() {
 			}
 
 			// get content of circleci configfile
-			content, SHA, err := gh.GetRepoContent(ctx, client, repo, ".circleci/config,yml")
+			content, SHA, err := gh.GetRepoContent(ctx, client, repo, ".circleci/config.yml")
 			if err != nil {
 				return
 			}
@@ -71,23 +70,23 @@ func main() {
 			// check for updates
 			updates := circleci.GetUpdates(&cciconfig)
 			for old, update := range updates {
+				fmt.Println(update)
 				newYaml := circleci.ReplaceVersion(update, old, string(content))
 
 				// commit vars
 				oldVersion := strings.Split(old, "@")
 				newVersion := strings.Split(update.Value, "@")
-
 				commitMessage := github.String(fmt.Sprintf("Bump @%s from %s to %s", oldVersion[0], oldVersion[1], newVersion[1]))
 				commitBranch := github.String(fmt.Sprintf("dependabot-circleci/orb/%s", update.Value))
 
 				// err := check and create branch
-				exists, err := gh.CreateBranch(ctx, client, repoOwner, repoName, baseBranch, commitBranch)
+				exists, err := gh.CreateBranch(ctx, client, repoOwner, repoName, baseBranch, commitBranch, commitMessage, oldVersion[0])
 				if err != nil {
 					log.Printf("could not create branch: %v", err)
-					return
+					continue
 				}
 				if exists {
-					return
+					continue
 				}
 
 				// commit file
@@ -99,7 +98,7 @@ func main() {
 				})
 				if err != nil {
 					log.Printf("could not update file: %v", err)
-					return
+					continue
 				}
 
 				// create pull req
@@ -112,7 +111,7 @@ func main() {
 				})
 				if err != nil {
 					log.Printf("could not create pr: %v", err)
-					return
+					continue
 				}
 
 			}
