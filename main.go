@@ -43,8 +43,14 @@ func main() {
 		go func(repo *github.Repository) {
 			defer wg.Done()
 
-			// get content of configfile
-			content, SHA, err := gh.GetRepoContent(ctx, client, repo)
+			// check if a bot config exists
+			_, _, err := gh.GetRepoContent(ctx, client, repo, ".github/circleci.yml")
+			if err != nil {
+				return
+			}
+
+			// get content of circleci configfile
+			content, SHA, err := gh.GetRepoContent(ctx, client, repo, ".circleci/config,yml")
 			if err != nil {
 				return
 			}
