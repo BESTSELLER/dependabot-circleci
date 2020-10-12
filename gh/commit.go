@@ -27,10 +27,7 @@ func CreateBranch(ctx context.Context, client *github.Client, repoOwner string, 
 
 		// older update ?
 		if strings.Contains(title, fmt.Sprintf("@%s", component)) {
-			message := &github.PullRequestComment{
-				Body: github.String(fmt.Sprintf("pullRequest superseeded by %s", *commitMessage)),
-			}
-			_, _, err := client.PullRequests.CreateComment(ctx, repoOwner, repoName, pr.GetNumber(), message)
+			_, _, err := client.Issues.CreateComment(ctx, repoOwner, repoName, pr.GetNumber(), &github.IssueComment{Body: github.String(fmt.Sprintf("pullRequest superseeded by %s", *commitMessage))})
 			if err != nil {
 				return false, err
 			}
