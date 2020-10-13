@@ -80,7 +80,7 @@ func main() {
 				commitBranch := github.String(fmt.Sprintf("dependabot-circleci/orb/%s", update.Value))
 
 				// err := check and create branch
-				exists, err := gh.CreateBranch(ctx, client, repoOwner, repoName, baseBranch, commitBranch, commitMessage, oldVersion[0])
+				exists, err := gh.CheckPR(ctx, client, repoOwner, repoName, baseBranch, commitBranch, commitMessage, oldVersion[0])
 				if err != nil {
 					log.Printf("could not create branch: %v", err)
 					continue
