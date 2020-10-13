@@ -13,6 +13,14 @@ type Config struct {
 	Github githubapp.Config `yaml:"github"`
 }
 
+// RepoConfig contains specific config for each repos
+type RepoConfig struct {
+	TargetBranch     string   `yaml:"target_branch,omitempty"`
+	DefaultReviewers []string `yaml:"default_reviewers,omitempty"`
+	DefaultAssignees []string `yaml:"default_assignees,omitempty"`
+	DefaultLabels    []string `yaml:"default_labels,omitempty"`
+}
+
 // ReadConfig reads a yaml config file
 func ReadConfig(path string) (*Config, error) {
 	var c Config
@@ -27,4 +35,16 @@ func ReadConfig(path string) (*Config, error) {
 	}
 
 	return &c, nil
+}
+
+// ReadRepoConfig reads a yaml file
+func ReadRepoConfig(content []byte) (*RepoConfig, error) {
+
+	var repoConfig RepoConfig
+
+	if err := yaml.UnmarshalStrict(content, &repoConfig); err != nil {
+		return nil, errors.Wrap(err, "failed parsing repository configuration file")
+	}
+
+	return &repoConfig, nil
 }

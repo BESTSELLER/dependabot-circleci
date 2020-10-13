@@ -19,13 +19,13 @@ var wg sync.WaitGroup
 var org = "brondum"
 
 func main() {
-	config, err := config.ReadConfig("./config.yml")
+	appConfig, err := config.ReadConfig("./config.yml")
 	if err != nil {
 		panic(err)
 	}
 
 	// create client
-	client, err := gh.GetOrganizationClient(ctx, config.Github, org)
+	client, err := gh.GetOrganizationClient(ctx, appConfig.Github, org)
 	if err != nil {
 		panic(err)
 	}
@@ -43,13 +43,32 @@ func main() {
 			defer wg.Done()
 
 			// check if a bot config exists
-			_, _, err := gh.GetRepoContent(ctx, client, repo, ".github/circleci.yml")
+			repoConfigContent, _, err := gh.GetRepoContent(ctx, client, repo, ".github/dependabot-circleci.yml", "")
 			if err != nil {
 				return
 			}
 
+			repoConfig, err := config.ReadRepoConfig(repoConfigContent)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+
+			// determine repo details
+			repoOwner := repo.GetOwner().GetLogin()
+			repoName := repo.GetName()
+
+			targetBranch := repo.GetDefaultBranch()
+			if repoConfig.TargetBranch != "" {
+				_, _, err := client.Repositories.GetBranch(ctx, repoOwner, repoName, repoConfig.TargetBranch)
+				if err != nil {
+					return
+				}
+				targetBranch = repoConfig.TargetBranch
+			}
+
 			// get content of circleci configfile
-			content, SHA, err := gh.GetRepoContent(ctx, client, repo, ".circleci/config.yml")
+			content, SHA, err := gh.GetRepoContent(ctx, client, repo, ".circleci/config.yml", targetBranch)
 			if err != nil {
 				return
 			}
@@ -61,11 +80,6 @@ func main() {
 				log.Printf("could not unmarshal yaml: %v", err)
 				return
 			}
-
-			// determine repo details
-			repoOwner := repo.GetOwner().GetLogin()
-			repoName := repo.GetName()
-			baseBranch := repo.GetDefaultBranch()
 
 			// check for updates
 			updates := circleci.GetUpdates(&cciconfig)
@@ -80,12 +94,17 @@ func main() {
 				commitBranch := github.String(fmt.Sprintf("dependabot-circleci/orb/%s", update.Value))
 
 				// err := check and create branch
-				exists, err := gh.CheckPR(ctx, client, repoOwner, repoName, baseBranch, commitBranch, commitMessage, oldVersion[0])
+				exists, oldPR, err := gh.CheckPR(ctx, client, repoOwner, repoName, targetBranch, commitBranch, commitMessage, oldVersion[0])
 				if err != nil {
-					log.Printf("could not create branch: %v", err)
+					log.Printf("could not get old branch: %v", err)
 					continue
 				}
 				if exists {
+					continue
+				}
+				err = gh.CreateBranch(ctx, client, repoOwner, repoName, targetBranch, commitBranch)
+				if err != nil {
+					log.Printf("could not create branch: %v", err)
 					continue
 				}
 
@@ -102,16 +121,24 @@ func main() {
 				}
 
 				// create pull req
-				err = gh.CreatePR(ctx, client, repoOwner, repoName, &github.NewPullRequest{
+				newPR, err := gh.CreatePR(ctx, client, repoOwner, repoName, repoConfig.DefaultReviewers, repoConfig.DefaultAssignees, repoConfig.DefaultLabels, &github.NewPullRequest{
 					Title:               commitMessage,
 					Head:                commitBranch,
-					Base:                github.String(baseBranch),
+					Base:                github.String(targetBranch),
 					Body:                commitMessage,
 					MaintainerCanModify: github.Bool(true),
 				})
 				if err != nil {
 					log.Printf("could not create pr: %v", err)
 					continue
+				}
+
+				if oldPR != nil {
+					err := gh.CleanUpOldBranch(ctx, client, repoOwner, repoName, oldPR, newPR.GetNumber())
+					if err != nil {
+						log.Printf("could not cleanup old pr and branch: %v", err)
+						continue
+					}
 				}
 
 			}

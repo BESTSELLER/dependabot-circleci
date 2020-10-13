@@ -17,8 +17,9 @@ func GetRepos(ctx context.Context, client *github.Client) ([]*github.Repository,
 }
 
 // GetRepoContent returns the circleci config as a byte array
-func GetRepoContent(ctx context.Context, client *github.Client, repo *github.Repository, file string) ([]byte, *string, error) {
-	fileContent, _, _, err := client.Repositories.GetContents(ctx, repo.GetOwner().GetLogin(), repo.GetName(), file, nil)
+func GetRepoContent(ctx context.Context, client *github.Client, repo *github.Repository, file string, branch string) ([]byte, *string, error) {
+	options := &github.RepositoryContentGetOptions{Ref: branch}
+	fileContent, _, _, err := client.Repositories.GetContents(ctx, repo.GetOwner().GetLogin(), repo.GetName(), file, options)
 	if err != nil {
 		return nil, nil, err
 	}
