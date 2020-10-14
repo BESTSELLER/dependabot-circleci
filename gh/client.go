@@ -2,12 +2,15 @@ package gh
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/go-github/v32/github"
 	"github.com/gregjones/httpcache"
 	"github.com/palantir/go-githubapp/githubapp"
 )
+
+var version string
 
 // GetOrganizationClient returns a github client
 func GetOrganizationClient(ctx context.Context, config githubapp.Config, org string) (*github.Client, error) {
@@ -38,7 +41,7 @@ func GetOrganizationClient(ctx context.Context, config githubapp.Config, org str
 func createGHClient(config githubapp.Config) (githubapp.ClientCreator, error) {
 	cc, err := githubapp.NewDefaultCachingClientCreator(
 		config,
-		githubapp.WithClientUserAgent("dependabot-circleci/1.0.0"),
+		githubapp.WithClientUserAgent(fmt.Sprintf("dependabot-circleci/%s", version)),
 		githubapp.WithClientTimeout(3*time.Second),
 		githubapp.WithClientCaching(false, func() httpcache.Cache { return httpcache.NewMemoryCache() }),
 	)

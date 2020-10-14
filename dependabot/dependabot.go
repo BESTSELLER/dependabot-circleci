@@ -67,64 +67,8 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 	// check for updates
 	updates := circleci.GetUpdates(&cciconfig)
 	for old, update := range updates {
-		newYaml := circleci.ReplaceVersion(update, old, string(content))
-
-		// commit vars
-		oldVersion := strings.Split(old, "@")
-		newVersion := strings.Split(update.Value, "@")
-		commitMessage := github.String(fmt.Sprintf("Bump @%s from %s to %s", oldVersion[0], oldVersion[1], newVersion[1]))
-		commitBranch := github.String(fmt.Sprintf("dependabot-circleci/orb/%s", update.Value))
-
-		fmt.Println(*commitMessage)
-
-		// err := check and create branch
-		exists, oldPR, err := gh.CheckPR(ctx, client, repoOwner, repoName, targetBranch, commitBranch, commitMessage, oldVersion[0])
-		if err != nil {
-			log.Printf("could not get old branch: %v", err)
-			continue
-		}
-		if exists {
-			continue
-		}
-		err = gh.CreateBranch(ctx, client, repoOwner, repoName, targetBranch, commitBranch)
-		if err != nil {
-			log.Printf("could not create branch: %v", err)
-			continue
-		}
-
-		// commit file
-		err = gh.UpdateFile(ctx, client, repoOwner, repoName, &github.RepositoryContentFileOptions{
-			Message: commitMessage,
-			Content: []byte(newYaml),
-			Branch:  commitBranch,
-			SHA:     SHA,
-		})
-		if err != nil {
-			log.Printf("could not update file: %v", err)
-			continue
-		}
-
-		// create pull req
-		newPR, err := gh.CreatePR(ctx, client, repoOwner, repoName, repoConfig.DefaultReviewers, repoConfig.DefaultAssignees, repoConfig.DefaultLabels, &github.NewPullRequest{
-			Title:               commitMessage,
-			Head:                commitBranch,
-			Base:                github.String(targetBranch),
-			Body:                commitMessage,
-			MaintainerCanModify: github.Bool(true),
-		})
-		if err != nil {
-			log.Printf("could not create pr: %v", err)
-			continue
-		}
-
-		if oldPR != nil {
-			err := gh.CleanUpOldBranch(ctx, client, repoOwner, repoName, oldPR, newPR.GetNumber())
-			if err != nil {
-				log.Printf("could not cleanup old pr and branch: %v", err)
-				continue
-			}
-		}
-
+		wg.Add(1)
+		go handleUpdate(ctx, client, update, old, content, repoOwner, repoName, targetBranch, SHA, repoConfig)
 	}
 }
 func getRepoConfig(ctx context.Context, client *github.Client, repo *github.Repository) *config.RepoConfig {
@@ -152,4 +96,66 @@ func getTargetBranch(ctx context.Context, client *github.Client, repoOwner strin
 		targetBranch = repoConfig.TargetBranch
 	}
 	return targetBranch
+}
+
+func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node, old string, content []byte, repoOwner string, repoName string, targetBranch string, SHA *string, repoConfig *config.RepoConfig) {
+	defer wg.Done()
+
+	newYaml := circleci.ReplaceVersion(update, old, string(content))
+
+	// commit vars
+	oldVersion := strings.Split(old, "@")
+	newVersion := strings.Split(update.Value, "@")
+	commitMessage := github.String(fmt.Sprintf("Bump @%s from %s to %s", oldVersion[0], oldVersion[1], newVersion[1]))
+	commitBranch := github.String(fmt.Sprintf("dependabot-circleci/orb/%s", update.Value))
+
+	fmt.Println(*commitMessage)
+
+	// err := check and create branch
+	exists, oldPR, err := gh.CheckPR(ctx, client, repoOwner, repoName, targetBranch, commitBranch, commitMessage, oldVersion[0])
+	if err != nil {
+		log.Printf("could not get old branch: %v", err)
+		return
+	}
+	if exists {
+		return
+	}
+	err = gh.CreateBranch(ctx, client, repoOwner, repoName, targetBranch, commitBranch)
+	if err != nil {
+		log.Printf("could not create branch: %v", err)
+		return
+	}
+
+	// commit file
+	err = gh.UpdateFile(ctx, client, repoOwner, repoName, &github.RepositoryContentFileOptions{
+		Message: commitMessage,
+		Content: []byte(newYaml),
+		Branch:  commitBranch,
+		SHA:     SHA,
+	})
+	if err != nil {
+		log.Printf("could not update file: %v", err)
+		return
+	}
+
+	// create pull req
+	newPR, err := gh.CreatePR(ctx, client, repoOwner, repoName, repoConfig.DefaultReviewers, repoConfig.DefaultAssignees, repoConfig.DefaultLabels, &github.NewPullRequest{
+		Title:               commitMessage,
+		Head:                commitBranch,
+		Base:                github.String(targetBranch),
+		Body:                commitMessage,
+		MaintainerCanModify: github.Bool(true),
+	})
+	if err != nil {
+		log.Printf("could not create pr: %v", err)
+		return
+	}
+
+	if oldPR != nil {
+		err := gh.CleanUpOldBranch(ctx, client, repoOwner, repoName, oldPR, newPR.GetNumber())
+		if err != nil {
+			log.Printf("could not cleanup old pr and branch: %v", err)
+			return
+		}
+	}
 }
