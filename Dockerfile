@@ -1,12 +1,10 @@
-FROM golang:1.15 as build
-WORKDIR $GOPATH/src/github.com/BESTELLER/dependabot-circleci
+FROM golang:alpine AS builder
+WORKDIR $GOPATH/src/dependabot-circleci
 COPY . .
-
-RUN GO111MODULE=on CGO_ENABLED=0 go mod vendor
-RUN GO111MODULE=on CGO_ENABLED=0 go install -mod=vendor
+ARG VERSION=1.0.0
+RUN GOOS=linux GOARCH=amd64 go build -ldflags="-w -s -X gh.version=${VERSION}" -o /tmp/dependabot-circleci
 
 FROM alpine
-WORKDIR /
-COPY --from=build /go/bin/dependabot-circleci /
+COPY --from=builder /tmp/dependabot-circleci /dependabot-circleci
 
-CMD /dependabot-circleci
+CMD ["/dependabot-circleci"]
