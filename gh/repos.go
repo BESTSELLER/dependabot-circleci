@@ -7,19 +7,25 @@ import (
 )
 
 // GetRepos returns a list of repos for an orginasation
-func GetRepos(ctx context.Context, client *github.Client) ([]*github.Repository, error) {
+func GetRepos(ctx context.Context, client *github.Client, page int) ([]*github.Repository, error) {
 
-	repos, _, err := client.Apps.ListRepos(ctx, nil)
+	repos, resp, err := client.Apps.ListRepos(ctx, &github.ListOptions{PerPage: 100, Page: page})
 	if err != nil {
 		return nil, err
 	}
+
+	if resp.NextPage != 0 {
+		moreRepos, _ := GetRepos(ctx, client, page+1)
+		repos = append(moreRepos, repos...)
+	}
+
 	return repos, nil
 }
 
 // GetRepoContent returns the circleci config as a byte array
 func GetRepoContent(ctx context.Context, client *github.Client, repo *github.Repository, file string, branch string) ([]byte, *string, error) {
 	options := &github.RepositoryContentGetOptions{Ref: branch}
-	fileContent, _, _, err := client.Repositories.GetContents(ctx, repo.GetOwner().GetLogin(), repo.GetName(), file, options)
+	fileContent, _, _, err := client.Repositories.GetContents(context.Background(), repo.GetOwner().GetLogin(), repo.GetName(), file, options)
 	if err != nil {
 		return nil, nil, err
 	}

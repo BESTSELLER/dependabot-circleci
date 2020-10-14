@@ -19,7 +19,7 @@ var wg sync.WaitGroup
 // Start will run through all repos it has access to and check for updates and make pull requests if needed.
 func Start(ctx context.Context, client *github.Client) {
 	// get repos
-	repos, err := gh.GetRepos(ctx, client)
+	repos, err := gh.GetRepos(ctx, client, 0)
 	if err != nil {
 		panic(err)
 	}
@@ -106,6 +106,11 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 	// commit vars
 	oldVersion := strings.Split(old, "@")
 	newVersion := strings.Split(update.Value, "@")
+
+	if len(newVersion) == 1 {
+		return
+	}
+
 	commitMessage := github.String(fmt.Sprintf("Bump @%s from %s to %s", oldVersion[0], oldVersion[1], newVersion[1]))
 	commitBranch := github.String(fmt.Sprintf("dependabot-circleci/orb/%s", update.Value))
 
