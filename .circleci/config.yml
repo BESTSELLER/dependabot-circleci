@@ -86,8 +86,8 @@ jobs:
               -t $K8S_CLUSTER_docker_registry_url/$SHORT/$CIRCLE_PROJECT_REPONAME:$CIRCLE_TAG \
               -t $K8S_CLUSTER_docker_registry_url/$SHORT/$CIRCLE_PROJECT_REPONAME:latest \
               --build-arg VERSION=$CIRCLE_TAG .
-            docker push $K8S_CLUSTER_docker_registry_url/$SHORT//$CIRCLE_PROJECT_REPONAME:$CIRCLE_TAG
-            docker push $K8S_CLUSTER_docker_registry_url/$SHORT//$CIRCLE_PROJECT_REPONAME:latest
+            docker push $K8S_CLUSTER_docker_registry_url/$SHORT/$CIRCLE_PROJECT_REPONAME:$CIRCLE_TAG
+            docker push $K8S_CLUSTER_docker_registry_url/$SHORT/$CIRCLE_PROJECT_REPONAME:latest
 
   deploy:
     docker:
