@@ -13,7 +13,7 @@ var ctx = context.Background()
 var org = os.Getenv("DEPENDABOT_ORG")
 
 func main() {
-	appConfig, err := config.ReadConfig("/secrets/secrets")
+	appConfig, err := config.ReadConfig(os.Getenv("DEPENDABOT_CONFIG"))
 	if err != nil {
 		panic(err)
 	}
