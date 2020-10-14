@@ -128,7 +128,13 @@ jobs:
               source ${BASH_ENV}
               export SECRET_VERSION=$CIRCLE_BRANCH
             fi
+            envsubst < ./secrets.yml > ./secrets_var.yml && mv ./secrets_var.yml ./secrets.yml
             envsubst < ./deployment.yml > ./deployment_var.yml && mv ./deployment_var.yml ./deployment.yml
+      - secret-injector/inject:
+          app-name: $CIRCLE_PROJECT_REPONAME$DEPLOY_VERSION
+          deploy-file: ./deployment.yml
+          deploy-type: CronJob
+          secret-file: secrets.yml
       - run:
           name: create kubernetes service
           command: |
