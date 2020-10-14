@@ -1,4 +1,5 @@
 # dependabot-circleci
+>!Disclaimer, it is early days, prepare for breaking changes.
 
 <br/>
 
@@ -9,3 +10,17 @@
 
 <br/>
 
+dependabot-circleci is as its name suggests a small dependabot for circleci orbs and images.
+We have created this as it is at the moment nearly impossible getting changes into the official [dependabot](https://github.com/dependabot/dependabot-core).
+
+---
+<br/>
+
+## Getting Started
+
+
+---
+<br/>
+
+## Contributing
+We are open for issues, pull requests etc.

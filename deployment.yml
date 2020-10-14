@@ -1,0 +1,21 @@
+
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: $CIRCLE_PROJECT_REPONAME$DEPLOY_VERSION
+spec:
+  schedule: "0 22 * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 5
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 100
+      template:
+        spec:
+          containers:
+          - name: $CIRCLE_PROJECT_REPONAME$DEPLOY_VERSION
+            image: $K8S_CLUSTER_docker_registry_url/$SHORT/$CIRCLE_PROJECT_REPONAME:$CIRCLE_TAG
+            env:
+              - name: DEPENDABOT_ORG
+                value: BESTSELLER
+          restartPolicy: Never

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"os"
 
 	"github.com/BESTSELLER/dependabot-circleci/config"
 	"github.com/BESTSELLER/dependabot-circleci/dependabot"
@@ -9,7 +10,7 @@ import (
 )
 
 var ctx = context.Background()
-var org = "brondum"
+var org = os.Getenv("DEPENDABOT_ORG")
 
 func main() {
 	appConfig, err := config.ReadConfig("./config.yml")
