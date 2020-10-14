@@ -82,7 +82,10 @@ jobs:
           command: |
             source /tmp/secrets
             docker login -u $DOCKER_username -p $DOCKER_password $K8S_CLUSTER_docker_registry_url
-            docker build -t $K8S_CLUSTER_docker_registry_url/$SHORT/$CIRCLE_PROJECT_REPONAME:$CIRCLE_SHA1 .
+            docker build \
+              -t $K8S_CLUSTER_docker_registry_url/$SHORT/$CIRCLE_PROJECT_REPONAME:$CIRCLE_TAG \
+              -t $K8S_CLUSTER_docker_registry_url/$SHORT/$CIRCLE_PROJECT_REPONAME:latest \
+              --build-arg VERSION=$CIRCLE_TAG .
             docker push $K8S_CLUSTER_docker_registry_url/$SHORT//$CIRCLE_PROJECT_REPONAME:$CIRCLE_TAG
             docker push $K8S_CLUSTER_docker_registry_url/$SHORT//$CIRCLE_PROJECT_REPONAME:latest
 
