@@ -18,4 +18,6 @@ spec:
             env:
               - name: DEPENDABOT_ORG
                 value: BESTSELLER
+              - name: DEPENDABOT_CONFIG
+                value: "/secrets/secrets"
           restartPolicy: Never
