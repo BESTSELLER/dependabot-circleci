@@ -144,7 +144,7 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 	}
 
 	// create pull req
-	newPR, err := gh.CreatePR(ctx, client, repoOwner, repoName, repoConfig.DefaultReviewers, repoConfig.DefaultAssignees, repoConfig.DefaultLabels, &github.NewPullRequest{
+	newPR, err := gh.CreatePR(ctx, client, repoOwner, repoName, repoConfig.Reviewers, repoConfig.Assignees, repoConfig.Labels, &github.NewPullRequest{
 		Title:               commitMessage,
 		Head:                commitBranch,
 		Base:                github.String(targetBranch),
