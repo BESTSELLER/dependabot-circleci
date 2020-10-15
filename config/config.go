@@ -15,7 +15,7 @@ type Config struct {
 
 // RepoConfig contains specific config for each repos
 type RepoConfig struct {
-	TargetBranch string   `yaml:"target_branch,omitempty"`
+	TargetBranch string   `yaml:"target-branch,omitempty"`
 	Reviewers    []string `yaml:"reviewers,omitempty"`
 	Assignees    []string `yaml:"assignees,omitempty"`
 	Labels       []string `yaml:"labels,omitempty"`
