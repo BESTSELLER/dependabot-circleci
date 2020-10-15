@@ -15,10 +15,10 @@ type Config struct {
 
 // RepoConfig contains specific config for each repos
 type RepoConfig struct {
-	TargetBranch     string   `yaml:"target_branch,omitempty"`
-	DefaultReviewers []string `yaml:"default_reviewers,omitempty"`
-	DefaultAssignees []string `yaml:"default_assignees,omitempty"`
-	DefaultLabels    []string `yaml:"default_labels,omitempty"`
+	TargetBranch string   `yaml:"target-branch,omitempty"`
+	Reviewers    []string `yaml:"reviewers,omitempty"`
+	Assignees    []string `yaml:"assignees,omitempty"`
+	Labels       []string `yaml:"labels,omitempty"`
 }
 
 // ReadConfig reads a yaml config file

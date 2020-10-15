@@ -82,7 +82,7 @@ func CreatePR(ctx context.Context, client *github.Client, repoOwner string, repo
 // CleanUpOldBranch comments the old pull request and deletes the old branch
 func CleanUpOldBranch(ctx context.Context, client *github.Client, repoOwner string, repoName string, pr *github.PullRequest, newPR int) error {
 
-	_, _, err := client.Issues.CreateComment(ctx, repoOwner, repoName, pr.GetNumber(), &github.IssueComment{Body: github.String(fmt.Sprintf("pullRequest superseeded by #%d", newPR))})
+	_, _, err := client.Issues.CreateComment(ctx, repoOwner, repoName, pr.GetNumber(), &github.IssueComment{Body: github.String(fmt.Sprintf("Update superseeded by #%d", newPR))})
 	if err != nil {
 		return err
 	}
