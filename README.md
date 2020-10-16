@@ -30,13 +30,13 @@ The example *dependabot-circleci.yml* file below configures version updates. If 
 
 assignees:
   - github_username # for a single user
-  - org/team_name # for a whole team
+  - org/team_name # for a whole team (nested teams is the same syntax org/team_name)
 labels:
   - label1
   - label2
 reviewers:
   - github_username # for a single user
-  - org/team_name # for a whole team
+  - org/team_name # for a whole team (nested teams is the same syntax org/team_name)
 target-branch: main
 
 ```
