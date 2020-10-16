@@ -71,13 +71,18 @@ func CreatePR(ctx context.Context, client *github.Client, repoOwner string, repo
 		return nil, err
 	}
 
-	// we dont care about your errors!
+	// disect team reviewers
 	var teamReviewers []string
 	for _, reviewer := range reviewers {
 		if strings.Contains(reviewer, "/") {
 			teamReviewers = append(teamReviewers, strings.Split(reviewer, "/")[1])
 		}
 	}
+
+	// add default labels
+	labels = append(labels, []string{"dependencies", "circleci"}...)
+
+	// we dont care about your errors!
 	client.PullRequests.RequestReviewers(ctx, repoOwner, repoName, pr.GetNumber(), github.ReviewersRequest{Reviewers: reviewers, TeamReviewers: teamReviewers})
 	client.Issues.AddAssignees(ctx, repoOwner, repoName, pr.GetNumber(), assignees)
 	client.Issues.AddLabelsToIssue(ctx, repoOwner, repoName, pr.GetNumber(), labels)
