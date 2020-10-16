@@ -19,7 +19,7 @@ var wg sync.WaitGroup
 // Start will run through all repos it has access to and check for updates and make pull requests if needed.
 func Start(ctx context.Context, client *github.Client) {
 	// get repos
-	repos, err := gh.GetRepos(ctx, client, 0)
+	repos, err := gh.GetRepos(ctx, client, 1)
 	if err != nil {
 		panic(err)
 	}
