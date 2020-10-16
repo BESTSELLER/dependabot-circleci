@@ -72,7 +72,13 @@ func CreatePR(ctx context.Context, client *github.Client, repoOwner string, repo
 	}
 
 	// we dont care about your errors!
-	client.PullRequests.RequestReviewers(ctx, repoOwner, repoName, pr.GetNumber(), github.ReviewersRequest{Reviewers: reviewers})
+	var teamReviewers []string
+	for _, reviewer := range reviewers {
+		if strings.Contains(reviewer, "/") {
+			teamReviewers = append(teamReviewers, strings.Split(reviewer, "/")[1])
+		}
+	}
+	client.PullRequests.RequestReviewers(ctx, repoOwner, repoName, pr.GetNumber(), github.ReviewersRequest{Reviewers: reviewers, TeamReviewers: teamReviewers})
 	client.Issues.AddAssignees(ctx, repoOwner, repoName, pr.GetNumber(), assignees)
 	client.Issues.AddLabelsToIssue(ctx, repoOwner, repoName, pr.GetNumber(), labels)
 

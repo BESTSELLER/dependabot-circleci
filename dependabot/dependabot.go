@@ -19,7 +19,7 @@ var wg sync.WaitGroup
 // Start will run through all repos it has access to and check for updates and make pull requests if needed.
 func Start(ctx context.Context, client *github.Client) {
 	// get repos
-	repos, err := gh.GetRepos(ctx, client, 0)
+	repos, err := gh.GetRepos(ctx, client, 1)
 	if err != nil {
 		panic(err)
 	}
@@ -101,6 +101,7 @@ func getTargetBranch(ctx context.Context, client *github.Client, repoOwner strin
 func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node, old string, content []byte, repoOwner string, repoName string, targetBranch string, SHA *string, repoConfig *config.RepoConfig) {
 	defer wg.Done()
 
+	fmt.Printf("repo: %s, old: %s, update: %s\n", repoName, old, update.Value)
 	newYaml := circleci.ReplaceVersion(update, old, string(content))
 
 	// commit vars
@@ -113,8 +114,6 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 
 	commitMessage := github.String(fmt.Sprintf("Bump @%s from %s to %s", oldVersion[0], oldVersion[1], newVersion[1]))
 	commitBranch := github.String(fmt.Sprintf("dependabot-circleci/orb/%s", update.Value))
-
-	fmt.Println(*commitMessage)
 
 	// err := check and create branch
 	exists, oldPR, err := gh.CheckPR(ctx, client, repoOwner, repoName, targetBranch, commitBranch, commitMessage, oldVersion[0])
