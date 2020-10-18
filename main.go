@@ -2,7 +2,10 @@ package main
 
 import (
 	"context"
+	"log"
 	"os"
+
+	"github.com/BESTSELLER/dependabot-circleci/datadog"
 
 	"github.com/BESTSELLER/dependabot-circleci/config"
 	"github.com/BESTSELLER/dependabot-circleci/dependabot"
@@ -22,6 +25,12 @@ func main() {
 	client, err := gh.GetOrganizationClient(ctx, appConfig.Github, org)
 	if err != nil {
 		panic(err)
+	}
+
+	// create statsd client
+	err = datadog.CreateClient()
+	if err != nil {
+		log.Fatalf("failed to register dogstatsd client: %v \n", err)
 	}
 
 	dependabot.Start(ctx, client)

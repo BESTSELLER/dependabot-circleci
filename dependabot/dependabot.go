@@ -7,6 +7,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/BESTSELLER/dependabot-circleci/datadog"
+
 	"github.com/BESTSELLER/dependabot-circleci/circleci"
 	"github.com/BESTSELLER/dependabot-circleci/config"
 	"github.com/BESTSELLER/dependabot-circleci/gh"
@@ -49,6 +51,10 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 	if targetBranch == "" {
 		return
 	}
+
+	go func() {
+		datadog.IncrementCount("analysed_repos", repoOwner)
+	}()
 
 	// get content of circleci config file
 	content, SHA, err := gh.GetRepoContent(ctx, client, repo, ".circleci/config.yml", targetBranch)
@@ -155,11 +161,19 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 		return
 	}
 
+	go func() {
+		datadog.IncrementCount("pull_requests", repoOwner)
+	}()
+
 	if oldPR != nil {
 		err := gh.CleanUpOldBranch(ctx, client, repoOwner, repoName, oldPR, newPR.GetNumber())
 		if err != nil {
 			log.Printf("could not cleanup old pr and branch: %v", err)
 			return
 		}
+
+		go func() {
+			datadog.IncrementCount("superseeded_updates", repoOwner)
+		}()
 	}
 }
