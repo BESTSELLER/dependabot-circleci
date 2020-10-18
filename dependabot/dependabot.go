@@ -3,16 +3,15 @@ package dependabot
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 	"sync"
 
-	"github.com/BESTSELLER/dependabot-circleci/datadog"
-
 	"github.com/BESTSELLER/dependabot-circleci/circleci"
 	"github.com/BESTSELLER/dependabot-circleci/config"
+	"github.com/BESTSELLER/dependabot-circleci/datadog"
 	"github.com/BESTSELLER/dependabot-circleci/gh"
 	"github.com/google/go-github/v32/github"
+	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 )
 
@@ -23,7 +22,7 @@ func Start(ctx context.Context, client *github.Client) {
 	// get repos
 	repos, err := gh.GetRepos(ctx, client, 1)
 	if err != nil {
-		panic(err)
+		log.Fatal().Err(err).Msg("failed to repos")
 	}
 
 	// Loop through all repos
@@ -66,7 +65,7 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 	var cciconfig yaml.Node
 	err = yaml.Unmarshal(content, &cciconfig)
 	if err != nil {
-		log.Printf("could not unmarshal yaml: %v", err)
+		log.Info().Err(err).Msg("could not unmarshal yaml")
 		return
 	}
 
@@ -86,7 +85,7 @@ func getRepoConfig(ctx context.Context, client *github.Client, repo *github.Repo
 
 	repoConfig, err := config.ReadRepoConfig(repoConfigContent)
 	if err != nil {
-		log.Println(err)
+		log.Info().Err(err).Msg("could not read repo config")
 		return nil
 	}
 
@@ -124,7 +123,7 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 	// err := check and create branch
 	exists, oldPR, err := gh.CheckPR(ctx, client, repoOwner, repoName, targetBranch, commitBranch, commitMessage, oldVersion[0])
 	if err != nil {
-		log.Printf("could not get old branch: %v", err)
+		log.Info().Err(err).Msg("could not get old branch")
 		return
 	}
 	if exists {
@@ -132,7 +131,7 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 	}
 	err = gh.CreateBranch(ctx, client, repoOwner, repoName, targetBranch, commitBranch)
 	if err != nil {
-		log.Printf("could not create branch: %v", err)
+		log.Info().Err(err).Msg("could not create branch")
 		return
 	}
 
@@ -144,7 +143,7 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 		SHA:     SHA,
 	})
 	if err != nil {
-		log.Printf("could not update file: %v", err)
+		log.Info().Err(err).Msg("could not update file")
 		return
 	}
 
@@ -157,7 +156,7 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 		MaintainerCanModify: github.Bool(true),
 	})
 	if err != nil {
-		log.Printf("could not create pr: %v", err)
+		log.Info().Err(err).Msg("could not create pr")
 		return
 	}
 
@@ -168,7 +167,7 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 	if oldPR != nil {
 		err := gh.CleanUpOldBranch(ctx, client, repoOwner, repoName, oldPR, newPR.GetNumber())
 		if err != nil {
-			log.Printf("could not cleanup old pr and branch: %v", err)
+			log.Info().Err(err).Msg("could not cleanup old pr and branch")
 			return
 		}
 
