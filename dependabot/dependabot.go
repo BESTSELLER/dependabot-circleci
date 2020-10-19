@@ -106,7 +106,7 @@ func getTargetBranch(ctx context.Context, client *github.Client, repoOwner strin
 func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node, old string, content []byte, repoOwner string, repoName string, targetBranch string, SHA *string, repoConfig *config.RepoConfig) {
 	defer wg.Done()
 
-	fmt.Printf("repo: %s, old: %s, update: %s\n", repoName, old, update.Value)
+	log.Debug().Msgf("repo: %s, old: %s, update: %s\n", repoName, old, update.Value)
 	newYaml := circleci.ReplaceVersion(update, old, string(content))
 
 	// commit vars
