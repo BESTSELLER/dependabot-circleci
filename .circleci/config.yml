@@ -3,6 +3,9 @@ executors:
   go_image:
     docker:
       - image: cimg/go:1.15
+        auth:
+          username: $DOCKERHUB_USER
+          password: $DOCKERHUB_PASS
 
 orbs:
   secret-injector: bestsellerit/secret-injector@1.0.4
@@ -72,6 +75,9 @@ jobs:
   docker-build-n-push:
     docker:
       - image: docker:stable-git
+        auth:
+          username: $DOCKERHUB_USER
+          password: $DOCKERHUB_PASS
     steps:
       - attach_workspace:
           at: /tmp
@@ -92,6 +98,9 @@ jobs:
   deploy:
     docker:
       - image: google/cloud-sdk:alpine
+        auth:
+          username: $DOCKERHUB_USER
+          password: $DOCKERHUB_PASS
     steps:
       - checkout
       - attach_workspace:
@@ -147,16 +156,22 @@ workflows:
   test:
     jobs:
       - secret-injector/dump-secrets:
-          context: es02-prod
+          context: 
+            - es02-prod
+            - shared
           filters:
             tags:
               ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
       - test:
+          context:
+            - shared
           filters:
             tags:
               ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
       - test-sonar:
-          context: es02-prod
+          context: 
+            - es02-prod
+            - shared
           requires:
             - secret-injector/dump-secrets
           filters:
@@ -166,20 +181,26 @@ workflows:
   test-build-deploy:
     jobs:
       - secret-injector/dump-secrets:
-          context: es02-prod
+          context: 
+            - es02-prod
+            - shared
           filters:
             tags:
               only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
             branches:
               ignore: /.*/
       - test:
+          context:
+            - shared
           filters:
             tags:
               only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
             branches:
               ignore: /.*/
       - test-sonar:
-          context: es02-prod
+          context: 
+            - es02-prod
+            - shared
           requires:
             - secret-injector/dump-secrets
           filters:
@@ -188,7 +209,9 @@ workflows:
             branches:
               ignore: /.*/
       - docker-build-n-push:
-          context: es02-prod
+          context: 
+            - es02-prod
+            - shared
           requires:
             - secret-injector/dump-secrets
           filters:
@@ -197,7 +220,9 @@ workflows:
             branches:
               ignore: /.*/
       - deploy:
-          context: es02-prod
+          context: 
+            - es02-prod
+            - shared
           requires:
             - docker-build-n-push
           filters:
