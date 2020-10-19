@@ -20,4 +20,6 @@ spec:
                 value: BESTSELLER
               - name: DEPENDABOT_CONFIG
                 value: "/secrets/secrets"
+              - name: DEPENDABOT_DDADDRESS
+                value: "datadog-agent.datadog:8125"
           restartPolicy: Never
