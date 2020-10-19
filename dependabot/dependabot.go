@@ -3,14 +3,15 @@ package dependabot
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 	"sync"
 
 	"github.com/BESTSELLER/dependabot-circleci/circleci"
 	"github.com/BESTSELLER/dependabot-circleci/config"
+	"github.com/BESTSELLER/dependabot-circleci/datadog"
 	"github.com/BESTSELLER/dependabot-circleci/gh"
 	"github.com/google/go-github/v32/github"
+	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 )
 
@@ -21,7 +22,7 @@ func Start(ctx context.Context, client *github.Client) {
 	// get repos
 	repos, err := gh.GetRepos(ctx, client, 1)
 	if err != nil {
-		panic(err)
+		log.Fatal().Err(err).Msg("failed to repos")
 	}
 
 	// Loop through all repos
@@ -50,6 +51,10 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 		return
 	}
 
+	go func() {
+		datadog.IncrementCount("analysed_repos", repoOwner)
+	}()
+
 	// get content of circleci config file
 	content, SHA, err := gh.GetRepoContent(ctx, client, repo, ".circleci/config.yml", targetBranch)
 	if err != nil {
@@ -60,7 +65,7 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 	var cciconfig yaml.Node
 	err = yaml.Unmarshal(content, &cciconfig)
 	if err != nil {
-		log.Printf("could not unmarshal yaml: %v", err)
+		log.Error().Err(err).Msgf("could not unmarshal yaml in %s", repoName)
 		return
 	}
 
@@ -80,7 +85,7 @@ func getRepoConfig(ctx context.Context, client *github.Client, repo *github.Repo
 
 	repoConfig, err := config.ReadRepoConfig(repoConfigContent)
 	if err != nil {
-		log.Println(err)
+		log.Error().Err(err).Msgf("could not read repo config in %s", repo.GetName())
 		return nil
 	}
 
@@ -101,7 +106,7 @@ func getTargetBranch(ctx context.Context, client *github.Client, repoOwner strin
 func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node, old string, content []byte, repoOwner string, repoName string, targetBranch string, SHA *string, repoConfig *config.RepoConfig) {
 	defer wg.Done()
 
-	fmt.Printf("repo: %s, old: %s, update: %s\n", repoName, old, update.Value)
+	log.Debug().Msgf("repo: %s, old: %s, update: %s\n", repoName, old, update.Value)
 	newYaml := circleci.ReplaceVersion(update, old, string(content))
 
 	// commit vars
@@ -118,7 +123,7 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 	// err := check and create branch
 	exists, oldPR, err := gh.CheckPR(ctx, client, repoOwner, repoName, targetBranch, commitBranch, commitMessage, oldVersion[0])
 	if err != nil {
-		log.Printf("could not get old branch: %v", err)
+		log.Error().Err(err).Msgf("could not get old branch in %s", repoName)
 		return
 	}
 	if exists {
@@ -126,7 +131,7 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 	}
 	err = gh.CreateBranch(ctx, client, repoOwner, repoName, targetBranch, commitBranch)
 	if err != nil {
-		log.Printf("could not create branch: %v", err)
+		log.Error().Err(err).Msgf("could not create branch in %s", repoName)
 		return
 	}
 
@@ -138,7 +143,7 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 		SHA:     SHA,
 	})
 	if err != nil {
-		log.Printf("could not update file: %v", err)
+		log.Error().Err(err).Msgf("could not update file in %s", repoName)
 		return
 	}
 
@@ -151,15 +156,23 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 		MaintainerCanModify: github.Bool(true),
 	})
 	if err != nil {
-		log.Printf("could not create pr: %v", err)
+		log.Info().Err(err).Msgf("could not create pr in %s", repoName)
 		return
 	}
+
+	go func() {
+		datadog.IncrementCount("pull_requests", repoOwner)
+	}()
 
 	if oldPR != nil {
 		err := gh.CleanUpOldBranch(ctx, client, repoOwner, repoName, oldPR, newPR.GetNumber())
 		if err != nil {
-			log.Printf("could not cleanup old pr and branch: %v", err)
+			log.Error().Err(err).Msgf("could not cleanup old pr and branch in %s", repoName)
 			return
 		}
+
+		go func() {
+			datadog.IncrementCount("superseeded_updates", repoOwner)
+		}()
 	}
 }
