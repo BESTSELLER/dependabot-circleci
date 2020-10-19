@@ -65,7 +65,7 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 	var cciconfig yaml.Node
 	err = yaml.Unmarshal(content, &cciconfig)
 	if err != nil {
-		log.Info().Err(err).Msg("could not unmarshal yaml")
+		log.Error().Err(err).Msgf("could not unmarshal yaml in %s", repoName)
 		return
 	}
 
@@ -85,7 +85,7 @@ func getRepoConfig(ctx context.Context, client *github.Client, repo *github.Repo
 
 	repoConfig, err := config.ReadRepoConfig(repoConfigContent)
 	if err != nil {
-		log.Info().Err(err).Msg("could not read repo config")
+		log.Error().Err(err).Msgf("could not read repo config in %s", repo.GetName())
 		return nil
 	}
 
@@ -123,7 +123,7 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 	// err := check and create branch
 	exists, oldPR, err := gh.CheckPR(ctx, client, repoOwner, repoName, targetBranch, commitBranch, commitMessage, oldVersion[0])
 	if err != nil {
-		log.Info().Err(err).Msg("could not get old branch")
+		log.Error().Err(err).Msgf("could not get old branch in %s", repoName)
 		return
 	}
 	if exists {
@@ -131,7 +131,7 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 	}
 	err = gh.CreateBranch(ctx, client, repoOwner, repoName, targetBranch, commitBranch)
 	if err != nil {
-		log.Info().Err(err).Msg("could not create branch")
+		log.Error().Err(err).Msgf("could not create branch in %s", repoName)
 		return
 	}
 
@@ -143,7 +143,7 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 		SHA:     SHA,
 	})
 	if err != nil {
-		log.Info().Err(err).Msg("could not update file")
+		log.Error().Err(err).Msgf("could not update file in %s", repoName)
 		return
 	}
 
@@ -156,7 +156,7 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 		MaintainerCanModify: github.Bool(true),
 	})
 	if err != nil {
-		log.Info().Err(err).Msg("could not create pr")
+		log.Info().Err(err).Msgf("could not create pr in %s", repoName)
 		return
 	}
 
@@ -167,7 +167,7 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 	if oldPR != nil {
 		err := gh.CleanUpOldBranch(ctx, client, repoOwner, repoName, oldPR, newPR.GetNumber())
 		if err != nil {
-			log.Info().Err(err).Msg("could not cleanup old pr and branch")
+			log.Error().Err(err).Msgf("could not cleanup old pr and branch in %s", repoName)
 			return
 		}
 
