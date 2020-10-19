@@ -2,8 +2,8 @@ package datadog
 
 import (
 	"fmt"
-	"os"
 
+	"github.com/BESTSELLER/dependabot-circleci/config"
 	"github.com/DataDog/datadog-go/statsd"
 	"github.com/rs/zerolog/log"
 )
@@ -13,7 +13,7 @@ var metricPrefix = "dependabot_circleci"
 
 // CreateClient creates a statsd client
 func CreateClient() (err error) {
-	client, err = statsd.New(os.Getenv("DD_AGENT_HOST"))
+	client, err = statsd.New(config.EnvVars.DDAdress)
 	if err != nil {
 		return err
 	}
