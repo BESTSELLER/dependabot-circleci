@@ -13,7 +13,7 @@ var metricPrefix = "dependabot_circleci"
 
 // CreateClient creates a statsd client
 func CreateClient() (err error) {
-	client, err = statsd.New(config.EnvVars.DDAdress)
+	client, err = statsd.New(config.EnvVars.DDAddress)
 	if err != nil {
 		return err
 	}

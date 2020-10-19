@@ -6,10 +6,10 @@ import (
 
 // EnvConfig defines the structure of the global configuration parameters
 type EnvConfig struct {
-	Org      string `required:"true"`
-	Config   string `required:"true"`
-	LogLevel string `required:"false"`
-	DDAdress string `required:"true"`
+	Org       string `required:"true"`
+	Config    string `required:"true"`
+	LogLevel  string `required:"false"`
+	DDAddress string `required:"true"`
 }
 
 // EnvVars stores the Global Configuration.
