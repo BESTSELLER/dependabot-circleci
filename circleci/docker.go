@@ -74,7 +74,7 @@ func findNewestDockerVersion(currentVersion string) string {
 
 	fmt.Println(newest)
 
-	return "latest"
+	return newest
 }
 
 func getTags(circleciTag string) ([]string, error) {
