@@ -21,14 +21,14 @@ func GetUpdates(node *yaml.Node) map[string]*yaml.Node {
 		}
 
 		// *** ready for docker image check ***
-		// if nextHole.Value == "executors" {
-		// 	orbs := node.Content[i+1]
-		// 	extractImages(orbs.Content)
-		// }
-		// if nextHole.Value == "jobs" {
-		// 	orbs := node.Content[i+1]
-		// 	extractImages(orbs.Content)
-		// }
+		if nextHole.Value == "executors" {
+			orbs := node.Content[i+1]
+			extractImages(orbs.Content)
+		}
+		if nextHole.Value == "jobs" {
+			orbs := node.Content[i+1]
+			extractImages(orbs.Content)
+		}
 
 		next := GetUpdates(nextHole)
 		for k, v := range next {

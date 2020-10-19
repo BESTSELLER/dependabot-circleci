@@ -4,31 +4,56 @@ import (
 	"fmt"
 	"strings"
 
-	"gopkg.in/yaml.v3"
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/google/go-containerregistry/pkg/v1/google"
+	"gopkg.in/yaml.v3"
 )
 
-func extractImages(orbs []*yaml.Node) {
-	for i := 0; i < len(orbs); i++ {
-		orb := orbs[i]
-		if orb.Value == "image" {
-			orb = orbs[i+1]
+func extractImages(images []*yaml.Node) {
+	updates := map[string]*yaml.Node{}
+	for i := 0; i < len(images); i++ {
+		image := images[i]
+		if image.Value == "image" {
+			image = images[i+1]
 
-			orb.Value = findNewestDockerVersion(orb.Value)
+			imageVersion := findNewestDockerVersion(image.Value)
+
+			if image.Value != imageVersion {
+				oldVersion := image.Value
+				image.Value = imageVersion
+				updates[oldVersion] = image
+			}
+			image.Value = findNewestDockerVersion(image.Value)
 		}
-		extractImages(orb.Content)
+		extractImages(image.Content)
 	}
 }
+
+// func extractImages(images []*yaml.Node) map[string]*yaml.Node {
+// 	updates := map[string]*yaml.Node{}
+// 	for i := 0; i < len(images); i = i + 2 {
+// 		image := images[i]
+// 		if image.Value == "image" {
+// 			image = images[i+1]
+
+// 			imageVersion := findNewestDockerVersion(image.Value)
+
+// 			if image.Value != imageVersion {
+// 				oldVersion := image.Value
+// 				image.Value = imageVersion
+// 				updates[oldVersion] = image
+// 			}
+// 		}
+// 		extractImages(image.Content)
+// 	}
+// 	return updates
+// }
 
 func findNewestDockerVersion(currentVersion string) string {
 
 	fmt.Println(currentVersion)
 
 	current := strings.Split(currentVersion, ":")
-
-	fmt.Println(current)
-	fmt.Println(len(current))
 
 	// check if image has no version tag
 	if len(current) == 1 {
@@ -40,31 +65,22 @@ func findNewestDockerVersion(currentVersion string) string {
 		return currentVersion
 	}
 
-	// define registry
-	registry := "registry.hub.docker.com"
-	registryImage := strings.Split(current[0], "/")
-
-	if len(registryImage) > 2 {
-		registry = fmt.Sprintf("%s", registryImage[0])
-	}
-
-	fmt.Println(registry)
-	
 	// fix this shit
-	listTags("harbor.bestsellerit.com/library/harpocrates:1.0.0")
-	listTags("node:14.14-alpine")
-	
-	// query that damn registry for newer versions
-
-	return "latest"
-	// This one is a bit tricky actually! Watchtower seems to do this by utilising a docker client, but then we need
-	// Docker in docker i guess ? Maybe there is a smart api endpoint, all registries should use the same to communicate with docker i guess ?
-}
-
-func listTags(circleciTag string) {
-	dig, err := name.NewTag(circleciTag, name.WeakValidation)
+	tags, err := getTags(currentVersion)
 	if err != nil {
 		panic(err)
+	}
+	newest := tags[len(tags)-1]
+
+	fmt.Println(newest)
+
+	return "latest"
+}
+
+func getTags(circleciTag string) ([]string, error) {
+	dig, err := name.NewTag(circleciTag, name.WeakValidation)
+	if err != nil {
+		return nil, err
 	}
 
 	registryName := dig.Registry.RegistryStr()
@@ -72,15 +88,12 @@ func listTags(circleciTag string) {
 
 	newName, err := name.NewRepository(fmt.Sprintf("%s/%s", registryName, repoName), name.WeakValidation)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	tags, err := google.List(newName)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	for _, tag := range tags.Tags {
-		fmt.Println(tag)
-	}
+	return tags.Tags, nil
 }
-
