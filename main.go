@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"os"
 
 	"github.com/rs/zerolog/log"
 
@@ -15,18 +14,22 @@ import (
 )
 
 var ctx = context.Background()
-var org = os.Getenv("DEPENDABOT_ORG")
 
 func main() {
+	err := config.LoadEnvConfig()
 	logger.Init()
 
-	appConfig, err := config.ReadConfig(os.Getenv("DEPENDABOT_CONFIG"))
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to read env config")
+	}
+
+	appConfig, err := config.ReadConfig(config.EnvVars.Config)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to read github app config")
 	}
 
 	// create client
-	client, err := gh.GetOrganizationClient(ctx, appConfig.Github, org)
+	client, err := gh.GetOrganizationClient(ctx, appConfig.Github, config.EnvVars.Org)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to register organization client")
 	}

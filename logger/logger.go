@@ -1,9 +1,9 @@
 package logger
 
 import (
-	"os"
 	"strings"
 
+	"github.com/BESTSELLER/dependabot-circleci/config"
 	"github.com/rs/zerolog"
 )
 
@@ -12,11 +12,10 @@ func Init() {
 	// default is info
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 
-	loglevel := os.Getenv("DEPENDABOT_LOGLEVEL")
-	if loglevel == "" {
+	if config.EnvVars.LogLevel == "" {
 		return
 	}
-	if strings.ToLower(loglevel) == "debug" {
+	if strings.ToLower(config.EnvVars.LogLevel) == "debug" {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	}
 }
