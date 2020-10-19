@@ -53,7 +53,7 @@ func findNewestDockerVersion(currentVersion string) string {
 		return currentVersion
 	}
 
-	versionParts := splitVersion(currentVersion)
+	versionParts := splitVersion(current[1])
 
 	var newTagsList []string
 	for _, tag := range tags {
@@ -91,6 +91,7 @@ func getTags(circleciTag string) ([]string, error) {
 }
 
 func splitVersion(version string) map[string]string {
+	result := make(map[string]string)
 	// Regex stolen with love from dependabot-core
 	// https://github.com/dependabot/dependabot-core/blob/v0.123.0/docker/lib/dependabot/docker/update_checker.rb#L15-L27
 	versionRegex := `v?(?P<version>[0-9]+(?:(?:\.[a-z0-9]+)|(?:-(?:kb)?[0-9]+))*)`
@@ -102,7 +103,10 @@ func splitVersion(version string) map[string]string {
 
 	var myExp = regexp.MustCompile(nameWithVersion)
 	match := myExp.FindStringSubmatch(version)
-	result := make(map[string]string)
+
+	if match == nil {
+		return result
+	}
 
 	matches := myExp.SubexpNames()
 	for i, name := range matches {
