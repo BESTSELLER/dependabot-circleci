@@ -3,10 +3,13 @@ package circleci
 import (
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/google/go-containerregistry/pkg/v1/google"
+	"github.com/hashicorp/go-version"
+	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 )
 
@@ -18,13 +21,13 @@ func extractImages(images []*yaml.Node) {
 			image = images[i+1]
 
 			imageVersion := findNewestDockerVersion(image.Value)
+			fmt.Printf("imageVersion: %s\n", imageVersion)
 
 			if image.Value != imageVersion {
 				oldVersion := image.Value
 				image.Value = imageVersion
 				updates[oldVersion] = image
 			}
-			image.Value = findNewestDockerVersion(image.Value)
 		}
 		extractImages(image.Content)
 	}
@@ -32,7 +35,7 @@ func extractImages(images []*yaml.Node) {
 
 func findNewestDockerVersion(currentVersion string) string {
 
-	fmt.Println(currentVersion)
+	fmt.Printf("current: %s\n", currentVersion)
 
 	current := strings.Split(currentVersion, ":")
 
@@ -49,24 +52,51 @@ func findNewestDockerVersion(currentVersion string) string {
 	// fix this shit
 	tags, err := getTags(currentVersion)
 	if err != nil {
+		log.Debug().Err(err)
 		// panic(err)
 		return currentVersion
 	}
 
 	versionParts := splitVersion(current[1])
+	if len(versionParts) == 0 {
+		return currentVersion
+	}
 
 	var newTagsList []string
 	for _, tag := range tags {
 		aa := splitVersion(tag)
 
-		if aa["prefix"] == versionParts["prefix"] && aa["suffix"] == versionParts["suffix"] {
+		if aa["version"] != "" && aa["prefix"] == versionParts["prefix"] && aa["suffix"] == versionParts["suffix"] {
 			newTagsList = append(newTagsList, tag)
 		}
 	}
 
-	newest := newTagsList[len(newTagsList)-1]
+	errorList := []string{}
+	versions := make([]*version.Version, len(newTagsList))
+	for i, raw := range newTagsList {
+		v, err := version.NewVersion(raw)
+		if err != nil {
+			fmt.Println(err)
+			errorList = append(errorList, fmt.Sprintf("%s", err))
+			continue
+		}
+		versions[i] = v
+	}
 
-	return newest
+	if len(errorList) > 0 {
+		log.Debug().Err(fmt.Errorf("You have the following errors: %s", strings.Join(errorList, "\n")))
+	}
+
+	sort.Sort(version.Collection(versions))
+
+	newest := versions[len(versions)-1]
+
+	currentv, _ := version.NewVersion(versionParts["version"])
+	if currentv.GreaterThan(newest) {
+		return currentVersion
+	}
+
+	return fmt.Sprintf("%s:%s", current[0], newest.Original())
 }
 
 func getTags(circleciTag string) ([]string, error) {
