@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/rs/zerolog/log"
@@ -11,7 +12,7 @@ import (
 )
 
 func getTestCases() map[string]*yaml.Node {
-	path := "../test_cases"
+	path := "../.test_cases"
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
 		log.Fatal().Err(err)
@@ -19,6 +20,10 @@ func getTestCases() map[string]*yaml.Node {
 	result := make(map[string]*yaml.Node, len(files))
 	for _, f := range files {
 		fileName := f.Name()
+		ext := strings.ToLower(filepath.Ext(fileName))
+		if ext != ".yml" && ext != ".yaml" {
+			continue
+		}
 		filePath := filepath.Join(path, fileName)
 		fmt.Println(f.Name())
 
