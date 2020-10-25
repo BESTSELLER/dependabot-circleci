@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/google/go-containerregistry/pkg/name"
-	"github.com/google/go-containerregistry/pkg/v1/google"
+	"github.com/google/go-containerregistry/pkg/v1/remote"
 	"github.com/hashicorp/go-version"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
@@ -21,7 +21,7 @@ func extractImages(images []*yaml.Node) {
 			image = images[i+1]
 
 			imageVersion := findNewestDockerVersion(image.Value)
-			fmt.Printf("imageVersion: %s\n", imageVersion)
+			log.Debug().Msg(fmt.Sprintf("new: %s", imageVersion))
 
 			if image.Value != imageVersion {
 				oldVersion := image.Value
@@ -34,8 +34,7 @@ func extractImages(images []*yaml.Node) {
 }
 
 func findNewestDockerVersion(currentVersion string) string {
-
-	fmt.Printf("current: %s\n", currentVersion)
+	log.Debug().Msg(fmt.Sprintf("old: %s", currentVersion))
 
 	current := strings.Split(currentVersion, ":")
 
@@ -69,18 +68,19 @@ func findNewestDockerVersion(currentVersion string) string {
 		if aa["version"] != "" && aa["prefix"] == versionParts["prefix"] && aa["suffix"] == versionParts["suffix"] {
 			newTagsList = append(newTagsList, tag)
 		}
+
 	}
 
 	errorList := []string{}
-	versions := make([]*version.Version, len(newTagsList))
-	for i, raw := range newTagsList {
+	versions := []*version.Version{}
+	for _, raw := range newTagsList {
 		v, err := version.NewVersion(raw)
 		if err != nil {
-			fmt.Println(err)
 			errorList = append(errorList, fmt.Sprintf("%s", err))
 			continue
 		}
-		versions[i] = v
+
+		versions = append(versions, v)
 	}
 
 	if len(errorList) > 0 {
@@ -112,19 +112,19 @@ func getTags(circleciTag string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	tags, err := google.List(newName)
+	tags, err := remote.List(newName)
 	if err != nil {
 		return nil, err
 	}
 
-	return tags.Tags, nil
+	return tags, nil
 }
 
 func splitVersion(version string) map[string]string {
 	result := make(map[string]string)
 	// Regex stolen with love from dependabot-core
 	// https://github.com/dependabot/dependabot-core/blob/v0.123.0/docker/lib/dependabot/docker/update_checker.rb#L15-L27
-	versionRegex := `v?(?P<version>[0-9]+(?:(?:\.[a-z0-9]+)|(?:-(?:kb)?[0-9]+))*)`
+	versionRegex := `v?(?P<version>([0-9]+)\.([0-9]+)\.([0-9]+)?(?:\+[0-9A-Za-z-]+)?)`
 	versionWithSFX := versionRegex + `(?P<suffix>-[a-z0-9.\-]+)?$`
 	versionWithPFX := `(?P<prefix>[a-z0-9.\-]+-)?` + versionRegex + `$`
 	versionWithPFXSFX := `(?P<prefix>[a-z\-]+-)?` + versionRegex + `(?P<suffix>-[a-z\-]+)?$`
