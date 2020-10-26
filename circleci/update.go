@@ -6,37 +6,52 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// GetUpdates returns a list of updated yaml nodes
-func GetUpdates(node *yaml.Node) map[string]*yaml.Node {
-	orbUpdates := map[string]*yaml.Node{}
+func getDockerUpdates(node *yaml.Node) map[string]*yaml.Node {
+	updates := map[string]*yaml.Node{}
+
+	for i, nextHole := range node.Content {
+		if nextHole.Value == "executors" || nextHole.Value == "jobs" {
+			dockers := node.Content[i+1]
+			updates := extractImages(dockers.Content)
+			for k, v := range updates {
+				updates[k] = v
+			}
+			return updates
+		}
+
+		next := getDockerUpdates(nextHole)
+		for k, v := range next {
+			updates[k] = v
+		}
+	}
+
+	return updates
+}
+func getOrbUpdates(node *yaml.Node) map[string]*yaml.Node {
+	updates := map[string]*yaml.Node{}
 
 	for i, nextHole := range node.Content {
 		if nextHole.Value == "orbs" {
 			orbs := node.Content[i+1]
-			orbUpdates := extractOrbs(orbs.Content)
-			for k, v := range orbUpdates {
-				orbUpdates[k] = v
+			updates := extractOrbs(orbs.Content)
+			for k, v := range updates {
+				updates[k] = v
 			}
-			return orbUpdates
+			return updates
 		}
 
-		// *** ready for docker image check ***
-		if nextHole.Value == "executors" {
-			orbs := node.Content[i+1]
-			extractImages(orbs.Content)
-		}
-		if nextHole.Value == "jobs" {
-			orbs := node.Content[i+1]
-			extractImages(orbs.Content)
-		}
-
-		next := GetUpdates(nextHole)
+		next := getOrbUpdates(nextHole)
 		for k, v := range next {
-			orbUpdates[k] = v
+			updates[k] = v
 		}
 	}
 
-	return orbUpdates
+	return updates
+}
+
+// GetUpdates returns a list of updated yaml nodes
+func GetUpdates(node *yaml.Node) (map[string]*yaml.Node, map[string]*yaml.Node) {
+	return getOrbUpdates(node), getDockerUpdates(node)
 }
 
 // ReplaceVersion replaces a specific line in the yaml
