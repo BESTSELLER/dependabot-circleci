@@ -37,7 +37,7 @@ func main() {
 	// create statsd client
 	err = datadog.CreateClient()
 	if err != nil {
-		log.Fatal().Err(err).Msg("failed to register dogstatsd client")
+		log.Error().Err(err).Msg("failed to register dogstatsd client")
 	}
 
 	dependabot.Start(ctx, client)

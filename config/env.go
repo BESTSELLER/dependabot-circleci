@@ -9,7 +9,7 @@ type EnvConfig struct {
 	Org       string `required:"true"`
 	Config    string `required:"true"`
 	LogLevel  string `required:"false"`
-	DDAddress string `required:"true"`
+	DDAddress string `required:"false"`
 }
 
 // EnvVars stores the Global Configuration.

@@ -10,7 +10,11 @@
       "request": "launch",
       "mode": "auto",
       "program": "${workspaceFolder}/",
-      "env": {},
+      "env": {
+        "DEPENDABOT_ORG": "BESTSELLER",
+        "DEPENDABOT_CONFIG": "/Users/lasse.gaardsholt/dev/dependabot-circleci/config.json",
+        "DEPENDABOT_DDADDRESS": "asd:443"
+      },
       "args": []
     }
   ]

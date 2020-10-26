@@ -1,0 +1,6 @@
+version: 2.1
+jobs:
+  build:
+    docker:
+      - image: quay.io/jetstack/cert-manager-controller:v0.16.1
+        command: [--smallfiles]

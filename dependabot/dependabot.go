@@ -70,12 +70,17 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 	}
 
 	// check for updates
-	updates := circleci.GetUpdates(&cciconfig)
-	for old, update := range updates {
+	orbUpdates, dockerUpdates := circleci.GetUpdates(&cciconfig)
+	for old, update := range orbUpdates {
 		wg.Add(1)
-		go handleUpdate(ctx, client, update, old, content, repoOwner, repoName, targetBranch, SHA, repoConfig)
+		go handleUpdate(ctx, client, update, "orb", old, content, repoOwner, repoName, targetBranch, SHA, repoConfig)
+	}
+	for old, update := range dockerUpdates {
+		wg.Add(1)
+		go handleUpdate(ctx, client, update, "docker", old, content, repoOwner, repoName, targetBranch, SHA, repoConfig)
 	}
 }
+
 func getRepoConfig(ctx context.Context, client *github.Client, repo *github.Repository) *config.RepoConfig {
 	// check if a bot config exists
 	repoConfigContent, _, err := gh.GetRepoContent(ctx, client, repo, ".github/dependabot-circleci.yml", "")
@@ -103,22 +108,28 @@ func getTargetBranch(ctx context.Context, client *github.Client, repoOwner strin
 	return targetBranch
 }
 
-func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node, old string, content []byte, repoOwner string, repoName string, targetBranch string, SHA *string, repoConfig *config.RepoConfig) {
+func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node, updateType string, old string, content []byte, repoOwner string, repoName string, targetBranch string, SHA *string, repoConfig *config.RepoConfig) {
 	defer wg.Done()
 
-	log.Debug().Msgf("repo: %s, old: %s, update: %s\n", repoName, old, update.Value)
+	log.Debug().Msgf("repo: %s, old: %s, update: %s", repoName, old, update.Value)
 	newYaml := circleci.ReplaceVersion(update, old, string(content))
 
 	// commit vars
-	oldVersion := strings.Split(old, "@")
-	newVersion := strings.Split(update.Value, "@")
+	oldVersion, newVersion := []string{}, []string{}
+	if updateType == "orb" {
+		oldVersion = strings.Split(old, "@")
+		newVersion = strings.Split(update.Value, "@")
+	} else {
+		oldVersion = strings.Split(old, ":")
+		newVersion = strings.Split(update.Value, ":")
+	}
 
-	if len(newVersion) == 1 {
+	if updateType == "orb" && len(newVersion) == 1 {
 		return
 	}
 
-	commitMessage := github.String(fmt.Sprintf("Bump @%s from %s to %s", oldVersion[0], oldVersion[1], newVersion[1]))
-	commitBranch := github.String(fmt.Sprintf("dependabot-circleci/orb/%s", update.Value))
+	commitMessage := fmt.Sprintf("Bump @%s from %s to %s", oldVersion[0], oldVersion[1], newVersion[1])
+	commitBranch := fmt.Sprintf("dependabot-circleci/%s/%s", updateType, strings.ReplaceAll(update.Value, ":", "@"))
 
 	// err := check and create branch
 	exists, oldPR, err := gh.CheckPR(ctx, client, repoOwner, repoName, targetBranch, commitBranch, commitMessage, oldVersion[0])
@@ -129,17 +140,17 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 	if exists {
 		return
 	}
-	err = gh.CreateBranch(ctx, client, repoOwner, repoName, targetBranch, commitBranch)
+	err = gh.CreateBranch(ctx, client, repoOwner, repoName, targetBranch, github.String(commitBranch))
 	if err != nil {
-		log.Error().Err(err).Msgf("could not create branch in %s", repoName)
+		log.Error().Err(err).Msgf("could not create branch %s in %s", commitBranch, repoName)
 		return
 	}
 
 	// commit file
 	err = gh.UpdateFile(ctx, client, repoOwner, repoName, &github.RepositoryContentFileOptions{
-		Message: commitMessage,
+		Message: github.String(commitMessage),
 		Content: []byte(newYaml),
-		Branch:  commitBranch,
+		Branch:  github.String(commitBranch),
 		SHA:     SHA,
 	})
 	if err != nil {
@@ -149,10 +160,10 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 
 	// create pull req
 	newPR, err := gh.CreatePR(ctx, client, repoOwner, repoName, repoConfig.Reviewers, repoConfig.Assignees, repoConfig.Labels, &github.NewPullRequest{
-		Title:               commitMessage,
-		Head:                commitBranch,
+		Title:               github.String(commitMessage),
+		Head:                github.String(commitBranch),
 		Base:                github.String(targetBranch),
-		Body:                commitMessage,
+		Body:                github.String(commitMessage),
 		MaintainerCanModify: github.Bool(true),
 	})
 	if err != nil {

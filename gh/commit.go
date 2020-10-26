@@ -9,7 +9,7 @@ import (
 )
 
 // CheckPR
-func CheckPR(ctx context.Context, client *github.Client, repoOwner string, repoName string, baseBranch string, commitBranch *string, commitMessage *string, component string) (bool, *github.PullRequest, error) {
+func CheckPR(ctx context.Context, client *github.Client, repoOwner string, repoName string, baseBranch string, commitBranch string, commitMessage string, component string) (bool, *github.PullRequest, error) {
 	pullreqs, _, _ := client.PullRequests.List(ctx, repoOwner, repoName, nil)
 	for _, pr := range pullreqs {
 
@@ -20,7 +20,7 @@ func CheckPR(ctx context.Context, client *github.Client, repoOwner string, repoN
 		title := pr.GetTitle()
 
 		// exists ?
-		if title == *commitMessage {
+		if title == commitMessage {
 			return true, nil, nil
 		}
 
