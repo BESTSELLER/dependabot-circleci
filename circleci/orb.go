@@ -2,11 +2,11 @@ package circleci
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/CircleCI-Public/circleci-cli/api"
 	"github.com/CircleCI-Public/circleci-cli/api/graphql"
+	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 )
 
@@ -14,7 +14,10 @@ func extractOrbs(orbs []*yaml.Node) map[string]*yaml.Node {
 	updates := map[string]*yaml.Node{}
 	for i := 0; i < len(orbs); i = i + 2 {
 		orb := orbs[i+1]
+
+		log.Debug().Msg(fmt.Sprintf("current orb version: %s", orb.Value))
 		orbVersion := findNewestOrbVersion(orb.Value)
+		log.Debug().Msg(fmt.Sprintf("new orb version: %s", orbVersion))
 
 		if orb.Value != orbVersion {
 			oldVersion := orb.Value
@@ -39,7 +42,7 @@ func findNewestOrbVersion(orb string) string {
 	// if requests fails, return current version
 	orbInfo, err := api.OrbInfo(client, orbSplitString[0])
 	if err != nil {
-		log.Printf("finding latests orb version failed: %v", err)
+		log.Error().Err(err).Msg("error finding latests orb version failed")
 		return fmt.Sprintf("%s@%s", orbSplitString[0], orbSplitString[1])
 	}
 

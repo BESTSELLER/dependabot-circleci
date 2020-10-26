@@ -20,8 +20,9 @@ func extractImages(images []*yaml.Node) map[string]*yaml.Node {
 		if image.Value == "image" {
 			image = images[i+1]
 
+			log.Debug().Msg(fmt.Sprintf("current image version: %s", image.Value))
 			imageVersion := findNewestDockerVersion(image.Value)
-			log.Debug().Msg(fmt.Sprintf("new: %s", imageVersion))
+			log.Debug().Msg(fmt.Sprintf("new image version: %s", imageVersion))
 
 			if image.Value != imageVersion {
 				oldVersion := image.Value
@@ -38,8 +39,6 @@ func extractImages(images []*yaml.Node) map[string]*yaml.Node {
 }
 
 func findNewestDockerVersion(currentVersion string) string {
-	log.Debug().Msg(fmt.Sprintf("old: %s", currentVersion))
-
 	current := strings.Split(currentVersion, ":")
 
 	// check if image has no version tag
