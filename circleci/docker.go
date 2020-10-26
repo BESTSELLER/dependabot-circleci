@@ -52,7 +52,6 @@ func findNewestDockerVersion(currentVersion string) string {
 	tags, err := getTags(currentVersion)
 	if err != nil {
 		log.Debug().Err(err)
-		// panic(err)
 		return currentVersion
 	}
 
