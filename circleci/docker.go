@@ -13,7 +13,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func extractImages(images []*yaml.Node) {
+func extractImages(images []*yaml.Node) map[string]*yaml.Node {
 	updates := map[string]*yaml.Node{}
 	for i := 0; i < len(images); i++ {
 		image := images[i]
@@ -29,8 +29,12 @@ func extractImages(images []*yaml.Node) {
 				updates[oldVersion] = image
 			}
 		}
-		extractImages(image.Content)
+		baah := extractImages(image.Content)
+		for k, v := range baah {
+			updates[k] = v
+		}
 	}
+	return updates
 }
 
 func findNewestDockerVersion(currentVersion string) string {
@@ -83,7 +87,7 @@ func findNewestDockerVersion(currentVersion string) string {
 	}
 
 	if len(errorList) > 0 {
-		log.Debug().Err(fmt.Errorf("You have the following errors: %s", strings.Join(errorList, "\n")))
+		log.Debug().Err(fmt.Errorf("You have the following errors: %s", errorList))
 	}
 
 	sort.Sort(version.Collection(versions))
