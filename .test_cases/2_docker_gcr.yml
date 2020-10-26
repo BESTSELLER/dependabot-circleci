@@ -1,0 +1,6 @@
+version: 2.1
+jobs:
+  build:
+    docker:
+      - image: gcr.io/google-containers/debian-iptables:v11.0.1
+        command: ["echo hej"]
