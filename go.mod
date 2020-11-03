@@ -3,9 +3,9 @@ module github.com/BESTSELLER/dependabot-circleci
 go 1.15
 
 require (
-	github.com/DataDog/datadog-go v4.1.0+incompatible
-	github.com/google/go-containerregistry v0.1.4
 	github.com/CircleCI-Public/circleci-cli v0.1.11278
+	github.com/DataDog/datadog-go v4.2.0+incompatible
+	github.com/google/go-containerregistry v0.1.4
 	github.com/google/go-github/v32 v32.1.0
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
 	github.com/hashicorp/go-version v1.2.1
