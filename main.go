@@ -42,6 +42,9 @@ func main() {
 		log.Fatal().Err(err).Msg("failed to register organization client")
 	}
 
+	// send stats to dd
+	go datadog.Gauge("organizations", float64(len(clients)), nil)
+
 	// magic will happen
 	for _, client := range clients {
 		wg.Add(1)

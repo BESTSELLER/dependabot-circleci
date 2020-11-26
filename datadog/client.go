@@ -32,3 +32,16 @@ func IncrementCount(metricName string, org string) {
 		log.Debug().Err(err).Msgf("could increment datadog counter %s", metricName)
 	}
 }
+
+// Gauge incrementes a counter based on the input
+func Gauge(metricName string, value float64, tags []string) {
+	err := client.Gauge(
+		fmt.Sprintf("%s.%s", metricPrefix, metricName),
+		value,
+		tags,
+		1,
+	)
+	if err != nil {
+		log.Debug().Err(err).Msgf("could send gauge to datadog %s", metricName)
+	}
+}
