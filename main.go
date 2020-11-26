@@ -50,8 +50,8 @@ func main() {
 		wg.Add(1)
 		client := client
 		go func() {
+			defer wg.Done()
 			dependabot.Start(ctx, client)
-			wg.Done()
 		}()
 	}
 	wg.Wait()
