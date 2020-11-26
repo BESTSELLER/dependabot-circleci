@@ -37,7 +37,7 @@ func main() {
 	}
 
 	// create clients
-	clients, err := gh.GetOrganizationClients(ctx, appConfig.Github, config.EnvVars.Org)
+	clients, err := gh.GetOrganizationClients(ctx, appConfig.Github)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to register organization client")
 	}

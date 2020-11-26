@@ -13,7 +13,7 @@ import (
 var version string
 
 // GetOrganizationClients returns a github client
-func GetOrganizationClients(ctx context.Context, config githubapp.Config, org string) ([]*github.Client, error) {
+func GetOrganizationClients(ctx context.Context, config githubapp.Config) ([]*github.Client, error) {
 
 	cc, err := createGHClient(config)
 	if err != nil {
