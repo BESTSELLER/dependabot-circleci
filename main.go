@@ -45,7 +45,11 @@ func main() {
 	// magic will happen
 	for _, client := range clients {
 		wg.Add(1)
-		go dependabot.Start(ctx, client)
+		client := client
+		go func() {
+			dependabot.Start(ctx, client)
+			wg.Done()
+		}()
 	}
 	wg.Wait()
 
