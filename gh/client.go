@@ -12,8 +12,8 @@ import (
 
 var version string
 
-// GetOrganizationClient returns a github client
-func GetOrganizationClient(ctx context.Context, config githubapp.Config, org string) (*github.Client, error) {
+// GetOrganizationClients returns a github client
+func GetOrganizationClients(ctx context.Context, config githubapp.Config, org string) ([]*github.Client, error) {
 
 	cc, err := createGHClient(config)
 	if err != nil {
@@ -28,14 +28,26 @@ func GetOrganizationClient(ctx context.Context, config githubapp.Config, org str
 
 	// look up the installation ID for a particular organization
 	installations := githubapp.NewInstallationsService(appClient)
-	install, err := installations.GetByOwner(ctx, org)
+
+	// get organisations
+	orgs, err := installations.ListAll(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	// create a client to perform actions on that specific organization
-	client, err := cc.NewInstallationClient(install.ID)
-	return client, err
+	var clients []*github.Client
+	for _, org := range orgs {
+		install, err := installations.GetByOwner(ctx, org.Owner)
+		if err != nil {
+			return nil, err
+		}
+
+		client, err := cc.NewInstallationClient(install.ID)
+		clients = append(clients, client)
+	}
+
+	// how do we handle errors here ?
+	return clients, err
 }
 
 func createGHClient(config githubapp.Config) (githubapp.ClientCreator, error) {
