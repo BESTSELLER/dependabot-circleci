@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"sync"
 
 	"github.com/rs/zerolog/log"
 
@@ -14,6 +15,7 @@ import (
 )
 
 var ctx = context.Background()
+var wg sync.WaitGroup
 
 func main() {
 	err := config.LoadEnvConfig()
@@ -40,8 +42,11 @@ func main() {
 		log.Fatal().Err(err).Msg("failed to register organization client")
 	}
 
+	// magic will happen
 	for _, client := range clients {
-		dependabot.Start(ctx, client)
+		wg.Add(1)
+		go dependabot.Start(ctx, client)
 	}
+	wg.Wait()
 
 }
