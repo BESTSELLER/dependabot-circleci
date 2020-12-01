@@ -10,5 +10,5 @@ metadata:
     circleci.com/project-slug: github/BESTSELLER/dependabot-circleci
 spec:
   type: service
-  owner: engineering-servies
+  owner: engineering-services
   lifecycle: production
