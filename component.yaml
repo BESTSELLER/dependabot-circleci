@@ -3,7 +3,7 @@ kind: Component
 metadata:
   name: dependabot-circleci
   description: |
-    dependabot-circleci is as its name suggests a small dependabot for circleci orbs and images. We have created this as it is at the moment nearly impossible getting changes into the official [dependabot](https://github.com/dependabot/dependabot-core).
+    Fork of dependabot, also works with circleci orbs and images.
   annotations:
     sonarqube.org/project-key: BESTSELLER_dependabot-circleci
     github.com/project-slug:  BESTSELLER/dependabot-circleci
