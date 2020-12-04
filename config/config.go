@@ -3,6 +3,7 @@ package config
 import (
 	"io/ioutil"
 
+	"github.com/palantir/go-baseapp/baseapp"
 	"github.com/palantir/go-githubapp/githubapp"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
@@ -10,7 +11,8 @@ import (
 
 // Config contains global config
 type Config struct {
-	Github githubapp.Config `yaml:"github"`
+	Github githubapp.Config   `yaml:"github"`
+	Server baseapp.HTTPConfig `yaml:"server"`
 }
 
 // RepoConfig contains specific config for each repos

@@ -10,9 +10,11 @@ require (
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
 	github.com/hashicorp/go-version v1.2.1
 	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/palantir/go-baseapp v0.2.0
 	github.com/palantir/go-githubapp v0.5.1
 	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.20.0
+	goji.io v2.0.2+incompatible
 	gopkg.in/yaml.v2 v2.3.0
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
 )

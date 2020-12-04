@@ -6,8 +6,8 @@ import (
 
 	"github.com/rs/zerolog/log"
 
+	"github.com/BESTSELLER/dependabot-circleci/api"
 	"github.com/BESTSELLER/dependabot-circleci/datadog"
-	"github.com/BESTSELLER/dependabot-circleci/dependabot"
 	"github.com/BESTSELLER/dependabot-circleci/logger"
 
 	"github.com/BESTSELLER/dependabot-circleci/config"
@@ -45,15 +45,19 @@ func main() {
 	// send stats to dd
 	go datadog.Gauge("organizations", float64(len(clients)), nil)
 
-	// magic will happen
-	for _, client := range clients {
-		wg.Add(1)
-		client := client
-		go func() {
-			defer wg.Done()
-			dependabot.Start(ctx, client)
-		}()
-	}
-	wg.Wait()
+	/*
+		// magic will happen
+		for _, client := range clients {
+			wg.Add(1)
+			client := client
+			go func() {
+				defer wg.Done()
+				dependabot.Start(ctx, client)
+			}()
+		}
+		wg.Wait()
+	*/
+
+	api.SetupRouter()
 
 }

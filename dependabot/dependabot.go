@@ -56,7 +56,7 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 	}()
 
 	// get content of circleci config file
-	content, SHA, err := gh.GetRepoContent(ctx, client, repo, ".circleci/config.yml", targetBranch)
+	content, SHA, err := gh.GetRepoContent(ctx, client, repoOwner, repoName, ".circleci/config.yml", targetBranch)
 	if err != nil {
 		return
 	}
@@ -83,7 +83,7 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 
 func getRepoConfig(ctx context.Context, client *github.Client, repo *github.Repository) *config.RepoConfig {
 	// check if a bot config exists
-	repoConfigContent, _, err := gh.GetRepoContent(ctx, client, repo, ".github/dependabot-circleci.yml", "")
+	repoConfigContent, _, err := gh.GetRepoContent(ctx, client, repo.GetOwner().GetName(), repo.GetName(), ".github/dependabot-circleci.yml", "")
 	if err != nil {
 		return nil
 	}
