@@ -17,7 +17,6 @@ import (
 	"github.com/go-co-op/gocron"
 )
 
-var ctx = context.Background()
 var wg sync.WaitGroup
 
 func main() {
@@ -40,7 +39,7 @@ func main() {
 	}
 
 	// create clients
-	clients, err := gh.GetOrganizationClients(ctx, appConfig.Github)
+	clients, err := gh.GetOrganizationClients(appConfig.Github)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to register organization client")
 	}
@@ -56,7 +55,7 @@ func main() {
 			client := client
 			go func() {
 				defer wg.Done()
-				dependabot.Start(ctx, client)
+				dependabot.Start(context.Background(), client)
 			}()
 		}
 		wg.Wait()
