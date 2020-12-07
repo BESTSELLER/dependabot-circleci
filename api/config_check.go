@@ -71,7 +71,8 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 			CompletedAt: &github.Timestamp{time.Now()},
 			Output: &github.CheckRunOutput{
 				Title:   github.String("Failure"),
-				Summary: github.String("The config is invalid: " + err.Error()),
+				Summary: github.String("The configuration is invalid: " + err.Error()),
+				Text:    github.String("Please refer to the [documentation](https://github.com/BESTSELLER/dependabot-circleci#getting-started) to setup a correct config file"),
 			}})
 		if err != nil {
 			return err
@@ -88,7 +89,7 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 		CompletedAt: &github.Timestamp{time.Now()},
 		Output: &github.CheckRunOutput{
 			Title:   github.String("Success"),
-			Summary: github.String("Congratulations, the config is valid"),
+			Summary: github.String("Congratulations, the configuration is valid"),
 		}})
 	if err != nil {
 		return err
