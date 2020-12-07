@@ -63,3 +63,25 @@ func createGHClient(config githubapp.Config) (githubapp.ClientCreator, error) {
 
 	return cc, nil
 }
+
+// GetSingleOrganizationClient returns a single github client
+func GetSingleOrganizationClient(cc githubapp.ClientCreator, org string) (*github.Client, error) {
+	ctx := context.Background()
+
+	// create a client to perform actions as the application
+	appClient, err := cc.NewAppClient()
+	if err != nil {
+		return nil, err
+	}
+
+	// look up the installation ID for a particular organization
+	installations := githubapp.NewInstallationsService(appClient)
+	install, err := installations.GetByOwner(ctx, org)
+	if err != nil {
+		return nil, err
+	}
+
+	// create a client to perform actions on that specific organization
+	client, err := cc.NewInstallationClient(install.ID)
+	return client, err
+}

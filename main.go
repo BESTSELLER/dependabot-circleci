@@ -3,15 +3,18 @@ package main
 import (
 	"context"
 	"sync"
+	"time"
 
 	"github.com/rs/zerolog/log"
 
+	"github.com/BESTSELLER/dependabot-circleci/api"
 	"github.com/BESTSELLER/dependabot-circleci/datadog"
 	"github.com/BESTSELLER/dependabot-circleci/dependabot"
 	"github.com/BESTSELLER/dependabot-circleci/logger"
 
 	"github.com/BESTSELLER/dependabot-circleci/config"
 	"github.com/BESTSELLER/dependabot-circleci/gh"
+	"github.com/go-co-op/gocron"
 )
 
 var ctx = context.Background()
@@ -45,15 +48,22 @@ func main() {
 	// send stats to dd
 	go datadog.Gauge("organizations", float64(len(clients)), nil)
 
-	// magic will happen
-	for _, client := range clients {
-		wg.Add(1)
-		client := client
-		go func() {
-			defer wg.Done()
-			dependabot.Start(ctx, client)
-		}()
-	}
-	wg.Wait()
+	//schedule checks
+	schedule := gocron.NewScheduler(time.UTC)
+	schedule.Every(1).Day().At("22:00").Do(func() {
+		for _, client := range clients {
+			wg.Add(1)
+			client := client
+			go func() {
+				defer wg.Done()
+				dependabot.Start(ctx, client)
+			}()
+		}
+		wg.Wait()
+	})
+	schedule.StartAsync()
+
+	// start webhook
+	api.SetupRouter()
 
 }

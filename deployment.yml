@@ -1,25 +1,72 @@
-
-apiVersion: batch/v1beta1
-kind: CronJob
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: $CIRCLE_PROJECT_REPONAME$DEPLOY_VERSION
+  labels:
+    app: $CIRCLE_PROJECT_REPONAME$DEPLOY_VERSION
 spec:
-  schedule: "0 22 * * *"
-  successfulJobsHistoryLimit: 1
-  failedJobsHistoryLimit: 5
-  jobTemplate:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: $CIRCLE_PROJECT_REPONAME$DEPLOY_VERSION
+  template:
+    metadata:
+      labels:
+        app: $CIRCLE_PROJECT_REPONAME$DEPLOY_VERSION
     spec:
-      ttlSecondsAfterFinished: 100
-      template:
-        spec:
-          containers:
-          - name: $CIRCLE_PROJECT_REPONAME$DEPLOY_VERSION
-            image: $K8S_CLUSTER_docker_registry_url/$SHORT/$CIRCLE_PROJECT_REPONAME:$CIRCLE_TAG
-            env:
-              - name: DEPENDABOT_ORG
-                value: BESTSELLER
-              - name: DEPENDABOT_CONFIG
-                value: "/secrets/secrets"
-              - name: DEPENDABOT_DDADDRESS
-                value: "datadog-agent.datadog:8125"
-          restartPolicy: Never
+      containers:
+      - name: $CIRCLE_PROJECT_REPONAME$DEPLOY_VERSION
+        image: $K8S_CLUSTER_docker_registry_url/$SHORT/$CIRCLE_PROJECT_REPONAME:$CIRCLE_TAG
+        env:
+          - name: DEPENDABOT_CONFIG
+            value: "/secrets/secrets"
+          - name: DEPENDABOT_DDADDRESS
+            value: "datadog-agent.datadog:8125"
+          - name: DEPENDABOT_VERSION
+            value: "$CIRCLE_TAG"
+        resources:
+          limits:
+            cpu: 12m
+            memory: 125Mi
+          requests:
+            cpu: 12m
+            memory: 125Mi
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: $CIRCLE_PROJECT_REPONAME$DEPLOY_VERSION
+  labels:
+    app: $CIRCLE_PROJECT_REPONAME$DEPLOY_VERSION
+spec:
+  selector:
+    app: $CIRCLE_PROJECT_REPONAME$DEPLOY_VERSION
+  ports:
+  - name: "$CIRCLE_PROJECT_REPONAME$DEPLOY_VERSION-http"
+    protocol: TCP
+    port: 3000
+    targetPort: 3000
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: $CIRCLE_PROJECT_REPONAME$DEPLOY_VERSION
+  labels:
+    app: $CIRCLE_PROJECT_REPONAME$DEPLOY_VERSION
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/secure-backends: "false"
+    kubernetes.io/tls-acme: "true"
+spec:
+  rules:
+  - host: $CIRCLE_PROJECT_REPONAME$DEPLOY_VERSION.bestsellerit.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: $CIRCLE_PROJECT_REPONAME$DEPLOY_VERSION
+          servicePort: 3000
+  tls:
+    - hosts:
+        - $CIRCLE_PROJECT_REPONAME$DEPLOY_VERSION.bestsellerit.com
+      secretName: $CIRCLE_PROJECT_REPONAME$DEPLOY_VERSION-tls
