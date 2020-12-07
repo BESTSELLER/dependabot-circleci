@@ -3,7 +3,6 @@ package api
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/BESTSELLER/dependabot-circleci/config"
@@ -35,16 +34,10 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 	repo := event.GetRepo()
 	commitSHA := event.GetAfter()
 	repoName := repo.GetName()
-	branchName := event.GetRef()
 	owner := repo.GetOwner().GetLogin()
 	org := repo.GetOrganization()
 	if org == "" {
 		org = owner
-	}
-
-	// TEST FILTER
-	if org != "brondum" {
-		return nil
 	}
 
 	// create client
@@ -54,9 +47,9 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 	}
 
 	// get content
-	content, _, err := gh.GetRepoContent(ctx, client, owner, repoName, ".github/dependabot-circleci.yml", branchName)
+	content, _, err := gh.GetRepoContent(ctx, client, owner, repoName, ".github/dependabot-circleci.yml", commitSHA)
 	if err != nil {
-		return nil // we dont care do we ?
+		return err
 	}
 
 	checkName := "Check config"
@@ -70,7 +63,6 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 	// unmarshal
 	var config config.RepoConfig
 	err = yaml.UnmarshalStrict(content, &config)
-	fmt.Println(config)
 	if err != nil {
 		_, _, err := client.Checks.UpdateCheckRun(ctx, owner, repoName, check.GetID(), github.UpdateCheckRunOptions{
 			Name:        checkName,

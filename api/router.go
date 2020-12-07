@@ -14,7 +14,7 @@ import (
 )
 
 var appName = "dependabot-circleci"
-var version = "1.0.0"
+var version = config.EnvVars.Version
 
 // SetupRouter initializes the API routes
 func SetupRouter() {
