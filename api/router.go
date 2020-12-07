@@ -30,7 +30,7 @@ func SetupRouter() {
 		baseapp.DefaultParams(logger, fmt.Sprintf("%s.", appName))...,
 	)
 	if err != nil {
-		panic(err)
+		logger.Panic().Err(err)
 	}
 
 	cc, err := githubapp.NewDefaultCachingClientCreator(
@@ -43,10 +43,10 @@ func SetupRouter() {
 		),
 	)
 	if err != nil {
-		panic(err)
+		logger.Panic().Err(err)
 	}
 
-	webhookHandler := githubapp.NewEventDispatcher([]githubapp.EventHandler{&BranchDeleteHandler{ClientCreator: cc}}, appConfig.Github.App.WebhookSecret, githubapp.WithScheduler(
+	webhookHandler := githubapp.NewEventDispatcher([]githubapp.EventHandler{&ConfigCheckHandler{ClientCreator: cc}}, appConfig.Github.App.WebhookSecret, githubapp.WithScheduler(
 		githubapp.AsyncScheduler(),
 	))
 	server.Mux().Handle(pat.Post("/"), webhookHandler)
@@ -54,6 +54,6 @@ func SetupRouter() {
 	// Start is blocking
 	err = server.Start()
 	if err != nil {
-		panic(err)
+		logger.Panic().Err(err)
 	}
 }
