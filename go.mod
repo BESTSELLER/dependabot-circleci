@@ -5,7 +5,7 @@ go 1.15
 require (
 	github.com/CircleCI-Public/circleci-cli v0.1.11458
 	github.com/DataDog/datadog-go v4.2.0+incompatible
-	github.com/go-co-op/gocron v0.3.3 // indirect
+	github.com/go-co-op/gocron v0.3.3
 	github.com/google/go-containerregistry v0.1.4
 	github.com/google/go-github/v32 v32.1.0
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
@@ -16,7 +16,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.20.0
 	goji.io v2.0.2+incompatible
-	gopkg.in/yaml.v2 v2.3.0
+	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
 )
 
