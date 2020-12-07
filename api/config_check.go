@@ -49,7 +49,7 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 	// get content
 	content, _, err := gh.GetRepoContent(ctx, client, owner, repoName, ".github/dependabot-circleci.yml", commitSHA)
 	if err != nil {
-		return err
+		return nil // we dont care
 	}
 
 	checkName := "Check config"
