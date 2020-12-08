@@ -27,7 +27,7 @@ func main() {
 		log.Fatal().Err(err).Msg("failed to read env config")
 	}
 
-	appConfig, err := config.ReadConfig(config.EnvVars.Config)
+	err = config.ReadConfig(config.EnvVars.Config)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to read github app config")
 	}
@@ -38,8 +38,22 @@ func main() {
 		log.Error().Err(err).Msg("failed to register dogstatsd client")
 	}
 
+	//schedule checks
+	schedule := gocron.NewScheduler(time.UTC)
+	_, err = schedule.Every(1).Day().At("22:00").Do(runDependabot)
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to create schedule")
+	}
+	schedule.StartAsync()
+
+	// start webhook
+	api.SetupRouter()
+
+}
+
+func runDependabot() {
 	// create clients
-	clients, err := gh.GetOrganizationClients(appConfig.Github)
+	clients, err := gh.GetOrganizationClients(config.AppConfig.Github)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to register organization client")
 	}
@@ -47,22 +61,13 @@ func main() {
 	// send stats to dd
 	go datadog.Gauge("organizations", float64(len(clients)), nil)
 
-	//schedule checks
-	schedule := gocron.NewScheduler(time.UTC)
-	schedule.Every(1).Day().At("22:00").Do(func() {
-		for _, client := range clients {
-			wg.Add(1)
-			client := client
-			go func() {
-				defer wg.Done()
-				dependabot.Start(context.Background(), client)
-			}()
-		}
-		wg.Wait()
-	})
-	schedule.StartAsync()
-
-	// start webhook
-	api.SetupRouter()
-
+	for _, client := range clients {
+		wg.Add(1)
+		client := client
+		go func() {
+			defer wg.Done()
+			dependabot.Start(context.Background(), client)
+		}()
+	}
+	wg.Wait()
 }

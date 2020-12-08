@@ -20,13 +20,8 @@ var version = config.EnvVars.Version
 func SetupRouter() {
 	logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
 
-	appConfig, err := config.ReadConfig(config.EnvVars.Config)
-	if err != nil {
-		logger.Fatal().Err(err).Msg("failed to read github app config")
-	}
-
 	server, err := baseapp.NewServer(
-		appConfig.Server,
+		config.AppConfig.Server,
 		baseapp.DefaultParams(logger, fmt.Sprintf("%s.", appName))...,
 	)
 	if err != nil {
@@ -34,7 +29,7 @@ func SetupRouter() {
 	}
 
 	cc, err := githubapp.NewDefaultCachingClientCreator(
-		appConfig.Github,
+		config.AppConfig.Github,
 		githubapp.WithClientUserAgent(fmt.Sprintf("%s/%s", appName, version)),
 		githubapp.WithClientTimeout(10*time.Second),
 		githubapp.WithClientCaching(false, func() httpcache.Cache { return httpcache.NewMemoryCache() }),
@@ -46,7 +41,7 @@ func SetupRouter() {
 		logger.Panic().Err(err)
 	}
 
-	webhookHandler := githubapp.NewEventDispatcher([]githubapp.EventHandler{&ConfigCheckHandler{ClientCreator: cc}}, appConfig.Github.App.WebhookSecret, githubapp.WithScheduler(
+	webhookHandler := githubapp.NewEventDispatcher([]githubapp.EventHandler{&ConfigCheckHandler{ClientCreator: cc}}, config.AppConfig.Github.App.WebhookSecret, githubapp.WithScheduler(
 		githubapp.AsyncScheduler(),
 	))
 	server.Mux().Handle(pat.Post("/"), webhookHandler)
