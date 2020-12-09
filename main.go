@@ -45,7 +45,7 @@ func main() {
 	}
 
 	schedule := gocron.NewScheduler(time.UTC)
-	_, err = schedule.Every(1).Day().At("22:00").Do(runDependabot)
+	_, err = schedule.Every(1).Day().At(scheduleTime).Do(runDependabot)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to create schedule")
 	}
