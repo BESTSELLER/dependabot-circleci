@@ -39,6 +39,11 @@ func main() {
 	}
 
 	//schedule checks
+	scheduleTime := config.EnvVars.Schedule
+	if scheduleTime == "" {
+		scheduleTime = "22:00"
+	}
+
 	schedule := gocron.NewScheduler(time.UTC)
 	_, err = schedule.Every(1).Day().At("22:00").Do(runDependabot)
 	if err != nil {
