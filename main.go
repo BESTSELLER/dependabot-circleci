@@ -46,6 +46,9 @@ func main() {
 	}
 	schedule.StartAsync()
 
+	_, next := schedule.NextRun()
+	log.Info().Msgf("Next scheduled dependency check is at: %s", next)
+
 	// start webhook
 	api.SetupRouter()
 
