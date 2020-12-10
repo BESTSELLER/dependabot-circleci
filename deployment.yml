@@ -26,10 +26,10 @@ spec:
             value: "$CIRCLE_TAG"
         resources:
           limits:
-            cpu: 12m
+            cpu: 200m
             memory: 125Mi
           requests:
-            cpu: 12m
+            cpu: 25m
             memory: 125Mi
 ---
 kind: Service
