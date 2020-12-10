@@ -83,8 +83,9 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 
 func getRepoConfig(ctx context.Context, client *github.Client, repo *github.Repository) *config.RepoConfig {
 	// check if a bot config exists
-	repoConfigContent, _, err := gh.GetRepoContent(ctx, client, repo.GetOwner().GetName(), repo.GetName(), ".github/dependabot-circleci.yml", "")
+	repoConfigContent, _, err := gh.GetRepoContent(ctx, client, repo.GetOwner().GetLogin(), repo.GetName(), ".github/dependabot-circleci.yml", "")
 	if err != nil {
+		log.Debug().Err(err).Msgf("could not load dependabot-circleci.yml in repo: %s", repo.GetName())
 		return nil
 	}
 

@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/go-co-op/gocron"
 	"github.com/rs/zerolog/log"
 
 	"github.com/BESTSELLER/dependabot-circleci/api"
@@ -14,7 +15,6 @@ import (
 
 	"github.com/BESTSELLER/dependabot-circleci/config"
 	"github.com/BESTSELLER/dependabot-circleci/gh"
-	"github.com/go-co-op/gocron"
 )
 
 var wg sync.WaitGroup
