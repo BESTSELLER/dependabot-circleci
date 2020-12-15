@@ -7,7 +7,7 @@ import (
 
 	"github.com/BESTSELLER/dependabot-circleci/config"
 	"github.com/BESTSELLER/dependabot-circleci/gh"
-	"github.com/google/go-github/v32/github"
+	"github.com/google/go-github/v33/github"
 	"github.com/palantir/go-githubapp/githubapp"
 	"github.com/pkg/errors"
 
@@ -83,7 +83,6 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 
 	_, _, err = client.Checks.UpdateCheckRun(ctx, owner, repoName, check.GetID(), github.UpdateCheckRunOptions{
 		Name:        checkName,
-		HeadSHA:     github.String(commitSHA),
 		Status:      github.String("completed"),
 		Conclusion:  github.String("success"),
 		CompletedAt: &github.Timestamp{time.Now()},
