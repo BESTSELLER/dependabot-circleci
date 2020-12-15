@@ -8,7 +8,7 @@ import (
 	"github.com/google/go-github/v33/github"
 )
 
-// CheckPR
+// CheckPR .
 func CheckPR(ctx context.Context, client *github.Client, repoOwner string, repoName string, baseBranch string, commitBranch string, commitMessage string, component string) (bool, *github.PullRequest, error) {
 	pullreqs, _, _ := client.PullRequests.List(ctx, repoOwner, repoName, nil)
 	for _, pr := range pullreqs {

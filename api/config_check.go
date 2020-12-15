@@ -83,7 +83,6 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 
 	_, _, err = client.Checks.UpdateCheckRun(ctx, owner, repoName, check.GetID(), github.UpdateCheckRunOptions{
 		Name:        checkName,
-		HeadSHA:     github.String(commitSHA),
 		Status:      github.String("completed"),
 		Conclusion:  github.String("success"),
 		CompletedAt: &github.Timestamp{time.Now()},
