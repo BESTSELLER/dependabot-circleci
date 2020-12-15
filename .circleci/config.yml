@@ -145,7 +145,6 @@ jobs:
       - secret-injector/inject:
           app-name: $CIRCLE_PROJECT_REPONAME$DEPLOY_VERSION
           deploy-file: ./deployment.yml
-          deploy-type: CronJob
           secret-file: secrets.yml
       - run:
           name: create kubernetes service

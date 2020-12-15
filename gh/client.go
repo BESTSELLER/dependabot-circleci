@@ -8,12 +8,14 @@ import (
 	"github.com/google/go-github/v32/github"
 	"github.com/gregjones/httpcache"
 	"github.com/palantir/go-githubapp/githubapp"
+
+	conf "github.com/BESTSELLER/dependabot-circleci/config"
 )
 
-var version string
-
 // GetOrganizationClients returns a github client
-func GetOrganizationClients(ctx context.Context, config githubapp.Config) ([]*github.Client, error) {
+func GetOrganizationClients(config githubapp.Config) ([]*github.Client, error) {
+
+	ctx := context.Background()
 
 	cc, err := createGHClient(config)
 	if err != nil {
@@ -53,8 +55,8 @@ func GetOrganizationClients(ctx context.Context, config githubapp.Config) ([]*gi
 func createGHClient(config githubapp.Config) (githubapp.ClientCreator, error) {
 	cc, err := githubapp.NewDefaultCachingClientCreator(
 		config,
-		githubapp.WithClientUserAgent(fmt.Sprintf("dependabot-circleci/%s", version)),
-		githubapp.WithClientTimeout(3*time.Second),
+		githubapp.WithClientUserAgent(fmt.Sprintf("dependabot-circleci/%s", conf.EnvVars.Version)),
+		githubapp.WithClientTimeout(10*time.Minute),
 		githubapp.WithClientCaching(false, func() httpcache.Cache { return httpcache.NewMemoryCache() }),
 	)
 	if err != nil {
