@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/go-co-op/gocron"
 	"github.com/rs/zerolog/log"
 
 	"github.com/BESTSELLER/dependabot-circleci/api"
@@ -14,10 +15,8 @@ import (
 
 	"github.com/BESTSELLER/dependabot-circleci/config"
 	"github.com/BESTSELLER/dependabot-circleci/gh"
-	"github.com/go-co-op/gocron"
 )
 
-var ctx = context.Background()
 var wg sync.WaitGroup
 
 func main() {
@@ -28,7 +27,7 @@ func main() {
 		log.Fatal().Err(err).Msg("failed to read env config")
 	}
 
-	appConfig, err := config.ReadConfig(config.EnvVars.Config)
+	err = config.ReadConfig(config.EnvVars.Config)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to read github app config")
 	}
@@ -39,8 +38,30 @@ func main() {
 		log.Error().Err(err).Msg("failed to register dogstatsd client")
 	}
 
+	//schedule checks
+	scheduleTime := config.EnvVars.Schedule
+	if scheduleTime == "" {
+		scheduleTime = "22:00"
+	}
+
+	schedule := gocron.NewScheduler(time.UTC)
+	_, err = schedule.Every(1).Day().At(scheduleTime).Do(runDependabot)
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to create schedule")
+	}
+	schedule.StartAsync()
+
+	_, next := schedule.NextRun()
+	log.Info().Msgf("Next scheduled dependency check is at: %s", next)
+
+	// start webhook
+	api.SetupRouter()
+
+}
+
+func runDependabot() {
 	// create clients
-	clients, err := gh.GetOrganizationClients(ctx, appConfig.Github)
+	clients, err := gh.GetOrganizationClients(config.AppConfig.Github)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to register organization client")
 	}
@@ -48,22 +69,13 @@ func main() {
 	// send stats to dd
 	go datadog.Gauge("organizations", float64(len(clients)), nil)
 
-	//schedule checks
-	schedule := gocron.NewScheduler(time.UTC)
-	schedule.Every(1).Day().At("22:00").Do(func() {
-		for _, client := range clients {
-			wg.Add(1)
-			client := client
-			go func() {
-				defer wg.Done()
-				dependabot.Start(ctx, client)
-			}()
-		}
-		wg.Wait()
-	})
-	schedule.StartAsync()
-
-	// start webhook
-	api.SetupRouter()
-
+	for _, client := range clients {
+		wg.Add(1)
+		client := client
+		go func() {
+			defer wg.Done()
+			dependabot.Start(context.Background(), client)
+		}()
+	}
+	wg.Wait()
 }
