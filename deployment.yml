@@ -4,6 +4,8 @@ metadata:
   name: $CIRCLE_PROJECT_REPONAME$DEPLOY_VERSION
   labels:
     app: $CIRCLE_PROJECT_REPONAME$DEPLOY_VERSION
+    tags.datadoghq.com/service: $CIRCLE_PROJECT_REPONAME
+    tags.datadoghq.com/version: $CIRCLE_TAG
 spec:
   replicas: 1
   selector:
@@ -13,6 +15,8 @@ spec:
     metadata:
       labels:
         app: $CIRCLE_PROJECT_REPONAME$DEPLOY_VERSION
+        tags.datadoghq.com/service: $CIRCLE_PROJECT_REPONAME
+        tags.datadoghq.com/version: $CIRCLE_TAG
     spec:
       containers:
       - name: $CIRCLE_PROJECT_REPONAME$DEPLOY_VERSION
@@ -24,6 +28,14 @@ spec:
             value: "datadog-agent.datadog:8125"
           - name: DEPENDABOT_VERSION
             value: "$CIRCLE_TAG"
+          - name: DD_SERVICE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.labels['tags.datadoghq.com/service']
+          - name: DD_VERSION
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.labels['tags.datadoghq.com/version']
         resources:
           limits:
             cpu: 200m
