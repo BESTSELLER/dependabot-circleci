@@ -3,7 +3,7 @@ module github.com/BESTSELLER/dependabot-circleci
 go 1.15
 
 require (
-	github.com/CircleCI-Public/circleci-cli v0.1.11540
+	github.com/CircleCI-Public/circleci-cli v0.1.11661
 	github.com/DataDog/datadog-go v4.2.0+incompatible
 	github.com/go-co-op/gocron v0.5.0
 	github.com/google/go-containerregistry v0.3.0
