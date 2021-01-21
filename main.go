@@ -2,6 +2,9 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"io/ioutil"
+	"os"
 	"sync"
 	"time"
 
@@ -12,12 +15,45 @@ import (
 	"github.com/BESTSELLER/dependabot-circleci/datadog"
 	"github.com/BESTSELLER/dependabot-circleci/dependabot"
 	"github.com/BESTSELLER/dependabot-circleci/logger"
+	"github.com/BESTSELLER/go-vault/gcpss"
 
 	"github.com/BESTSELLER/dependabot-circleci/config"
 	"github.com/BESTSELLER/dependabot-circleci/gh"
 )
 
 var wg sync.WaitGroup
+
+func init() {
+	vaultAddr := os.Getenv("VAULT_ADDR")
+	if vaultAddr == "" {
+		fmt.Println("VAULT_ADDR must be set.")
+	}
+	vaultSecret := os.Getenv("VAULT_SECRET")
+	if vaultSecret == "" {
+		fmt.Println("VAULT_SECRET must be set.")
+	}
+	vaultRole := os.Getenv("VAULT_ROLE")
+	if vaultRole == "" {
+		fmt.Println("VAULT_ROLE must be set.")
+	}
+
+	secret, err := gcpss.FetchVaultSecret(vaultAddr, vaultSecret, vaultRole)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	err = os.Mkdir("/secrets", 0644)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	data := []byte(secret)
+	err = ioutil.WriteFile("/secrets/secrets", data, 0644)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+}
 
 func main() {
 	err := config.LoadEnvConfig()
@@ -29,14 +65,14 @@ func main() {
 
 	err = config.ReadConfig(config.EnvVars.Config)
 	if err != nil {
-		log.Fatal().Err(err).Msg("failed to read github app config")
+		log.Fatal().Err(err).Msg("failed to read github app config:")
 	}
 
-	// create statsd client
-	err = datadog.CreateClient()
-	if err != nil {
-		log.Error().Err(err).Msg("failed to register dogstatsd client")
-	}
+	// // create statsd client
+	// err = datadog.CreateClient()
+	// if err != nil {
+	// 	log.Error().Err(err).Msg("failed to register dogstatsd client")
+	// }
 
 	//schedule checks
 	scheduleTime := config.EnvVars.Schedule

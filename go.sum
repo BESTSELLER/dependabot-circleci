@@ -24,6 +24,10 @@ cloud.google.com/go/storage v1.6.0/go.mod h1:N7U0C8pVQ/+NIKOBQyamJIeKQKkZ+mxpohl
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
 github.com/AlecAivazis/survey/v2 v2.1.1/go.mod h1:9FJRdMdDm8rnT+zHVbvQT2RTSTLq0Ttd6q3Vl2fahjk=
 github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78/go.mod h1:LmzpDX56iTiv29bbRTIsUNlaFfuhWRQBWjQdVyAevI8=
+github.com/BESTSELLER/go-vault v0.1.1 h1:Bb+pQTnkVsH1meEFGzsjJD8tiM9zz/DZC0DniadgnHA=
+github.com/BESTSELLER/go-vault v0.1.1/go.mod h1:1vDNl2t7FFuzP9o+rJQpvWHASQWSXht7iZvXbg8KTQk=
+github.com/BESTSELLER/go-vault v0.1.2 h1:CLMWRQq9L58kg3d8VPZ3FhWkO1swKrR0NRh29GeriLk=
+github.com/BESTSELLER/go-vault v0.1.2/go.mod h1:1vDNl2t7FFuzP9o+rJQpvWHASQWSXht7iZvXbg8KTQk=
 github.com/BESTSELLER/go-version v1.2.5 h1:naMdfH4XsfyfAQVMSNDmye6pAQx0sIYClV6rPhVBqHg=
 github.com/BESTSELLER/go-version v1.2.5/go.mod h1:fltr4n8CU8Ke44wwGCBoEymUuxUHl09ZGVZPK5anwXA=
 github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ=

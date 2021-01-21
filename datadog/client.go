@@ -1,33 +1,41 @@
 package datadog
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"time"
 
-	"github.com/BESTSELLER/dependabot-circleci/config"
-	"github.com/DataDog/datadog-go/statsd"
 	"github.com/rs/zerolog/log"
 )
 
-var client *statsd.Client
-var metricPrefix = "dependabot_circleci"
-
-// CreateClient creates a statsd client
-func CreateClient() (err error) {
-	client, err = statsd.New(config.EnvVars.DDAddress)
-	if err != nil {
-		return err
-	}
-	return nil
+type DatadogConfig struct {
+	Datadog struct {
+		APIKey string `json:"api_key"`
+	} `json:"datadog"`
 }
+type DataDog struct {
+	Series []Series `json:"series"`
+}
+
+type Series struct {
+	Metric   string    `json:"metric"`
+	Points   [][]int64 `json:"points"`
+	Tags     []string  `json:"tags"`
+	Type     string    `json:"type"`
+	Host     string    `json:"host"`
+	Interval int64     `json:"interval"`
+}
+
+var metricPrefix = "dependabot_circleci"
 
 // IncrementCount incrementes a counter based on the input
 func IncrementCount(metricName string, org string) {
-	err := client.Incr(
-		fmt.Sprintf("%s.%s", metricPrefix, metricName),
-		[]string{
-			"organistation:" + org,
-		},
-		1)
+	metric := metricPrefix + "." + metricName
+	err := postDataDogMetric(metric, 1, "count", []string{"organistation:" + org})
 	if err != nil {
 		log.Debug().Err(err).Msgf("could increment datadog counter %s", metricName)
 	}
@@ -35,13 +43,94 @@ func IncrementCount(metricName string, org string) {
 
 // Gauge incrementes a counter based on the input
 func Gauge(metricName string, value float64, tags []string) {
-	err := client.Gauge(
-		fmt.Sprintf("%s.%s", metricPrefix, metricName),
-		value,
-		tags,
-		1,
-	)
+	metric := metricPrefix + "." + metricName
+	err := postDataDogMetric(metric, int64(value), "gauge", tags)
 	if err != nil {
 		log.Debug().Err(err).Msgf("could send gauge to datadog %s", metricName)
 	}
+
+}
+
+func getDataDogConfig() (apiKey string, err error) {
+	path := os.Getenv("DEPENDABOT_CONFIG")
+	jsonFile, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+
+	defer jsonFile.Close()
+
+	byteValue, _ := ioutil.ReadAll(jsonFile)
+
+	var result DatadogConfig
+	json.Unmarshal([]byte(byteValue), &result)
+
+	return result.Datadog.APIKey, nil
+}
+
+func postDataDogMetric(metric string, value int64, metricType string, tags []string) error {
+	// apiKey, err := getDataDogConfig()
+	// if err != nil {
+	// 	return err
+	// }
+
+	apiKey := os.Getenv("DD_API_KEY")
+
+	url := "https://api.datadoghq.eu/api/v1/series?api_key=" + apiKey
+
+	series := Series{
+		Metric: metric,
+		Type:   metricType,
+		Tags:   tags,
+	}
+
+	point := [][]int64{
+		{time.Now().Unix(), value},
+	}
+	series.Points = point
+
+	payload := DataDog{[]Series{series}}
+
+	_, err := postStructAsJSON(url, payload, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func postStructAsJSON(url string, payload interface{}, target interface{}) (string, error) {
+	var myClient = http.Client{}
+	b := new(bytes.Buffer)
+	err := json.NewEncoder(b).Encode(payload)
+	if err != nil {
+		fmt.Printf("Unable to encode struct: %s", err)
+		return "", err
+	}
+	req, err := http.NewRequest("POST", url, b)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Add("Accept", "application/json")
+	req.Header.Add("Content-Type", "application/json")
+	r, err := myClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer r.Body.Close()
+
+	// check status code
+	bodyBytes, _ := ioutil.ReadAll(r.Body)
+	bodyString := string(bodyBytes)
+
+	if r.StatusCode < 200 || r.StatusCode > 299 {
+		return "", fmt.Errorf("Request failed, expected status: 2xx got: %d, error message: %s", r.StatusCode, bodyString)
+	}
+	decode := json.NewDecoder(r.Body)
+	err = decode.Decode(&target)
+	if err != nil {
+		return "", err
+	}
+
+	return bodyString, nil
 }
