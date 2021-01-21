@@ -3,6 +3,7 @@ package config
 import (
 	"io/ioutil"
 
+	"github.com/BESTSELLER/dependabot-circleci/datadog"
 	"github.com/palantir/go-baseapp/baseapp"
 	"github.com/palantir/go-githubapp/githubapp"
 	"github.com/pkg/errors"
@@ -11,8 +12,9 @@ import (
 
 // Config contains global config
 type Config struct {
-	Github githubapp.Config   `yaml:"github"`
-	Server baseapp.HTTPConfig `yaml:"server"`
+	Datadog datadog.DatadogConfig `json:"datadog"`
+	Github  githubapp.Config      `yaml:"github"`
+	Server  baseapp.HTTPConfig    `yaml:"server"`
 }
 
 // RepoConfig contains specific config for each repos
