@@ -212,9 +212,9 @@ jobs:
             cat /tmp/cloudrun_admin | jq -r .private_key_data | base64 -d > cloudrun-admin.json
             gcloud auth activate-service-account --key-file=./cloudrun-admin.json
       - run:
-          name: create alfeios deployment
+          name: create $CIRCLE_PROJECT_REPONAME deployment
           command: |
-            gcloud beta run deploy alfeios \
+            gcloud beta run deploy $CIRCLE_PROJECT_REPONAME \
               --image=europe-docker.pkg.dev/es-standalone-cb21/es-docker/$CIRCLE_PROJECT_REPONAME:$CIRCLE_SHA1 \
               --allow-unauthenticated \
               --min-instances=1 \
