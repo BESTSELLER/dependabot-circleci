@@ -212,7 +212,7 @@ jobs:
             cat /tmp/cloudrun_admin | jq -r .private_key_data | base64 -d > cloudrun-admin.json
             gcloud auth activate-service-account --key-file=./cloudrun-admin.json
       - run:
-          name: create $CIRCLE_PROJECT_REPONAME deployment
+          name: creating deployment
           command: |
             gcloud beta run deploy $CIRCLE_PROJECT_REPONAME \
               --image=europe-docker.pkg.dev/es-standalone-cb21/es-docker/$CIRCLE_PROJECT_REPONAME:$CIRCLE_SHA1 \
@@ -224,7 +224,7 @@ jobs:
               --region=europe-west4 \
               --project=es-standalone-cb21 \
               --set-env-vars VAULT_ADDR="${VAULT_ADDR}",VAULT_ROLE=dependabot-circleci,VAULT_SECRET=ES/data/dependabot-circleci/prod \
-              --service-account=dependabot-circleci-dev@es-standalone-dev-ea40.iam.gserviceaccount.com
+              --service-account=dependabot-circleci@es-standalone-cb21.iam.gserviceaccount.com
       # - run:
       #     name: create alfeios domain mapping
       #     command: |
