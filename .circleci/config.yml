@@ -224,7 +224,7 @@ jobs:
               --platform=managed \
               --region=europe-west4 \
               --project=es-standalone-cb21 \
-              --set-env-vars VAULT_ADDR="${VAULT_ADDR}",VAULT_ROLE=dependabot-circleci,VAULT_SECRET=ES/data/dependabot-circleci/prod \
+              --set-env-vars VAULT_ADDR="${VAULT_ADDR}",VAULT_ROLE=dependabot-circleci,VAULT_SECRET=ES/data/dependabot-circleci/prod,DEPENDABOT_VERSION=0.2.8,DEPENDABOT_CONFIG=/secrets/secrets \
               --service-account=dependabot-circleci@es-standalone-cb21.iam.gserviceaccount.com
       # - run:
       #     name: create alfeios domain mapping
@@ -351,7 +351,7 @@ workflows:
       - deploy-serverless:
           requires:
             - build-push-serverless
+          context: es02-prod
           filters:
             branches:
               only: ES-1219_cloud_run
-
