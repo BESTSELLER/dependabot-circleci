@@ -1,5 +1,8 @@
 version: 2.1
 executors:
+  gcp_image:
+    docker:
+      - image: google/cloud-sdk:alpine
   go_image:
     docker:
       - image: cimg/go:1.15
