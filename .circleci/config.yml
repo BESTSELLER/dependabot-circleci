@@ -151,6 +151,90 @@ jobs:
           command: |
             kubectl apply -f ./deployment.yml
 
+  build-push:
+    executor: gcp_image
+    steps:
+      - checkout
+      - setup_remote_docker
+      - attach_workspace:
+          at: /tmp
+      - run:
+          name: Build and push image
+          command: |
+            source /tmp/secrets
+
+            gcloud auth activate-service-account --key-file=/tmp/cluster_secret.json
+            gcloud auth configure-docker europe-docker.pkg.dev
+            
+            export docker_registry_url=europe-docker.pkg.dev/es-standalone-cb21
+            docker build -t $docker_registry_url/es-docker/$CIRCLE_PROJECT_REPONAME:$CIRCLE_SHA1 .
+            docker push $docker_registry_url/es-docker/$CIRCLE_PROJECT_REPONAME:$CIRCLE_SHA1
+
+  build-push-serverless:
+    executor: gcp_image
+    steps:
+      - checkout
+      - setup_remote_docker
+      - attach_workspace:
+          at: /tmp
+      - run:
+          name: install jq
+          command: |
+            apk add --no-cache jq
+      - run:
+          name: Build and push image
+          command: |
+            source /tmp/secrets
+
+            gcloud auth activate-service-account --key-file=/tmp/cluster_secret.json
+            gcloud auth configure-docker europe-docker.pkg.dev --quiet
+            
+            export docker_registry_url=europe-docker.pkg.dev/es-standalone-cb21
+            docker build -t $docker_registry_url/es-docker/$CIRCLE_PROJECT_REPONAME:$CIRCLE_SHA1 .
+            docker push $docker_registry_url/es-docker/$CIRCLE_PROJECT_REPONAME:$CIRCLE_SHA1
+
+  deploy-serverless:
+    executor: gcp_image
+    steps:
+      - checkout
+      - attach_workspace:
+          at: /tmp
+      - run:
+          name: install jq
+          command: |
+            apk add --no-cache jq
+      - run:
+          name: gcloud login
+          command: |
+            cat /tmp/cloudrun_admin | jq -r .private_key_data | base64 -d > cloudrun-admin.json
+            gcloud auth activate-service-account --key-file=./cloudrun-admin.json
+      - run:
+          name: create alfeios deployment
+          command: |
+            gcloud beta run deploy alfeios \
+              --image=europe-docker.pkg.dev/es-standalone-cb21/es-docker/$CIRCLE_PROJECT_REPONAME:$CIRCLE_SHA1 \
+              --allow-unauthenticated \
+              --min-instances=1 \
+              --max-instances=100 \
+              --port=3000 \
+              --platform=managed \
+              --region=europe-west4 \
+              --project=es-standalone-cb21 \
+              --set-env-vars VAULT_ADDR="${VAULT_ADDR}",VAULT_ROLE=dependabot-circleci,VAULT_SECRET=ES/data/dependabot-circleci/prod \
+              --service-account=dependabot-circleci-dev@es-standalone-dev-ea40.iam.gserviceaccount.com
+      # - run:
+      #     name: create alfeios domain mapping
+      #     command: |
+      #       if ! gcloud beta run domain-mappings describe --domain=bestsellerit.com --platform=managed --region=europe-west1 --project=es-standalone-cb21; then
+      #         gcloud beta run domain-mappings create \
+      #           --service=$CIRCLE_PROJECT_REPONAME \
+      #           --domain=bestsellerit.com \
+      #           --platform=managed \
+      #           --region=europe-west1 \
+      #           --project=es-standalone-cb21
+      #       fi
+
+
 workflows:
   test:
     jobs:
@@ -229,3 +313,41 @@ workflows:
               only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
             branches:
               ignore: /.*/
+
+  serverless-test-build-deploy:
+    jobs:
+      # - secret-injector/dump-secrets:
+      #     context: es02-prod
+      # - test:
+      #     requires:
+      #       - secret-injector/dump-secrets
+      # - test-sonar:
+      #     requires:
+      #       - secret-injector/dump-secrets
+
+      - secret-injector/dump-secrets:
+          # requires:
+            # - test
+            # - test-sonar
+          name: secret-injector/cloudrun
+          vault-path: "gcp_landingzone/key/cloudrun-admin"
+          output-filename: cloudrun_admin
+          format: json
+          context: es02-prod
+          filters:
+            branches:
+              only: ES-1219_cloud_run
+      - build-push-serverless:
+          requires:
+            - secret-injector/dump-secrets
+            - secret-injector/cloudrun
+          filters:
+            branches:
+              only: ES-1219_cloud_run
+      - deploy-serverless:
+          requires:
+            - build-push-serverless
+          filters:
+            branches:
+              only: ES-1219_cloud_run
+
