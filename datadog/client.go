@@ -6,17 +6,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"time"
 
+	"github.com/BESTSELLER/dependabot-circleci/config"
 	"github.com/rs/zerolog/log"
 )
 
-type DatadogConfig struct {
-	Datadog struct {
-		APIKey string `json:"api_key"`
-	} `json:"datadog"`
-}
 type DataDog struct {
 	Series []Series `json:"series"`
 }
@@ -51,22 +46,22 @@ func Gauge(metricName string, value float64, tags []string) {
 
 }
 
-func getDataDogConfig() (apiKey string, err error) {
-	path := os.Getenv("DEPENDABOT_CONFIG")
-	jsonFile, err := os.Open(path)
-	if err != nil {
-		return "", err
-	}
+// func getDataDogConfig() (apiKey string, err error) {
+// 	path := os.Getenv("DEPENDABOT_CONFIG")
+// 	jsonFile, err := os.Open(path)
+// 	if err != nil {
+// 		return "", err
+// 	}
 
-	defer jsonFile.Close()
+// 	defer jsonFile.Close()
 
-	byteValue, _ := ioutil.ReadAll(jsonFile)
+// 	byteValue, _ := ioutil.ReadAll(jsonFile)
 
-	var result DatadogConfig
-	json.Unmarshal([]byte(byteValue), &result)
+// 	var result DatadogConfig
+// 	json.Unmarshal([]byte(byteValue), &result)
 
-	return result.Datadog.APIKey, nil
-}
+// 	return result.Datadog.APIKey, nil
+// }
 
 func postDataDogMetric(metric string, value int64, metricType string, tags []string) error {
 	// apiKey, err := getDataDogConfig()
@@ -74,7 +69,7 @@ func postDataDogMetric(metric string, value int64, metricType string, tags []str
 	// 	return err
 	// }
 
-	apiKey := os.Getenv("DD_API_KEY")
+	apiKey := config.AppConfig.Datadog.APIKey
 
 	url := "https://api.datadoghq.eu/api/v1/series?api_key=" + apiKey
 
