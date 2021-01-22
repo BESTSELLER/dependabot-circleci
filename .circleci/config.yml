@@ -319,8 +319,8 @@ workflows:
 
   serverless-test-build-deploy:
     jobs:
-      # - secret-injector/dump-secrets:
-      #     context: es02-prod
+      - secret-injector/dump-secrets:
+          context: es02-prod
       # - test:
       #     requires:
       #       - secret-injector/dump-secrets
@@ -342,7 +342,7 @@ workflows:
               only: ES-1219_cloud_run
       - build-push-serverless:
           requires:
-            # - secret-injector/dump-secrets
+            - secret-injector/dump-secrets
             - secret-injector/cloudrun
           filters:
             branches:
