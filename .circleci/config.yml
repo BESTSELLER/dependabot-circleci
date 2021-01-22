@@ -164,7 +164,7 @@ jobs:
       - run:
           name: Build and push image
           command: |
-            source /tmp/secrets
+            # source /tmp/secrets
 
             gcloud auth activate-service-account --key-file=/tmp/cluster_secret.json
             gcloud auth configure-docker europe-docker.pkg.dev
@@ -187,7 +187,7 @@ jobs:
       - run:
           name: Build and push image
           command: |
-            source /tmp/secrets
+            # source /tmp/secrets
 
             gcloud auth activate-service-account --key-file=/tmp/cluster_secret.json
             gcloud auth configure-docker europe-docker.pkg.dev --quiet
