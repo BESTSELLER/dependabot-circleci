@@ -1,5 +1,8 @@
 version: 2.1
 executors:
+  gcp_image:
+    docker:
+      - image: google/cloud-sdk:alpine
   go_image:
     docker:
       - image: cimg/go:1.15
@@ -72,84 +75,74 @@ jobs:
               -Dsonar.links.scm=$CIRCLE_REPOSITORY_URL \
               -Dsonar.go.coverage.reportPaths=coverage.out
 
-  docker-build-n-push:
-    docker:
-      - image: docker:stable-git
-        auth:
-          username: $DOCKERHUB_USER
-          password: $DOCKERHUB_PASS
+  build-push-serverless:
+    executor: gcp_image
     steps:
-      - attach_workspace:
-          at: /tmp
       - checkout
       - setup_remote_docker
+      - attach_workspace:
+          at: /tmp
       - run:
-          name: Push and build image
+          name: install jq
           command: |
-            source /tmp/secrets
-            docker login -u $DOCKER_username -p $DOCKER_password $K8S_CLUSTER_docker_registry_url
-            docker build \
-              -t $K8S_CLUSTER_docker_registry_url/$SHORT/$CIRCLE_PROJECT_REPONAME:$CIRCLE_TAG \
-              -t $K8S_CLUSTER_docker_registry_url/$SHORT/$CIRCLE_PROJECT_REPONAME:latest \
-              --build-arg VERSION=$CIRCLE_TAG .
-            docker push $K8S_CLUSTER_docker_registry_url/$SHORT/$CIRCLE_PROJECT_REPONAME:$CIRCLE_TAG
-            docker push $K8S_CLUSTER_docker_registry_url/$SHORT/$CIRCLE_PROJECT_REPONAME:latest
+            apk add --no-cache jq
+      - run:
+          name: Build and push image
+          command: |
+            # source /tmp/secrets
 
-  deploy:
-    docker:
-      - image: google/cloud-sdk:alpine
-        auth:
-          username: $DOCKERHUB_USER
-          password: $DOCKERHUB_PASS
+            gcloud auth activate-service-account --key-file=/tmp/cluster_secret.json
+            gcloud auth configure-docker europe-docker.pkg.dev --quiet
+            
+            export docker_registry_url=europe-docker.pkg.dev/es-standalone-cb21
+            docker build -t $docker_registry_url/es-docker/$CIRCLE_PROJECT_REPONAME:$CIRCLE_TAG .
+            docker build -t $docker_registry_url/es-docker/$CIRCLE_PROJECT_REPONAME:$latest .
+
+            docker push $docker_registry_url/es-docker/$CIRCLE_PROJECT_REPONAME:$CIRCLE_TAG
+            docker push $docker_registry_url/es-docker/$CIRCLE_PROJECT_REPONAME:latest
+
+  deploy-serverless:
+    executor: gcp_image
     steps:
       - checkout
       - attach_workspace:
           at: /tmp
+      - run:
+          name: install jq
+          command: |
+            apk add --no-cache jq
       - run:
           name: gcloud login
           command: |
-            source /tmp/secrets
-            gcloud auth activate-service-account --key-file=/tmp/cluster_secret.json
+            gcloud components install beta
+            cat /tmp/cloudrun_admin | jq -r .private_key_data | base64 -d > cloudrun-admin.json
+            gcloud auth activate-service-account --key-file=./cloudrun-admin.json
       - run:
-          name: install kubectl
+          name: creating deployment
           command: |
-            curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
-            chmod +x ./kubectl
-            mv ./kubectl /usr/local/bin/kubectl
+            gcloud beta run deploy $CIRCLE_PROJECT_REPONAME \
+              --image=europe-docker.pkg.dev/es-standalone-cb21/es-docker/$CIRCLE_PROJECT_REPONAME:$CIRCLE_TAG \
+              --allow-unauthenticated \
+              --min-instances=1 \
+              --max-instances=100 \
+              --port=3000 \
+              --platform=managed \
+              --region=europe-west4 \
+              --project=es-standalone-cb21 \
+              --set-env-vars VAULT_ADDR="${VAULT_ADDR}",VAULT_ROLE=dependabot-circleci,VAULT_SECRET=ES/data/dependabot-circleci/prod,DEPENDABOT_VERSION=${$CIRCLE_TAG},DEPENDABOT_CONFIG=/secrets/secrets \
+              --service-account=dependabot-circleci@es-standalone-cb21.iam.gserviceaccount.com
       - run:
-          name: connect to the cluster
+          name: create domain mapping
           command: |
-            source /tmp/secrets
-            gcloud container clusters get-credentials $K8S_CLUSTER_cluster_name --project $K8S_CLUSTER_project_id --zone europe-west4
-      - run:
-          name: Install envsubt
-          command: |
-            apk update
-            apk add gettext
-      - run:
-          name: replace strings
-          command: |
-            source /tmp/secrets
-            if [[ ${CIRCLE_BRANCH} = "master" ]] || [[ ${CIRCLE_TAG} =~ ^[0-9]+(\.[0-9]+)*(-.*)*$ ]];
-            then
-              export DEPLOY_VERSION=''
-              export SECRET_VERSION=prod
-            else
-              export DEPLOY_VERSION=-$CIRCLE_BRANCH
-              echo 'export DEPLOY_VERSION="-$CIRCLE_BRANCH"' >> $BASH_ENV
-              source ${BASH_ENV}
-              export SECRET_VERSION=$CIRCLE_BRANCH
+            if ! gcloud beta run domain-mappings describe --domain=bestsellerit.com --platform=managed --region=europe-west1 --project=es-standalone-cb21; then
+              gcloud beta run domain-mappings create \
+                --service=$CIRCLE_PROJECT_REPONAME \
+                --domain=bestsellerit.com \
+                --platform=managed \
+                --region=europe-west1 \
+                --project=es-standalone-cb21
             fi
-            envsubst < ./secrets.yml > ./secrets_var.yml && mv ./secrets_var.yml ./secrets.yml
-            envsubst < ./deployment.yml > ./deployment_var.yml && mv ./deployment_var.yml ./deployment.yml
-      - secret-injector/inject:
-          app-name: $CIRCLE_PROJECT_REPONAME$DEPLOY_VERSION
-          deploy-file: ./deployment.yml
-          secret-file: secrets.yml
-      - run:
-          name: create kubernetes service
-          command: |
-            kubectl apply -f ./deployment.yml
+
 
 workflows:
   test:
@@ -177,29 +170,25 @@ workflows:
             tags:
               ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
   
-  test-build-deploy:
+
+  serverless-test-build-deploy:
     jobs:
       - secret-injector/dump-secrets:
-          context: 
-            - es02-prod
-            - shared
+          context: es02-prod
           filters:
             tags:
               only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
             branches:
               ignore: /.*/
       - test:
-          context:
-            - shared
+          requires:
+            - secret-injector/dump-secrets
           filters:
             tags:
               only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
             branches:
-              ignore: /.*/
+              ignore: /.*/           
       - test-sonar:
-          context: 
-            - es02-prod
-            - shared
           requires:
             - secret-injector/dump-secrets
           filters:
@@ -207,23 +196,33 @@ workflows:
               only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
             branches:
               ignore: /.*/
-      - docker-build-n-push:
-          context: 
-            - es02-prod
-            - shared
+      - secret-injector/dump-secrets:
           requires:
-            - secret-injector/dump-secrets
+            - test
+            - test-sonar
+          name: secret-injector/cloudrun
+          vault-path: "gcp_landingzone/key/cloudrun-admin"
+          output-filename: cloudrun_admin
+          format: json
+          context: es02-prod
           filters:
             tags:
               only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
             branches:
               ignore: /.*/
-      - deploy:
-          context: 
-            - es02-prod
-            - shared
+      - build-push-serverless:
           requires:
-            - docker-build-n-push
+            - secret-injector/dump-secrets
+            - secret-injector/cloudrun
+          filters:
+            tags:
+              only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
+            branches:
+              ignore: /.*/
+      - deploy-serverless:
+          requires:
+            - build-push-serverless
+          context: es02-prod
           filters:
             tags:
               only: /^[0-9]+(\.[0-9]+)*(-.*)*$/

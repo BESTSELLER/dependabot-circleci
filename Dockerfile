@@ -8,3 +8,4 @@ FROM alpine
 COPY --from=builder /tmp/dependabot-circleci /dependabot-circleci
 
 CMD ["/dependabot-circleci"]
+EXPOSE 3000
