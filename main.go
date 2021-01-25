@@ -68,12 +68,6 @@ func main() {
 		log.Fatal().Err(err).Msg("failed to read github app config:")
 	}
 
-	// // create statsd client
-	// err = datadog.CreateClient()
-	// if err != nil {
-	// 	log.Error().Err(err).Msg("failed to register dogstatsd client")
-	// }
-
 	//schedule checks
 	scheduleTime := config.EnvVars.Schedule
 	if scheduleTime == "" {

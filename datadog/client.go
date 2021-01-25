@@ -46,29 +46,7 @@ func Gauge(metricName string, value float64, tags []string) {
 
 }
 
-// func getDataDogConfig() (apiKey string, err error) {
-// 	path := os.Getenv("DEPENDABOT_CONFIG")
-// 	jsonFile, err := os.Open(path)
-// 	if err != nil {
-// 		return "", err
-// 	}
-
-// 	defer jsonFile.Close()
-
-// 	byteValue, _ := ioutil.ReadAll(jsonFile)
-
-// 	var result DatadogConfig
-// 	json.Unmarshal([]byte(byteValue), &result)
-
-// 	return result.Datadog.APIKey, nil
-// }
-
 func postDataDogMetric(metric string, value int64, metricType string, tags []string) error {
-	// apiKey, err := getDataDogConfig()
-	// if err != nil {
-	// 	return err
-	// }
-
 	apiKey := config.AppConfig.Datadog.APIKey
 
 	url := "https://api.datadoghq.eu/api/v1/series?api_key=" + apiKey
