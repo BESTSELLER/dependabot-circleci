@@ -96,7 +96,7 @@ jobs:
             
             export docker_registry_url=europe-docker.pkg.dev/es-standalone-cb21
             docker build -t $docker_registry_url/es-docker/$CIRCLE_PROJECT_REPONAME:$CIRCLE_TAG .
-            docker build -t $docker_registry_url/es-docker/$CIRCLE_PROJECT_REPONAME:$latest .
+            docker build -t $docker_registry_url/es-docker/$CIRCLE_PROJECT_REPONAME:latest .
 
             docker push $docker_registry_url/es-docker/$CIRCLE_PROJECT_REPONAME:$CIRCLE_TAG
             docker push $docker_registry_url/es-docker/$CIRCLE_PROJECT_REPONAME:latest
