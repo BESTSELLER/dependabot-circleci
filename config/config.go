@@ -9,10 +9,15 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+type DatadogConfig struct {
+	APIKey string `yaml:"api_key"`
+}
+
 // Config contains global config
 type Config struct {
-	Github githubapp.Config   `yaml:"github"`
-	Server baseapp.HTTPConfig `yaml:"server"`
+	Datadog DatadogConfig      `yaml:"datadog"`
+	Github  githubapp.Config   `yaml:"github"`
+	Server  baseapp.HTTPConfig `yaml:"server"`
 }
 
 // RepoConfig contains specific config for each repos
