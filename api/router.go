@@ -45,6 +45,7 @@ func SetupRouter() {
 		githubapp.AsyncScheduler(),
 	))
 	server.Mux().Handle(pat.Post("/"), webhookHandler)
+	server.Mux().HandleFunc(pat.Post("/start"), dependencyHandler)
 
 	// Start is blocking
 	err = server.Start()

@@ -13,10 +13,15 @@ type DatadogConfig struct {
 	APIKey string `yaml:"api_key"`
 }
 
+type HTTPConfig struct {
+	Token string `yaml:"token"`
+}
+
 // Config contains global config
 type Config struct {
 	Datadog DatadogConfig      `yaml:"datadog"`
 	Github  githubapp.Config   `yaml:"github"`
+	HTTP    HTTPConfig         `yaml:"http"`
 	Server  baseapp.HTTPConfig `yaml:"server"`
 }
 
