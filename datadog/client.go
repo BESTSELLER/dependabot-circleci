@@ -66,6 +66,7 @@ func postDataDogMetric(metric string, value int64, metricType string, tags []str
 
 	_, err := postStructAsJSON(url, payload, nil)
 	if err != nil {
+		log.Debug().Err(err).Msg("could send metric to datadog")
 		return err
 	}
 
@@ -77,7 +78,6 @@ func postStructAsJSON(url string, payload interface{}, target interface{}) (stri
 	b := new(bytes.Buffer)
 	err := json.NewEncoder(b).Encode(payload)
 	if err != nil {
-		fmt.Printf("Unable to encode struct: %s", err)
 		return "", err
 	}
 	req, err := http.NewRequest("POST", url, b)
