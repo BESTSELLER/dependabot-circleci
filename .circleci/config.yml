@@ -134,7 +134,7 @@ jobs:
       - run:
           name: create domain mapping
           command: |
-            if ! gcloud beta run domain-mappings describe --domain=$CIRCLE_PROJECT_REPONAME.bestsellerit.com --platform=managed --region=europe-west1 --project=es-standalone-cb21; then
+            if ! gcloud beta run domain-mappings describe --domain=$CIRCLE_PROJECT_REPONAME.bestsellerit.com --platform=managed --region=europe-west4 --project=es-standalone-cb21; then
               gcloud beta run domain-mappings create \
                 --service=$CIRCLE_PROJECT_REPONAME \
                 --domain=$CIRCLE_PROJECT_REPONAME.bestsellerit.com \
@@ -149,7 +149,7 @@ jobs:
             gcloud beta scheduler jobs update http $CIRCLE_PROJECT_REPONAME --schedule "00 23 * * *" \
               --http-method=POST \
               --uri=https://$CIRCLE_PROJECT_REPONAME.bestsellerit.com/start \
-              --headers="{ \"Authorization\": \"Bearer $bearer\"}"
+              --headers "Authorization"="Bearer $bearer" \
               --time-zone="Europe/Copenhagen" \
               --project=es-standalone-cb21 
           
@@ -210,7 +210,6 @@ workflows:
       - secret-injector/dump-secrets:
           requires:
             - test
-            - test-sonar
           name: secret-injector/cloudrun
           vault-path: "gcp_landingzone/key/cloudrun-admin"
           output-filename: cloudrun_admin
