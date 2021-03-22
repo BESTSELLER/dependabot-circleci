@@ -149,7 +149,7 @@ jobs:
             gcloud beta scheduler jobs update http $CIRCLE_PROJECT_REPONAME --schedule "00 23 * * *" \
               --http-method=POST \
               --uri=https://$CIRCLE_PROJECT_REPONAME.bestsellerit.com/start \
-              --headers "Authorization"="Bearer $bearer" \
+              --update-headers "Authorization"="Bearer $bearer" \
               --time-zone="Europe/Copenhagen" \
               --project=es-standalone-cb21 
           
