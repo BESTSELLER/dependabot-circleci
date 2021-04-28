@@ -3,16 +3,18 @@ package gh
 import (
 	"context"
 
-	"github.com/google/go-github/v33/github"
+	"github.com/google/go-github/v35/github"
 )
 
 // GetRepos returns a list of repos for an orginasation
 func GetRepos(ctx context.Context, client *github.Client, page int) ([]*github.Repository, error) {
 
-	repos, resp, err := client.Apps.ListRepos(ctx, &github.ListOptions{PerPage: 100, Page: page})
+	listRepos, resp, err := client.Apps.ListRepos(ctx, &github.ListOptions{PerPage: 100, Page: page})
 	if err != nil {
 		return nil, err
 	}
+
+	repos := listRepos.Repositories
 
 	if resp.NextPage != 0 {
 		moreRepos, _ := GetRepos(ctx, client, page+1)
