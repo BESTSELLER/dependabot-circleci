@@ -3,9 +3,12 @@ executors:
   gcp_image:
     docker:
       - image: google/cloud-sdk:alpine
+        auth:
+          username: $DOCKERHUB_USER
+          password: $DOCKERHUB_PASS
   go_image:
     docker:
-      - image: cimg/go:1.15
+      - image: cimg/go:1.16
         auth:
           username: $DOCKERHUB_USER
           password: $DOCKERHUB_PASS

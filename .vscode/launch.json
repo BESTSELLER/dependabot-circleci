@@ -11,9 +11,10 @@
       "mode": "auto",
       "program": "${workspaceFolder}/",
       "env": {
-        "DEPENDABOT_ORG": "BESTSELLER",
+        "DEPENDABOT_ORG": "brondum",
         "DEPENDABOT_CONFIG": "/Users/lasse.gaardsholt/dev/dependabot-circleci/config.json",
-        "DEPENDABOT_DDADDRESS": "asd:443"
+        "DEPENDABOT_DDADDRESS": "asd:443",
+        "DEPENDABOT_LOGLEVEL": "debug"
       },
       "args": []
     }
