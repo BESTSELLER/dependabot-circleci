@@ -7,7 +7,7 @@ require (
 	github.com/CircleCI-Public/circleci-cli v0.1.15195
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/google/go-cmp v0.5.5 // indirect
-	github.com/google/go-containerregistry v0.4.1
+	github.com/google/go-containerregistry v0.5.0
 	github.com/google/go-github/v35 v35.1.0
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
 	github.com/hashicorp/go-version v1.3.0
