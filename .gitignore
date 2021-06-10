@@ -8,6 +8,7 @@ dependabot-circleci
 
 # Test binary, built with `go test -c`
 *.test
+junit
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
