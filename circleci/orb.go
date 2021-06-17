@@ -2,6 +2,7 @@ package circleci
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/CircleCI-Public/circleci-cli/api"
@@ -37,7 +38,7 @@ func findNewestOrbVersion(orb string) string {
 		return "volatile"
 	}
 
-	client := graphql.NewClient("https://circleci.com/", "graphql-unstable", "", false)
+	client := graphql.NewClient(http.DefaultClient, "https://circleci.com/", "graphql-unstable", "", false)
 
 	// if requests fails, return current version
 	orbInfo, err := api.OrbInfo(client, orbSplitString[0])
