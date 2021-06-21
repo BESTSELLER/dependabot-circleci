@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/BESTSELLER/go-vault v0.1.2
-	github.com/CircleCI-Public/circleci-cli v0.1.15338
+	github.com/CircleCI-Public/circleci-cli v0.1.15384
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/google/go-containerregistry v0.5.1
 	github.com/google/go-github/v35 v35.3.0
