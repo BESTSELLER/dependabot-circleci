@@ -35,7 +35,6 @@ func SetupRouter() {
 		githubapp.WithClientCaching(false, func() httpcache.Cache { return httpcache.NewMemoryCache() }),
 		githubapp.WithClientMiddleware(
 			githubapp.ClientMetrics(server.Registry()),
-			githubapp.ClientLogging(zerolog.WarnLevel),
 		),
 	)
 	if err != nil {
