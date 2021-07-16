@@ -542,8 +542,9 @@ github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8
 github.com/opencontainers/go-digest v1.0.0/go.mod h1:0JzlMkj0TRzQZfJkVvzbP0HBR3IKzErnv2BNG4W4MAM=
 github.com/opencontainers/image-spec v1.0.1 h1:JMemWkRwHx4Zj+fVxWoMCFm/8sYGGrUVojFA6h/TRcI=
 github.com/opencontainers/image-spec v1.0.1/go.mod h1:BtxoFyWECRxE4U/7sNtV5W15zMzWCbyJoFRP3s7yZA0=
-github.com/palantir/go-baseapp v0.2.3 h1:Wi24/LST/cD8qWXtTTgBbeQP4n1kP3164yWoHHeQxYY=
 github.com/palantir/go-baseapp v0.2.3/go.mod h1:TSsvmXBDAAu2wZJgWi1/nG+YM5xIOEsXFmLsNoGP5O4=
+github.com/palantir/go-baseapp v0.2.4 h1:OtF5jipUF62ZRjLMLODZ2Rq180Kaekqm4pNOUZdOfAU=
+github.com/palantir/go-baseapp v0.2.4/go.mod h1:TSsvmXBDAAu2wZJgWi1/nG+YM5xIOEsXFmLsNoGP5O4=
 github.com/palantir/go-githubapp v0.7.0 h1:kuMTREzEj92aYh7BegFCCzKN4vxt6z0RqiOgAcIjxmE=
 github.com/palantir/go-githubapp v0.7.0/go.mod h1:QYwgje3cWJyi5150rojiG+xwb+d1vR7Rr+JNd2Pz2aE=
 github.com/pelletier/go-toml v1.2.0/go.mod h1:5z9KED0ma1S8pY6P1sdut58dfprrGBbd/94hg7ilaic=
