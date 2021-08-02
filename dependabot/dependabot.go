@@ -10,7 +10,7 @@ import (
 	"github.com/BESTSELLER/dependabot-circleci/config"
 	"github.com/BESTSELLER/dependabot-circleci/datadog"
 	"github.com/BESTSELLER/dependabot-circleci/gh"
-	"github.com/google/go-github/v35/github"
+	"github.com/google/go-github/v37/github"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 )
@@ -100,7 +100,7 @@ func getRepoConfig(ctx context.Context, client *github.Client, repo *github.Repo
 func getTargetBranch(ctx context.Context, client *github.Client, repoOwner string, repoName string, defaultBranch string, repoConfig *config.RepoConfig) string {
 	targetBranch := defaultBranch
 	if repoConfig.TargetBranch != "" {
-		_, _, err := client.Repositories.GetBranch(ctx, repoOwner, repoName, repoConfig.TargetBranch)
+		_, _, err := client.Repositories.GetBranch(ctx, repoOwner, repoName, repoConfig.TargetBranch, true)
 		if err != nil {
 			return ""
 		}
