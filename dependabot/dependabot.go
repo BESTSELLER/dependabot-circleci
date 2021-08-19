@@ -36,6 +36,10 @@ func Start(ctx context.Context, client *github.Client) {
 func checkRepo(ctx context.Context, client *github.Client, repo *github.Repository) {
 	defer wg.Done()
 
+	if repo.GetArchived() != false {
+		return
+	}
+
 	repoConfig := getRepoConfig(ctx, client, repo)
 	if repoConfig == nil {
 		return
