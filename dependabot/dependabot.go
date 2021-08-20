@@ -10,7 +10,7 @@ import (
 	"github.com/BESTSELLER/dependabot-circleci/config"
 	"github.com/BESTSELLER/dependabot-circleci/datadog"
 	"github.com/BESTSELLER/dependabot-circleci/gh"
-	"github.com/google/go-github/v37/github"
+	"github.com/google/go-github/v38/github"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 )
@@ -35,6 +35,10 @@ func Start(ctx context.Context, client *github.Client) {
 
 func checkRepo(ctx context.Context, client *github.Client, repo *github.Repository) {
 	defer wg.Done()
+
+	if repo.GetArchived() != false {
+		return
+	}
 
 	repoConfig := getRepoConfig(ctx, client, repo)
 	if repoConfig == nil {
