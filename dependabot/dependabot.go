@@ -36,7 +36,12 @@ func Start(ctx context.Context, client *github.Client) {
 func checkRepo(ctx context.Context, client *github.Client, repo *github.Repository) {
 	defer wg.Done()
 
-	if repo.GetArchived() != false {
+	repoName := repo.GetName()
+
+	log.Debug().Msg(fmt.Sprintf("Checking repo: %s", repoName))
+
+	if repo.GetArchived() {
+		log.Debug().Msg(fmt.Sprintf("Repo '%s' is archived", repoName))
 		return
 	}
 
@@ -47,7 +52,6 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 
 	// determine repo details
 	repoOwner := repo.GetOwner().GetLogin()
-	repoName := repo.GetName()
 	repoDefaultBranch := repo.GetDefaultBranch()
 
 	targetBranch := getTargetBranch(ctx, client, repoOwner, repoName, repoDefaultBranch, repoConfig)
