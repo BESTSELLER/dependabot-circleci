@@ -13,7 +13,7 @@ require (
 	github.com/palantir/go-baseapp v0.2.4
 	github.com/palantir/go-githubapp v0.9.1
 	github.com/pkg/errors v0.9.1
-	github.com/rs/zerolog v1.23.0
+	github.com/rs/zerolog v1.25.0
 	github.com/shurcooL/graphql v0.0.0-20200928012149-18c5c3165e3a // indirect
 	goji.io v2.0.2+incompatible
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
