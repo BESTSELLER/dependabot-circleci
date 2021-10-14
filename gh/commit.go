@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/google/go-github/v39/github"
+	"github.com/rs/zerolog/log"
 )
 
 // CheckPR .
@@ -73,19 +74,39 @@ func CreatePR(ctx context.Context, client *github.Client, repoOwner string, repo
 
 	// disect team reviewers
 	var teamReviewers []string
+	var singleReviewers []string
 	for _, reviewer := range reviewers {
 		if strings.Contains(reviewer, "/") {
 			teamReviewers = append(teamReviewers, strings.Split(reviewer, "/")[1])
+			continue
 		}
+		singleReviewers = append(singleReviewers, reviewer)
 	}
 
-	// add default labels
-	labels = append(labels, []string{"dependencies", "circleci"}...)
+	log.Debug().Str("repo_name", repoName).Str("all_reviewers", fmt.Sprintf("%s", reviewers)).Msg("This is ALL the reviewers")
+	log.Debug().Str("repo_name", repoName).Str("single_reviewers", fmt.Sprintf("%s", singleReviewers)).Msg("This is the SINGLE reviewers")
+	log.Debug().Str("repo_name", repoName).Str("team_reviewers", fmt.Sprintf("%s", teamReviewers)).Msg("This is TEAM reviewers")
 
-	// we dont care about your errors!
-	client.PullRequests.RequestReviewers(ctx, repoOwner, repoName, pr.GetNumber(), github.ReviewersRequest{Reviewers: reviewers, TeamReviewers: teamReviewers})
-	client.Issues.AddAssignees(ctx, repoOwner, repoName, pr.GetNumber(), assignees)
-	client.Issues.AddLabelsToIssue(ctx, repoOwner, repoName, pr.GetNumber(), labels)
+	// add default labels
+	labels = append(labels, []string{"resource-advisor"}...)
+
+	// Add reviewers
+	_, _, err = client.PullRequests.RequestReviewers(ctx, repoOwner, repoName, pr.GetNumber(), github.ReviewersRequest{Reviewers: singleReviewers, TeamReviewers: teamReviewers})
+	if err != nil {
+		log.Error().Str("repo_name", repoName).Err(err).Msg("Failed to request reviewers")
+	}
+
+	// Add asignees
+	_, _, err = client.Issues.AddAssignees(ctx, repoOwner, repoName, pr.GetNumber(), assignees)
+	if err != nil {
+		log.Error().Str("repo_name", repoName).Err(err).Msg("Failed to add assignees")
+	}
+
+	// Add labels
+	_, _, err = client.Issues.AddLabelsToIssue(ctx, repoOwner, repoName, pr.GetNumber(), labels)
+	if err != nil {
+		log.Error().Str("repo_name", repoName).Err(err).Msg("Failed to add labels")
+	}
 
 	return pr, nil
 }
