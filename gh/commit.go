@@ -88,7 +88,7 @@ func CreatePR(ctx context.Context, client *github.Client, repoOwner string, repo
 	log.Debug().Str("repo_name", repoName).Str("team_reviewers", fmt.Sprintf("%s", teamReviewers)).Msg("This is TEAM reviewers")
 
 	// add default labels
-	labels = append(labels, []string{"resource-advisor"}...)
+	labels = append(labels, []string{"dependencies", "circleci"}...)
 
 	// Add reviewers
 	_, _, err = client.PullRequests.RequestReviewers(ctx, repoOwner, repoName, pr.GetNumber(), github.ReviewersRequest{Reviewers: singleReviewers, TeamReviewers: teamReviewers})
