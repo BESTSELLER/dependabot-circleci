@@ -117,7 +117,7 @@ jobs:
       - run:
           name: gcloud login
           command: |
-            gcloud components install beta
+            gcloud components install beta --quiet
             cat /tmp/cloudrun_admin | jq -r .private_key_data | base64 -d > cloudrun-admin.json
             gcloud auth activate-service-account --key-file=./cloudrun-admin.json
       - run:
