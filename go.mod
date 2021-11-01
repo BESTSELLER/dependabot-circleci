@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/BESTSELLER/go-vault v0.1.2
-	github.com/CircleCI-Public/circleci-cli v0.1.15973
+	github.com/CircleCI-Public/circleci-cli v0.1.16122
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/bradleyfalzon/ghinstallation/v2 v2.0.3 // indirect
 	github.com/docker/cli v20.10.8+incompatible // indirect
