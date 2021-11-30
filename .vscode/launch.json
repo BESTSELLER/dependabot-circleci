@@ -12,7 +12,7 @@
       "program": "${workspaceFolder}/",
       "env": {
         "DEPENDABOT_ORG": "BESTSELLER",
-        "DEPENDABOT_CONFIG": "~/BESSTSELLER/dependabot-circleci/config.json",
+        "DEPENDABOT_CONFIG": " /Users/christian.andersen/BESTSELLER/dependabot-circleci/config.json",
         "DEPENDABOT_DDADDRESS": "asd:443",
         "DEPENDABOT_LOGLEVEL": "debug"
       },

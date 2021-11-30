@@ -8,7 +8,6 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/BESTSELLER/dependabot-circleci/api"
-	"github.com/BESTSELLER/dependabot-circleci/logger"
 	"github.com/BESTSELLER/go-vault/gcpss"
 
 	"github.com/BESTSELLER/dependabot-circleci/config"
@@ -50,7 +49,7 @@ func init() {
 
 func main() {
 	err := config.LoadEnvConfig()
-	logger.Init()
+	//logger.Init()
 
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to read env config")
