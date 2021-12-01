@@ -23,7 +23,7 @@ require (
 	github.com/palantir/go-githubapp v0.9.2
 	github.com/pkg/errors v0.9.1
 	github.com/rogpeppe/go-internal v1.8.0 // indirect
-	github.com/rs/zerolog v1.25.0
+	github.com/rs/zerolog v1.26.0
 	github.com/shurcooL/githubv4 v0.0.0-20210922025249-6831e00d857f // indirect
 	github.com/shurcooL/graphql v0.0.0-20200928012149-18c5c3165e3a // indirect
 	goji.io v2.0.2+incompatible
