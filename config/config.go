@@ -31,6 +31,7 @@ type RepoConfig struct {
 	Reviewers    []string `yaml:"reviewers,omitempty"`
 	Assignees    []string `yaml:"assignees,omitempty"`
 	Labels       []string `yaml:"labels,omitempty"`
+	Directory    string   `yaml:"directory,omitempty"`
 }
 
 // AppConfig contains global app config
