@@ -34,7 +34,7 @@ func Start(ctx context.Context, client *github.Client) {
 }
 
 func checkRepo(ctx context.Context, client *github.Client, repo *github.Repository) {
-	defer wg.Done()
+	// defer wg.Done()
 
 	repoName := repo.GetName()
 
@@ -80,12 +80,12 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 	// check for updates
 	orbUpdates, dockerUpdates := circleci.GetUpdates(&cciconfig)
 	for old, update := range orbUpdates {
-		wg.Add(1)
-		go handleUpdate(ctx, client, update, "orb", old, content, repoOwner, repoName, targetBranch, SHA, repoConfig)
+		// wg.Add(1)
+		handleUpdate(ctx, client, update, "orb", old, content, repoOwner, repoName, targetBranch, SHA, repoConfig)
 	}
 	for old, update := range dockerUpdates {
-		wg.Add(1)
-		go handleUpdate(ctx, client, update, "docker", old, content, repoOwner, repoName, targetBranch, SHA, repoConfig)
+		// wg.Add(1)
+		handleUpdate(ctx, client, update, "docker", old, content, repoOwner, repoName, targetBranch, SHA, repoConfig)
 	}
 }
 
