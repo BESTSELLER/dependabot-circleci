@@ -28,10 +28,7 @@ func Start(ctx context.Context, client *github.Client) {
 	// Loop through all repos
 	for _, repository := range repos {
 		// wg.Add(1)
-		// TODO remember to remove if statement
-		if repository.GetName() == "template-react" {
-			checkRepo(ctx, client, repository)
-		}
+		checkRepo(ctx, client, repository)
 		// wg.Wait()
 	}
 }
@@ -67,7 +64,7 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 	}()
 
 	// get content of circleci config file
-	content, SHA, err := gh.GetRepoContent(ctx, client, repoOwner, repoName, ".circleci/config.yml", targetBranch)
+	content, SHA, err := gh.GetRepoContent(ctx, client, repoOwner, repoName, repoConfig.Directory+"/.circleci/config.yml", targetBranch)
 	if err != nil {
 		return
 	}
