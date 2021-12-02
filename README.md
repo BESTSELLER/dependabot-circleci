@@ -38,6 +38,7 @@ reviewers:
   - github_username # for a single user
   - org/team_name # for a whole team (nested teams is the same syntax org/team_name)
 target-branch: main
+directory: "/template" # Used if .github directory is nested inside another directory
 
 ```
 
@@ -54,6 +55,7 @@ You must store this file in the .github directory of your repository.
 | [`labels`](#labels)               |          | Labels to set on pull requests         | n/a                        |
 | [`reviewers`](#reviewers)         |          | Reviewers to set on pull requests      | n/a                        |
 | [`target-branch`](#target-branch) |          | Branch to create pull requests against | Default branch in the repo |
+| [`directory`](#directory)         |          | Location of .github directory          | Root of repo               |
 
 
 ---
