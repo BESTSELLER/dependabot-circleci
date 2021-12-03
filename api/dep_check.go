@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"sync"
 
 	"github.com/BESTSELLER/dependabot-circleci/config"
 	"github.com/BESTSELLER/dependabot-circleci/datadog"
@@ -14,7 +13,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-var wg sync.WaitGroup
+// var wg sync.WaitGroup
 
 func dependencyHandler(w http.ResponseWriter, r *http.Request) {
 
@@ -44,13 +43,13 @@ func dependencyHandler(w http.ResponseWriter, r *http.Request) {
 	go datadog.Gauge("organizations", float64(len(clients)), nil)
 
 	for _, client := range clients {
-		wg.Add(1)
+		//	wg.Add(1)
 		client := client
-		go func() {
-			defer wg.Done()
+		func() {
+			//		defer wg.Done()
 			dependabot.Start(context.Background(), client)
 		}()
 	}
-	wg.Wait()
+	// wg.Wait()
 	fmt.Fprintln(w, "Yaaay all done, please check github for pull requests!")
 }
