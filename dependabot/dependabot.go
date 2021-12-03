@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"sync"
 
 	"github.com/BESTSELLER/dependabot-circleci/circleci"
 	"github.com/BESTSELLER/dependabot-circleci/config"
@@ -15,7 +14,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-var wg sync.WaitGroup
+// var wg sync.WaitGroup
 
 // Start will run through all repos it has access to and check for updates and make pull requests if needed.
 func Start(ctx context.Context, client *github.Client) {
@@ -118,7 +117,7 @@ func getTargetBranch(ctx context.Context, client *github.Client, repoOwner strin
 }
 
 func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node, updateType string, old string, content []byte, repoOwner string, repoName string, targetBranch string, SHA *string, repoConfig *config.RepoConfig) {
-	defer wg.Done()
+	// defer wg.Done()
 
 	log.Debug().Msgf("repo: %s, old: %s, update: %s", repoName, old, update.Value)
 	newYaml := circleci.ReplaceVersion(update, old, string(content))
