@@ -3,6 +3,7 @@ package gh
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/google/go-github/v39/github"
@@ -57,6 +58,7 @@ func createGHClient(config githubapp.Config) (githubapp.ClientCreator, error) {
 		config,
 		githubapp.WithClientUserAgent(fmt.Sprintf("dependabot-circleci/%s", conf.EnvVars.Version)),
 		githubapp.WithClientTimeout(10*time.Minute),
+		githubapp.WithTransport(NewRateLimitTransport(http.DefaultTransport)),
 		githubapp.WithClientCaching(false, func() httpcache.Cache { return httpcache.NewMemoryCache() }),
 	)
 	if err != nil {
