@@ -26,9 +26,11 @@ func Start(ctx context.Context, client *github.Client) {
 
 	// Loop through all repos
 	for _, repository := range repos {
-		// wg.Add(1)
-		checkRepo(ctx, client, repository)
-		// wg.Wait()
+		if repository.GetName() == "tester" {
+			// wg.Add(1)
+			checkRepo(ctx, client, repository)
+			// wg.Wait()
+		}
 	}
 }
 
