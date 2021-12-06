@@ -17,3 +17,4 @@ junit
 # vendor/
 /config.yml
 /config.json
+.vscode/launch.json
