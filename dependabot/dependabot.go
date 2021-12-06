@@ -9,7 +9,7 @@ import (
 	"github.com/BESTSELLER/dependabot-circleci/config"
 	"github.com/BESTSELLER/dependabot-circleci/datadog"
 	"github.com/BESTSELLER/dependabot-circleci/gh"
-	"github.com/google/go-github/v39/github"
+	"github.com/google/go-github/v40/github"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 )
