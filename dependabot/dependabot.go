@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/BESTSELLER/dependabot-circleci/circleci"
 	"github.com/BESTSELLER/dependabot-circleci/config"
@@ -26,6 +27,7 @@ func Start(ctx context.Context, client *github.Client) {
 
 	// Loop through all repos
 	for _, repository := range repos {
+		// TODO remove when done
 		if repository.GetName() == "tester" {
 			// wg.Add(1)
 			checkRepo(ctx, client, repository)
@@ -51,6 +53,9 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 		return
 	}
 
+	if !applySchedule(repoConfig, repo) {
+		return
+	}
 	// determine repo details
 	repoOwner := repo.GetOwner().GetLogin()
 	repoDefaultBranch := repo.GetDefaultBranch()
@@ -106,6 +111,32 @@ func getRepoConfig(ctx context.Context, client *github.Client, repo *github.Repo
 
 	return repoConfig
 }
+func applySchedule(repoConfig *config.RepoConfig, repo *github.Repository) bool {
+	// check if an update should be run
+	t := time.Now()
+	if repoConfig.Schedule == "monthly" {
+		if t.Day() == 1 {
+			return true
+		} else {
+			log.Debug().Msgf("Updates for %s are set to monthly, next update will be start of next month", repo.GetName())
+			return false
+		}
+	} else if repoConfig.Schedule == "weekly" {
+		if t.Weekday() == 1 {
+			return true
+		} else {
+			log.Debug().Msgf("Updates for %s are set to weekly, next update next monday", repo.GetName())
+			return false
+		}
+	} else if repoConfig.Schedule == "daily" || repoConfig.Schedule == "" {
+		log.Debug().Msgf("Updates for %s are set to daily, updates will begin shortly", repo.GetName())
+		return true
+	} else {
+		return false
+	}
+
+}
+
 func getTargetBranch(ctx context.Context, client *github.Client, repoOwner string, repoName string, defaultBranch string, repoConfig *config.RepoConfig) string {
 	targetBranch := defaultBranch
 	if repoConfig.TargetBranch != "" {
