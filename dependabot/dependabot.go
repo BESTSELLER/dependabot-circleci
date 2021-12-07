@@ -2,6 +2,7 @@ package dependabot
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -53,9 +54,14 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 		return
 	}
 
-	if !applySchedule(repoConfig, repo) {
+	proceed, err := applySchedule(repoConfig, repo)
+	if err != nil {
+		log.Error().Err(err).Msgf("found %s for schedule in dependabot-circleci.yml, which is not a valid format", repoConfig.Schedule)
+	}
+	if !proceed {
 		return
 	}
+
 	// determine repo details
 	repoOwner := repo.GetOwner().GetLogin()
 	repoDefaultBranch := repo.GetDefaultBranch()
@@ -111,31 +117,33 @@ func getRepoConfig(ctx context.Context, client *github.Client, repo *github.Repo
 
 	return repoConfig
 }
-func applySchedule(repoConfig *config.RepoConfig, repo *github.Repository) bool {
+func applySchedule(repoConfig *config.RepoConfig, repo *github.Repository) (bool, error) {
 	// check if an update should be run
 	t := time.Now()
 	layout := "02/01/2006"
-	if repoConfig.Schedule == "monthly" {
+	schedule := strings.ToLower(repoConfig.Schedule)
+	if schedule == "monthly" {
 		if t.Day() == 1 {
-			return true
+			return true, nil
 		} else {
 			d := time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, time.UTC)
 			d = d.AddDate(0, 1, 0)
-			log.Debug().Msgf("Updates for repository: %s are set to monthly, next update will on %s", repo.GetName(), d.Format(layout))
-			return false
+			log.Debug().Msgf("updates for repository: %s are set to monthly, next update will on %s", repo.GetName(), d.Format(layout))
+			return false, nil
 		}
-	} else if repoConfig.Schedule == "weekly" {
+	} else if schedule == "weekly" {
 		if t.Weekday() == 1 {
-			return true
+			return true, nil
 		} else {
-			log.Debug().Msgf("Updates for repository: %s are set to weekly, next update on monday", repo.GetName())
-			return false
+			log.Debug().Msgf("updates for repository: %s are set to weekly, next update on monday", repo.GetName())
+			return false, nil
 		}
-	} else if repoConfig.Schedule == "daily" || repoConfig.Schedule == "" {
-		log.Debug().Msgf("Updates for repository: %s are set to daily, updates will begin shortly", repo.GetName())
-		return true
+	} else if schedule == "daily" || schedule == "" {
+		log.Debug().Msgf("updates for repository: %s are set to daily, updates will begin shortly", repo.GetName())
+		return true, nil
 	} else {
-		return false
+
+		return false, errors.New("schedule wrong format")
 	}
 
 }
