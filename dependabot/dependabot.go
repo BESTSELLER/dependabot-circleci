@@ -2,8 +2,10 @@ package dependabot
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/BESTSELLER/dependabot-circleci/circleci"
 	"github.com/BESTSELLER/dependabot-circleci/config"
@@ -48,6 +50,14 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 
 	repoConfig := getRepoConfig(ctx, client, repo)
 	if repoConfig == nil {
+		return
+	}
+
+	proceed, err := applySchedule(repoConfig, repo)
+	if err != nil {
+		log.Error().Err(err).Msgf("found %s for schedule in dependabot-circleci.yml, which is not a valid format", repoConfig.Schedule)
+	}
+	if !proceed {
 		return
 	}
 
@@ -106,6 +116,37 @@ func getRepoConfig(ctx context.Context, client *github.Client, repo *github.Repo
 
 	return repoConfig
 }
+func applySchedule(repoConfig *config.RepoConfig, repo *github.Repository) (bool, error) {
+	// check if an update should be run
+	t := time.Now()
+	layout := "02/01/2006"
+	schedule := strings.ToLower(repoConfig.Schedule)
+	if schedule == "monthly" {
+		if t.Day() == 1 {
+			return true, nil
+		} else {
+			d := time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, time.UTC)
+			d = d.AddDate(0, 1, 0)
+			log.Debug().Msgf("updates for repository: %s are set to monthly, next update will on %s", repo.GetName(), d.Format(layout))
+			return false, nil
+		}
+	} else if schedule == "weekly" {
+		if t.Weekday() == 1 {
+			return true, nil
+		} else {
+			log.Debug().Msgf("updates for repository: %s are set to weekly, next update on monday", repo.GetName())
+			return false, nil
+		}
+	} else if schedule == "daily" || schedule == "" {
+		log.Debug().Msgf("updates for repository: %s are set to daily, updates will begin shortly", repo.GetName())
+		return true, nil
+	} else {
+
+		return false, errors.New("schedule wrong format")
+	}
+
+}
+
 func getTargetBranch(ctx context.Context, client *github.Client, repoOwner string, repoName string, defaultBranch string, repoConfig *config.RepoConfig) string {
 	targetBranch := defaultBranch
 	if repoConfig.TargetBranch != "" {
