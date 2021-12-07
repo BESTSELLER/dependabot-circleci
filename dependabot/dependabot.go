@@ -114,22 +114,25 @@ func getRepoConfig(ctx context.Context, client *github.Client, repo *github.Repo
 func applySchedule(repoConfig *config.RepoConfig, repo *github.Repository) bool {
 	// check if an update should be run
 	t := time.Now()
+	layout := "02/01/2006"
 	if repoConfig.Schedule == "monthly" {
 		if t.Day() == 1 {
 			return true
 		} else {
-			log.Debug().Msgf("Updates for %s are set to monthly, next update will be start of next month", repo.GetName())
+			d := time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, time.UTC)
+			d = d.AddDate(0, 1, 0)
+			log.Debug().Msgf("Updates for repository: %s are set to monthly, next update will on %s", repo.GetName(), d.Format(layout))
 			return false
 		}
 	} else if repoConfig.Schedule == "weekly" {
 		if t.Weekday() == 1 {
 			return true
 		} else {
-			log.Debug().Msgf("Updates for %s are set to weekly, next update next monday", repo.GetName())
+			log.Debug().Msgf("Updates for repository: %s are set to weekly, next update on monday", repo.GetName())
 			return false
 		}
 	} else if repoConfig.Schedule == "daily" || repoConfig.Schedule == "" {
-		log.Debug().Msgf("Updates for %s are set to daily, updates will begin shortly", repo.GetName())
+		log.Debug().Msgf("Updates for repository: %s are set to daily, updates will begin shortly", repo.GetName())
 		return true
 	} else {
 		return false
