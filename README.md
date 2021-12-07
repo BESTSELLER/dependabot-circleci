@@ -39,6 +39,7 @@ reviewers:
   - org/team_name # for a whole team (nested teams is the same syntax org/team_name)
 target-branch: main
 directory: "/template" # Used if .github directory is nested inside another directory
+schedule: "monthly" # Options are (daily, weekly, monthly)
 
 ```
 
@@ -56,6 +57,7 @@ You must store this file in the .github directory of your repository.
 | [`reviewers`](#reviewers)         |          | Reviewers to set on pull requests      | n/a                        |
 | [`target-branch`](#target-branch) |          | Branch to create pull requests against | Default branch in the repo |
 | [`directory`](#directory)         |          | Location of .github directory          | Root of repo               |
+| [`schedule`](#schedule)           |          | When to look for updates               | daily                      |
 
 
 ---
