@@ -28,12 +28,9 @@ func Start(ctx context.Context, client *github.Client) {
 
 	// Loop through all repos
 	for _, repository := range repos {
-		// TODO remember to remove
-		if repository.GetName() == "tester" {
-			// wg.Add(1)
-			checkRepo(ctx, client, repository)
-			// wg.Wait()
-		}
+		// wg.Add(1)
+		checkRepo(ctx, client, repository)
+		// wg.Wait()
 	}
 }
 
@@ -195,14 +192,13 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 
 	notExists := gh.CheckBranch(ctx, client, repoOwner, repoName, github.String(commitBranch))
 	if notExists {
-		log.Debug().Msgf("branch %s do not exists, and will be created", github.String(commitBranch))
 		err = gh.CreateBranch(ctx, client, repoOwner, repoName, targetBranch, github.String(commitBranch))
 		if err != nil {
 			log.Error().Err(err).Msgf("could not create branch %s in %s", commitBranch, repoName)
 			return
 		}
 	} else {
-		log.Debug().Msgf("branch %s already exists, skipping creation of branch", github.String(commitBranch))
+		log.Debug().Msgf("branch %s already exists, skipping creation of branch", commitBranch)
 	}
 
 	// commit file
