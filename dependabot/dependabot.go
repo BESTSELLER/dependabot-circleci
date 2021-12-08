@@ -189,10 +189,16 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 	if exists {
 		return
 	}
-	err = gh.CreateBranch(ctx, client, repoOwner, repoName, targetBranch, github.String(commitBranch))
-	if err != nil {
-		log.Error().Err(err).Msgf("could not create branch %s in %s", commitBranch, repoName)
-		return
+
+	notExists := gh.CheckBranch(ctx, client, repoOwner, repoName, github.String(commitBranch))
+	if notExists {
+		err = gh.CreateBranch(ctx, client, repoOwner, repoName, targetBranch, github.String(commitBranch))
+		if err != nil {
+			log.Error().Err(err).Msgf("could not create branch %s in %s", commitBranch, repoName)
+			return
+		}
+	} else {
+		log.Debug().Msgf("branch %s already exists, skipping creation of branch", commitBranch)
 	}
 
 	// commit file

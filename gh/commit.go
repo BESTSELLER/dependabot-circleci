@@ -37,6 +37,17 @@ func CheckPR(ctx context.Context, client *github.Client, repoOwner string, repoN
 	return false, nil, nil
 }
 
+// CheckBranch checks if a branch already exists, in order to skip CreateBranch if needed
+func CheckBranch(ctx context.Context, client *github.Client, repoOwner string, repoName string, commitBranch *string) bool {
+	// Assumes that an error means that the branch do not exists
+	_, _, err := client.Git.GetRef(ctx, repoOwner, repoName, "refs/heads/"+*commitBranch)
+	if err != nil {
+		return true
+	} else {
+		return false
+	}
+}
+
 // CreateBranch creates a new commit branch for a specific update
 func CreateBranch(ctx context.Context, client *github.Client, repoOwner string, repoName string, baseBranch string, commitBranch *string) error {
 
