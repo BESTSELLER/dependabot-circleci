@@ -69,7 +69,7 @@ func CreateBranch(ctx context.Context, client *github.Client, repoOwner string, 
 
 // UpdateFile updates the circleci config and creates a commit
 func UpdateFile(ctx context.Context, client *github.Client, repoOwner string, repoName string, file string, options *github.RepositoryContentFileOptions) error {
-	_, _, err := client.Repositories.UpdateFile(ctx, repoOwner, repoName, file, options)
+	_, _, err := client.Repositories.UpdateFile(ctx, repoOwner, repoName, strings.TrimPrefix(file, "/"), options)
 	if err != nil {
 		return err
 	}
