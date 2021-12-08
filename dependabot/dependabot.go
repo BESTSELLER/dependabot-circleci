@@ -202,7 +202,7 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 	}
 
 	// commit file
-	err = gh.UpdateFile(ctx, client, repoOwner, repoName, &github.RepositoryContentFileOptions{
+	err = gh.UpdateFile(ctx, client, repoOwner, repoName, repoConfig.Directory+"/.circleci/config.yml", &github.RepositoryContentFileOptions{
 		Message: github.String(commitMessage),
 		Content: []byte(newYaml),
 		Branch:  github.String(commitBranch),
