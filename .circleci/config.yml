@@ -132,6 +132,8 @@ jobs:
               --platform=managed \
               --region=europe-west4 \
               --project=es-standalone-cb21 \
+              --timeout=10m \
+              --labels product:dependabot-circleci \
               --set-env-vars VAULT_ADDR="${VAULT_ADDR}",VAULT_ROLE=dependabot-circleci,VAULT_SECRET=ES/data/dependabot-circleci/prod,DEPENDABOT_VERSION=${CIRCLE_TAG},DEPENDABOT_CONFIG=/secrets/secrets \
               --service-account=dependabot-circleci@es-standalone-cb21.iam.gserviceaccount.com
       - run:
