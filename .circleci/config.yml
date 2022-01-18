@@ -96,7 +96,7 @@ jobs:
 
             gcloud auth activate-service-account --key-file=/tmp/cluster_secret.json
             gcloud auth configure-docker europe-docker.pkg.dev --quiet
-            
+
             export docker_registry_url=europe-docker.pkg.dev/es-standalone-cb21
             docker build -t $docker_registry_url/es-docker/$CIRCLE_PROJECT_REPONAME:$CIRCLE_TAG .
             docker build -t $docker_registry_url/es-docker/$CIRCLE_PROJECT_REPONAME:latest .
@@ -132,8 +132,8 @@ jobs:
               --platform=managed \
               --region=europe-west4 \
               --project=es-standalone-cb21 \
-              --timeout=10m \
-              --labels product=dependabot-circleci \
+              --timeout=60m \
+              --labels service=dependabot-circleci \
               --set-env-vars VAULT_ADDR="${VAULT_ADDR}",VAULT_ROLE=dependabot-circleci,VAULT_SECRET=ES/data/dependabot-circleci/prod,DEPENDABOT_VERSION=${CIRCLE_TAG},DEPENDABOT_CONFIG=/secrets/secrets \
               --service-account=dependabot-circleci@es-standalone-cb21.iam.gserviceaccount.com
       - run:
@@ -156,15 +156,13 @@ jobs:
               --uri=https://$CIRCLE_PROJECT_REPONAME.bestsellerit.com/start \
               --update-headers "Authorization"="Bearer $bearer" \
               --time-zone="Europe/Copenhagen" \
-              --project=es-standalone-cb21 
-          
-
+              --project=es-standalone-cb21
 
 workflows:
   test:
     jobs:
       - secret-injector/dump-secrets:
-          context: 
+          context:
             - es02-prod
             - shared
           filters:
@@ -177,7 +175,7 @@ workflows:
             tags:
               ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
       - test-sonar:
-          context: 
+          context:
             - es02-prod
             - shared
           requires:
@@ -185,7 +183,6 @@ workflows:
           filters:
             tags:
               ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
-  
 
   serverless-test-build-deploy:
     jobs:
@@ -203,7 +200,7 @@ workflows:
             tags:
               only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
             branches:
-              ignore: /.*/           
+              ignore: /.*/
       - test-sonar:
           requires:
             - secret-injector/dump-secrets
@@ -219,7 +216,7 @@ workflows:
           vault-path: "gcp_landingzone/key/cloudrun-admin"
           output-filename: cloudrun_admin
           format: json
-          context: 
+          context:
             - es02-prod
             - shared
           filters:
@@ -241,7 +238,7 @@ workflows:
           vault-path: ES/data/dependabot-circleci/prod
           format: json
           output-filename: secrets.json
-          context: 
+          context:
             - es02-prod
             - shared
           requires:
@@ -254,7 +251,7 @@ workflows:
       - deploy-serverless:
           requires:
             - secret-injector/project
-          context: 
+          context:
             - es02-prod
             - shared
           filters:
