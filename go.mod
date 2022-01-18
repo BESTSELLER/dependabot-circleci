@@ -12,7 +12,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.2.0 // indirect
 	github.com/google/go-containerregistry v0.7.0
 	github.com/google/go-github/v39 v39.2.0 // indirect
-	github.com/google/go-github/v40 v40.0.0
+	github.com/google/go-github/v41 v41.0.0
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
 	github.com/hashicorp/go-version v1.3.0
 	github.com/kelseyhightower/envconfig v1.4.0

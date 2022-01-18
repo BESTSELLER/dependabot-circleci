@@ -7,7 +7,7 @@ import (
 
 	"github.com/BESTSELLER/dependabot-circleci/config"
 	"github.com/BESTSELLER/dependabot-circleci/gh"
-	"github.com/google/go-github/v40/github"
+	"github.com/google/go-github/v41/github"
 	"github.com/palantir/go-githubapp/githubapp"
 	"github.com/pkg/errors"
 
