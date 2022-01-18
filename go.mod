@@ -17,7 +17,7 @@ require (
 	github.com/hashicorp/go-version v1.3.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/opencontainers/image-spec v1.0.2 // indirect
-	github.com/palantir/go-baseapp v0.3.0
+	github.com/palantir/go-baseapp v0.3.1
 	github.com/palantir/go-githubapp v0.10.0
 	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.26.1
