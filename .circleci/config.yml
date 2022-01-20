@@ -88,7 +88,7 @@ jobs:
         type: string
         default: "1.0.0"
     environment:
-      DOCKER_BASE: europe-docker.pkg.dev/es-standalone-cb21/es-docker/${CIRCLE_PROJECT_REPONAME}
+      DOCKER_BASE: europe-docker.pkg.dev/es-standalone-cb21/es-docker
     steps:
       - checkout
       - setup_remote_docker
@@ -109,11 +109,11 @@ jobs:
             export docker_registry_url=europe-docker.pkg.dev/es-standalone-cb21
 
             docker build --build-arg VERSION=<< parameters.tag >> \
-              -t $DOCKER_BASE:<< parameters.tag >> \
-              -t $DOCKER_BASE:latest \
+              -t $DOCKER_BASE/${CIRCLE_PROJECT_REPONAME}:<< parameters.tag >> \
+              -t $DOCKER_BASE/${CIRCLE_PROJECT_REPONAME}:latest \
               .
 
-            <<# parameters.should_push >>docker push $DOCKER_BASE --all-tags<</ parameters.should_push >>
+            <<# parameters.should_push >>docker push $DOCKER_BASE/${CIRCLE_PROJECT_REPONAME} --all-tags<</ parameters.should_push >>
             
 
   deploy-serverless:
