@@ -108,7 +108,7 @@ jobs:
 
             export docker_registry_url=europe-docker.pkg.dev/es-standalone-cb21
 
-            docker build --build-arg VERSION=<< parameter.tag >> \
+            docker build --build-arg VERSION=<< parameters.tag >> \
               -t $DOCKER_BASE:$CIRCLE_TAG \
               -t $DOCKER_BASE:latest \
               .
