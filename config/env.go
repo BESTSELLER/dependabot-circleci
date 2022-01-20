@@ -6,10 +6,9 @@ import (
 
 // EnvConfig defines the structure of the global configuration parameters
 type EnvConfig struct {
-	Config    string `required:"true"`
+	Config    string `required:"false"`
 	LogLevel  *int   `required:"false"`
 	DDAddress string `required:"false"`
-	Version   string `required:"false"`
 	Schedule  string `required:"false"`
 }
 

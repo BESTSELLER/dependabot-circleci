@@ -84,9 +84,8 @@ jobs:
       should_push:
         type: boolean
         default: true
-      docker_base:
-        type: string
-        default: europe-docker.pkg.dev/es-standalone-cb21/es-docker/$CIRCLE_PROJECT_REPONAME
+    environment:
+      DOCKER_BASE: europe-docker.pkg.dev/es-standalone-cb21/es-docker/$CIRCLE_PROJECT_REPONAME
     steps:
       - checkout
       - setup_remote_docker
@@ -107,11 +106,11 @@ jobs:
             export docker_registry_url=europe-docker.pkg.dev/es-standalone-cb21
 
             docker build --build-arg VERSION=${CIRCLE_TAG} \
-              -t << parameter.docker_base >>:$CIRCLE_TAG \
-              -t << parameter.docker_base >>:latest \
+              -t $DOCKER_BASE:$CIRCLE_TAG \
+              -t $DOCKER_BASE:latest \
               .
 
-            <<# parameters.should_push >>docker push << parameter.docker_base >> --all-tags<</ parameters.should_push >>
+            <<# parameters.should_push >>docker push $DOCKER_BASE --all-tags<</ parameters.should_push >>
             
 
   deploy-serverless:
@@ -195,6 +194,7 @@ workflows:
               ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
       - build-push-serverless:
           name: build
+
           requires:
             - secret-injector/dump-secrets
           filters:

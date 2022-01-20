@@ -56,7 +56,7 @@ func GetOrganizationClients(config githubapp.Config) ([]*github.Client, error) {
 func createGHClient(config githubapp.Config) (githubapp.ClientCreator, error) {
 	cc, err := githubapp.NewDefaultCachingClientCreator(
 		config,
-		githubapp.WithClientUserAgent(fmt.Sprintf("dependabot-circleci/%s", conf.EnvVars.Version)),
+		githubapp.WithClientUserAgent(fmt.Sprintf("dependabot-circleci/%s", conf.Version)),
 		githubapp.WithClientTimeout(10*time.Minute),
 		githubapp.WithTransport(NewRateLimitTransport(http.DefaultTransport)),
 		githubapp.WithClientCaching(false, func() httpcache.Cache { return httpcache.NewMemoryCache() }),
