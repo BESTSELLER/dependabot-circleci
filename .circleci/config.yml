@@ -88,7 +88,7 @@ jobs:
         type: string
         default: "1.0.0"
     environment:
-      DOCKER_BASE: europe-docker.pkg.dev/es-standalone-cb21/es-docker/$CIRCLE_PROJECT_REPONAME
+      DOCKER_BASE: europe-docker.pkg.dev/es-standalone-cb21/es-docker/${CIRCLE_PROJECT_REPONAME}
     steps:
       - checkout
       - setup_remote_docker
