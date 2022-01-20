@@ -99,7 +99,7 @@ jobs:
           command: |
             apk add --no-cache jq
       - run:
-          name: Build and push image
+          name: Build and maybe push image
           command: |
             # source /tmp/secrets
 
