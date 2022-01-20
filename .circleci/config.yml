@@ -84,6 +84,9 @@ jobs:
       should_push:
         type: boolean
         default: true
+      tag:
+        type: string
+        default: "1.0.0"
     environment:
       DOCKER_BASE: europe-docker.pkg.dev/es-standalone-cb21/es-docker/$CIRCLE_PROJECT_REPONAME
     steps:
@@ -105,7 +108,7 @@ jobs:
 
             export docker_registry_url=europe-docker.pkg.dev/es-standalone-cb21
 
-            docker build --build-arg VERSION=${CIRCLE_TAG} \
+            docker build --build-arg VERSION=<< parameter.tag >> \
               -t $DOCKER_BASE:$CIRCLE_TAG \
               -t $DOCKER_BASE:latest \
               .
@@ -242,6 +245,7 @@ workflows:
             branches:
               ignore: /.*/
       - build-push-serverless:
+          tag: ${CIRCLE_TAG}
           requires:
             - secret-injector/dump-secrets
             - secret-injector/cloudrun
