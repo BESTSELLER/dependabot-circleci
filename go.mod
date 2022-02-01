@@ -6,11 +6,9 @@ require (
 	github.com/BESTSELLER/go-vault v0.1.2
 	github.com/CircleCI-Public/circleci-cli v0.1.16535
 	github.com/Masterminds/semver v1.5.0 // indirect
-	github.com/docker/cli v20.10.11+incompatible // indirect
-	github.com/docker/docker v20.10.11+incompatible // indirect
 	github.com/gobuffalo/packr/v2 v2.8.3 // indirect
 	github.com/golang-jwt/jwt/v4 v4.2.0 // indirect
-	github.com/google/go-containerregistry v0.7.0
+	github.com/google/go-containerregistry v0.8.0
 	github.com/google/go-github/v39 v39.2.0 // indirect
 	github.com/google/go-github/v41 v41.0.0
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
@@ -23,8 +21,6 @@ require (
 	github.com/rs/zerolog v1.26.1
 	github.com/shurcooL/graphql v0.0.0-20200928012149-18c5c3165e3a // indirect
 	goji.io v2.0.2+incompatible
-	golang.org/x/net v0.0.0-20211205041911-012df41ee64c // indirect
-	golang.org/x/sys v0.0.0-20211205182925-97ca703d548d // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 )
