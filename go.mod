@@ -3,7 +3,7 @@ module github.com/BESTSELLER/dependabot-circleci
 go 1.16
 
 require (
-	github.com/BESTSELLER/go-vault v0.1.2
+	github.com/BESTSELLER/go-vault v0.1.3
 	github.com/CircleCI-Public/circleci-cli v0.1.16535
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/gobuffalo/packr/v2 v2.8.3 // indirect
