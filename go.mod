@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/BESTSELLER/go-vault v0.1.3
-	github.com/CircleCI-Public/circleci-cli v0.1.16535
+	github.com/CircleCI-Public/circleci-cli v0.1.16947
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/gobuffalo/packr/v2 v2.8.3 // indirect
 	github.com/golang-jwt/jwt/v4 v4.2.0 // indirect
