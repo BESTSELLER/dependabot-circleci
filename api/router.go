@@ -16,7 +16,7 @@ import (
 var appName = "dependabot-circleci"
 
 // SetupRouter initializes the API routes
-func SetupRouter(standaloneMode bool, webhookEnabled bool, somethingEnabled bool) {
+func SetupRouter(standaloneMode bool, webhookEnabled bool, somethingEnabled bool, controllerEnabled bool) {
 	logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
 
 	server, err := baseapp.NewServer(
@@ -49,6 +49,10 @@ func SetupRouter(standaloneMode bool, webhookEnabled bool, somethingEnabled bool
 
 	if standaloneMode || somethingEnabled {
 		server.Mux().HandleFunc(pat.Post("/start"), dependencyHandler)
+	}
+
+	if standaloneMode || controllerEnabled {
+		server.Mux().HandleFunc(pat.Post("/start_controller"), dependencyHandler)
 	}
 
 	// Start is blocking

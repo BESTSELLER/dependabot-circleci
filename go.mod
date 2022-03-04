@@ -13,7 +13,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.2.0 // indirect
 	github.com/google/go-containerregistry v0.7.0
 	github.com/google/go-github/v41 v41.0.0
-	github.com/google/go-github/v43 v43.0.0 // indirect
+	github.com/google/go-github/v43 v43.0.0
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
 	github.com/hashicorp/go-version v1.3.0
 	github.com/kelseyhightower/envconfig v1.4.0
@@ -25,6 +25,7 @@ require (
 	github.com/shurcooL/graphql v0.0.0-20200928012149-18c5c3165e3a // indirect
 	goji.io v2.0.2+incompatible
 	golang.org/x/net v0.0.0-20211205041911-012df41ee64c // indirect
+	google.golang.org/api v0.63.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 )
