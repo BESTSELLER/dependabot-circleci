@@ -3,6 +3,7 @@ module github.com/BESTSELLER/dependabot-circleci
 go 1.16
 
 require (
+	cloud.google.com/go/bigquery v1.26.0
 	github.com/BESTSELLER/go-vault v0.1.2
 	github.com/CircleCI-Public/circleci-cli v0.1.16535
 	github.com/Masterminds/semver v1.5.0 // indirect
@@ -24,7 +25,6 @@ require (
 	github.com/shurcooL/graphql v0.0.0-20200928012149-18c5c3165e3a // indirect
 	goji.io v2.0.2+incompatible
 	golang.org/x/net v0.0.0-20211205041911-012df41ee64c // indirect
-	golang.org/x/sys v0.0.0-20211205182925-97ca703d548d // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 )
