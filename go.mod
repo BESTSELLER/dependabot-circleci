@@ -11,14 +11,14 @@ require (
 	github.com/gobuffalo/packr/v2 v2.8.3 // indirect
 	github.com/golang-jwt/jwt/v4 v4.2.0 // indirect
 	github.com/google/go-containerregistry v0.7.0
-	github.com/google/go-github/v39 v39.2.0 // indirect
 	github.com/google/go-github/v41 v41.0.0
+	github.com/google/go-github/v43 v43.0.0 // indirect
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
 	github.com/hashicorp/go-version v1.3.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/opencontainers/image-spec v1.0.2 // indirect
 	github.com/palantir/go-baseapp v0.3.1
-	github.com/palantir/go-githubapp v0.11.0
+	github.com/palantir/go-githubapp v0.12.0
 	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.26.1
 	github.com/shurcooL/graphql v0.0.0-20200928012149-18c5c3165e3a // indirect
