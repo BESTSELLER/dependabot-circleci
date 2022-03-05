@@ -52,7 +52,7 @@ func SetupRouter(standaloneMode bool, webhookEnabled bool, somethingEnabled bool
 	}
 
 	if standaloneMode || controllerEnabled {
-		server.Mux().HandleFunc(pat.Post("/start_controller"), dependencyHandler)
+		server.Mux().HandleFunc(pat.Post("/start_controller"), controllerHandler)
 	}
 
 	// Start is blocking

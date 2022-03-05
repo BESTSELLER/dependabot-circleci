@@ -25,7 +25,7 @@ func controllerHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func pullOrgs() (orgs []bigquery.Value, err error) {
+func pullOrgs() (orgs []string, err error) {
 	ctx := context.Background()
 
 	// Sets your Google Cloud Platform project ID.
@@ -45,13 +45,18 @@ func pullOrgs() (orgs []bigquery.Value, err error) {
 
 	it, err := q.Read(ctx)
 	for {
-		err := it.Next(&orgs)
+		var row []bigquery.Value
+		err := it.Next(&row)
 		if err == iterator.Done {
 			break
 		}
 		if err != nil {
 			log.Err(err).Msgf("BQ fuckup: %s", err)
 			return nil, err
+		}
+		// have to range each row as they are a array in itself?!?
+		for _, value := range row {
+			orgs = append(orgs, fmt.Sprintf("%s", value))
 		}
 	}
 	return orgs, err
