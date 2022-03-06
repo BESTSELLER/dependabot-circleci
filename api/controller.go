@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"cloud.google.com/go/bigquery"
+	"github.com/BESTSELLER/dependabot-circleci/datadog"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/api/iterator"
 )
@@ -16,6 +17,9 @@ func controllerHandler(w http.ResponseWriter, r *http.Request) {
 		log.Err(err).Msgf("pull orgs from big query failed: %s", err)
 		http.Error(w, "", http.StatusInternalServerError)
 	}
+
+	// send stats to dd
+	go datadog.Gauge("organizations", float64(len(orgs)), nil)
 
 	// should be in parralel
 	for _, org := range orgs {

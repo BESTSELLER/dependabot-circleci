@@ -7,13 +7,10 @@ import (
 	"strings"
 
 	"github.com/BESTSELLER/dependabot-circleci/config"
-	"github.com/BESTSELLER/dependabot-circleci/datadog"
 	"github.com/BESTSELLER/dependabot-circleci/dependabot"
 	"github.com/BESTSELLER/dependabot-circleci/gh"
 	"github.com/rs/zerolog/log"
 )
-
-// var wg sync.WaitGroup
 
 func dependencyHandler(w http.ResponseWriter, r *http.Request) {
 
@@ -32,24 +29,26 @@ func dependencyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// create clients
-	clients, err := gh.GetOrganizationClients(config.AppConfig.Github)
+	//extract body and parse repos and org
+	// var some struct {
+	// 	org   string
+	// 	repos []repo
+	// }
+
+	// create client
+	cc, err := gh.CreateGHClient(config.AppConfig.Github)
 	if err != nil {
 		http.Error(w, "failed to register organization client", http.StatusInternalServerError)
 		log.Fatal().Err(err).Msg("failed to register organization client")
 	}
 
-	// send stats to dd
-	go datadog.Gauge("organizations", float64(len(clients)), nil)
-
-	for _, client := range clients {
-		//	wg.Add(1)
-		client := client
-		func() {
-			//		defer wg.Done()
-			dependabot.Start(context.Background(), client)
-		}()
+	client, err := gh.GetSingleOrganizationClient(cc, "org")
+	if err != nil {
+		http.Error(w, "failed to register organization client", http.StatusInternalServerError)
+		log.Fatal().Err(err).Msg("failed to register organization client")
 	}
-	// wg.Wait()
+
+	dependabot.Start(context.Background(), client)
+
 	fmt.Fprintln(w, "Yaaay all done, please check github for pull requests!")
 }

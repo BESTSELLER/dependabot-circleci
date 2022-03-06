@@ -18,7 +18,7 @@ func GetOrganizationClients(config githubapp.Config) ([]*github.Client, error) {
 
 	ctx := context.Background()
 
-	cc, err := createGHClient(config)
+	cc, err := CreateGHClient(config)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func GetOrganizationClients(config githubapp.Config) ([]*github.Client, error) {
 	return clients, err
 }
 
-func createGHClient(config githubapp.Config) (githubapp.ClientCreator, error) {
+func CreateGHClient(config githubapp.Config) (githubapp.ClientCreator, error) {
 	cc, err := githubapp.NewDefaultCachingClientCreator(
 		config,
 		githubapp.WithClientUserAgent(fmt.Sprintf("dependabot-circleci/%s", conf.Version)),
