@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -11,6 +12,11 @@ import (
 	"github.com/BESTSELLER/dependabot-circleci/gh"
 	"github.com/rs/zerolog/log"
 )
+
+type repositories struct {
+	Org   string
+	Repos []string //should this be a map instead
+}
 
 func dependencyHandler(w http.ResponseWriter, r *http.Request) {
 
@@ -29,11 +35,13 @@ func dependencyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//extract body and parse repos and org
-	// var some struct {
-	// 	org   string
-	// 	repos []repo
-	// }
+	// extract repo details
+	var repos repositories
+	err := json.NewDecoder(r.Body).Decode(&repos)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	// create client
 	cc, err := gh.CreateGHClient(config.AppConfig.Github)
@@ -42,13 +50,14 @@ func dependencyHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal().Err(err).Msg("failed to register organization client")
 	}
 
-	client, err := gh.GetSingleOrganizationClient(cc, "org")
+	client, err := gh.GetSingleOrganizationClient(cc, repos.Org)
 	if err != nil {
 		http.Error(w, "failed to register organization client", http.StatusInternalServerError)
 		log.Fatal().Err(err).Msg("failed to register organization client")
 	}
 
-	dependabot.Start(context.Background(), client)
+	// do our magic
+	dependabot.Start(context.Background(), client, repos.Repos)
 
 	fmt.Fprintln(w, "Yaaay all done, please check github for pull requests!")
 }
