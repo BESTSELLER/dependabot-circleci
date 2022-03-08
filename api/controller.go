@@ -11,10 +11,16 @@ import (
 	"google.golang.org/api/iterator"
 )
 
+type bqdata struct {
+	RepoName string
+	Owner    string
+	Org      string
+}
+
 func controllerHandler(w http.ResponseWriter, r *http.Request) {
-	orgs, err := pullOrgs()
+	orgs, err := pullRepos()
 	if err != nil {
-		log.Err(err).Msgf("pull orgs from big query failed: %s", err)
+		log.Err(err).Msgf("pull repos from big query failed: %s", err)
 		http.Error(w, "", http.StatusInternalServerError)
 	}
 
@@ -22,15 +28,17 @@ func controllerHandler(w http.ResponseWriter, r *http.Request) {
 	go datadog.Gauge("organizations", float64(len(orgs)), nil)
 
 	// should be in parralel
-	for _, org := range orgs {
+	for org, repos := range orgs {
 		//start another container i guess
 		fmt.Println(org)
+		fmt.Println(repos)
 	}
 
 }
 
-func pullOrgs() (orgs []string, err error) {
+func pullRepos() (repos map[string][]string, err error) {
 	ctx := context.Background()
+	repos = make(map[string][]string)
 
 	// Sets your Google Cloud Platform project ID.
 	projectID := "dependabot-pub-prod-586e"
@@ -42,14 +50,12 @@ func pullOrgs() (orgs []string, err error) {
 	}
 	defer client.Close()
 
-	// select distinct orgs
-	q := client.Query(
-		"SELECT org FROM `dependabot_circleci.repos` " +
-			"GROUP BY org ")
+	// pull everything, because we dare!
+	q := client.Query("SELECT * FROM `dependabot_circleci.repos` ")
 
 	it, err := q.Read(ctx)
 	for {
-		var row []bigquery.Value
+		var row bqdata
 		err := it.Next(&row)
 		if err == iterator.Done {
 			break
@@ -58,10 +64,8 @@ func pullOrgs() (orgs []string, err error) {
 			log.Err(err).Msgf("BQ fuckup: %s", err)
 			return nil, err
 		}
-		// have to range each row as they are a array in itself?!?
-		for _, value := range row {
-			orgs = append(orgs, fmt.Sprintf("%s", value))
-		}
+
+		repos[row.Org] = append(repos[row.Org], row.RepoName)
 	}
-	return orgs, err
+	return repos, err
 }
