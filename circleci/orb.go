@@ -34,8 +34,8 @@ func findNewestOrbVersion(orb string) string {
 	orbSplitString := strings.Split(orb, "@")
 
 	// check if orb is always updated
-	if orbSplitString[1] == "volatile" {
-		return "volatile"
+	if orbSplitString[1] == "volatile" || strings.HasPrefix(orbSplitString[1], "dev:") {
+		return orbSplitString[1]
 	}
 
 	client := graphql.NewClient(http.DefaultClient, "https://circleci.com/", "graphql-unstable", "", false)
