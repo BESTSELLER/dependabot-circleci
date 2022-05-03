@@ -17,6 +17,17 @@ import (
 var wg sync.WaitGroup
 
 func init() {
+	err := config.LoadEnvConfig()
+	logger.Init()
+
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to read env config")
+	}
+
+	if _, err := os.Stat(config.EnvVars.Config); err == nil {
+		return
+	}
+
 	vaultAddr := os.Getenv("VAULT_ADDR")
 	if vaultAddr == "" {
 		log.Fatal().Msg("VAULT_ADDR must be set")
@@ -49,14 +60,8 @@ func init() {
 }
 
 func main() {
-	err := config.LoadEnvConfig()
-	logger.Init()
 
-	if err != nil {
-		log.Fatal().Err(err).Msg("failed to read env config")
-	}
-
-	err = config.ReadConfig(config.EnvVars.Config)
+	err := config.ReadConfig(config.EnvVars.Config)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to read github app config:")
 	}
