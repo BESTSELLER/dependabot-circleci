@@ -10,7 +10,8 @@ import (
 )
 
 // CheckPR .
-func CheckPR(ctx context.Context, client *github.Client, repoOwner string, repoName string, baseBranch string, commitBranch string, commitMessage string, component string) (bool, *github.PullRequest, error) {
+func CheckPR(ctx context.Context, client *github.Client, repoOwner string, repoName string, baseBranch string, commitBranch string, commitMessage string, component string) (bool, []*github.PullRequest, error) {
+	PRsToBeClosed := []*github.PullRequest{}
 	pullreqs, _, _ := client.PullRequests.List(ctx, repoOwner, repoName, nil)
 	for _, pr := range pullreqs {
 
@@ -27,11 +28,12 @@ func CheckPR(ctx context.Context, client *github.Client, repoOwner string, repoN
 
 		// older update ?
 		if strings.Contains(title, fmt.Sprintf("@%s", component)) {
-
-			return false, pr, nil
-
+			PRsToBeClosed = append(PRsToBeClosed, pr)
 		}
 
+	}
+	if len(PRsToBeClosed) > 0 {
+		return false, PRsToBeClosed, nil
 	}
 
 	return false, nil, nil
@@ -84,8 +86,8 @@ func CreatePR(ctx context.Context, client *github.Client, repoOwner string, repo
 	}
 
 	// disect team reviewers
-	var teamReviewers []string
-	var singleReviewers []string
+	teamReviewers := []string{}
+	singleReviewers := []string{}
 	for _, reviewer := range reviewers {
 		if strings.Contains(reviewer, "/") {
 			teamReviewers = append(teamReviewers, strings.Split(reviewer, "/")[1])
@@ -102,9 +104,11 @@ func CreatePR(ctx context.Context, client *github.Client, repoOwner string, repo
 	labels = append(labels, []string{"dependencies", "circleci"}...)
 
 	// Add reviewers
-	_, _, err = client.PullRequests.RequestReviewers(ctx, repoOwner, repoName, pr.GetNumber(), github.ReviewersRequest{Reviewers: singleReviewers, TeamReviewers: teamReviewers})
-	if err != nil {
-		log.Error().Str("repo_name", repoName).Err(err).Msg("Failed to request reviewers")
+	if len(singleReviewers) > 0 || len(teamReviewers) > 0 {
+		_, _, err = client.PullRequests.RequestReviewers(ctx, repoOwner, repoName, pr.GetNumber(), github.ReviewersRequest{Reviewers: singleReviewers, TeamReviewers: teamReviewers})
+		if err != nil {
+			log.Error().Str("repo_name", repoName).Err(err).Msg("Failed to request reviewers")
+		}
 	}
 
 	// Add asignees
@@ -123,18 +127,31 @@ func CreatePR(ctx context.Context, client *github.Client, repoOwner string, repo
 }
 
 // CleanUpOldBranch comments the old pull request and deletes the old branch
-func CleanUpOldBranch(ctx context.Context, client *github.Client, repoOwner string, repoName string, pr *github.PullRequest, newPR int) error {
+func CleanUpOldBranch(ctx context.Context, client *github.Client, repoOwner string, repoName string, PRs []*github.PullRequest, newPR int) {
 
-	_, _, err := client.Issues.CreateComment(ctx, repoOwner, repoName, pr.GetNumber(), &github.IssueComment{Body: github.String(fmt.Sprintf("Update superseeded by #%d", newPR))})
-	if err != nil {
-		return err
+	for _, pr := range PRs {
+		prNumber := pr.GetNumber()
+		_, _, err := client.Issues.CreateComment(ctx, repoOwner, repoName, prNumber, &github.IssueComment{Body: github.String(fmt.Sprintf("Update superseded by #%d", newPR))})
+		if err != nil {
+			log.Error().Err(err).Msgf("could not create a comment on #%d in repo '%s'", prNumber, repoName)
+			continue
+		}
+
+		// make sure the old pull request is closed
+		_, _, err = client.PullRequests.Edit(ctx, repoOwner, repoName, prNumber, &github.PullRequest{State: github.String("closed")})
+		if err != nil {
+			log.Error().Err(err).Msgf("could not delete pr #%d on '%s'", prNumber, repoName)
+			continue
+		}
+
+		// delete old branch
+		ref := "refs/heads/" + pr.GetHead().GetRef()
+		_, err = client.Git.DeleteRef(ctx, repoOwner, repoName, ref)
+		if err != nil {
+			log.Debug().Err(err).Msgf("could not delete ref '%s' from repo '%s'", ref, repoName)
+			continue
+		}
+
 	}
 
-	// delete old branch
-	_, err = client.Git.DeleteRef(ctx, repoOwner, repoName, "refs/heads/"+pr.GetHead().GetRef())
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
