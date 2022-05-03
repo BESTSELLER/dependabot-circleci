@@ -27,7 +27,7 @@ jobs:
             go get ./...
       - run:
           name: install gotestsum
-          command: go get -u gotest.tools/gotestsum
+          command: go install gotest.tools/gotestsum@latest
       - run:
           name: go test
           command: |
