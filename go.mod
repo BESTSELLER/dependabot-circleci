@@ -6,7 +6,7 @@ require (
 	github.com/BESTSELLER/go-vault v0.1.3
 	github.com/CircleCI-Public/circleci-cli v0.1.17183
 	github.com/google/go-containerregistry v0.8.0
-	github.com/google/go-github/v41 v41.0.0
+	github.com/google/go-github/v43 v43.0.0
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
 	github.com/hashicorp/go-version v1.3.0
 	github.com/kelseyhightower/envconfig v1.4.0
@@ -32,7 +32,7 @@ require (
 	github.com/gobuffalo/packr/v2 v2.8.3 // indirect
 	github.com/golang-jwt/jwt/v4 v4.2.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/google/go-github/v43 v43.0.0 // indirect
+	github.com/google/go-github/v41 v41.0.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/karrick/godirwalk v1.16.1 // indirect
