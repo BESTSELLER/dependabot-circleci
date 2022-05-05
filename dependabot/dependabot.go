@@ -46,6 +46,11 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 		return
 	}
 
+	// Use this to test the application against a single repo
+	// if repoName != "bestone-bi4-sales-core-salesorderservice" {
+	// 	return
+	// }
+
 	repoConfig := getRepoConfig(ctx, client, repo)
 	if repoConfig == nil {
 		return
@@ -181,7 +186,7 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 	commitBranch := fmt.Sprintf("dependabot-circleci/%s/%s", updateType, strings.ReplaceAll(update.Value, ":", "@"))
 
 	// err := check and create branch
-	exists, oldPR, err := gh.CheckPR(ctx, client, repoOwner, repoName, targetBranch, commitBranch, commitMessage, oldVersion[0])
+	exists, oldPRs, err := gh.CheckPR(ctx, client, repoOwner, repoName, targetBranch, commitBranch, commitMessage, oldVersion[0])
 	if err != nil {
 		log.Error().Err(err).Msgf("could not get old branch in %s", repoName)
 		return
@@ -230,12 +235,8 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 		datadog.IncrementCount("pull_requests", repoOwner)
 	}()
 
-	if oldPR != nil {
-		err := gh.CleanUpOldBranch(ctx, client, repoOwner, repoName, oldPR, newPR.GetNumber())
-		if err != nil {
-			log.Error().Err(err).Msgf("could not cleanup old pr and branch in %s", repoName)
-			return
-		}
+	if oldPRs != nil || len(oldPRs) > 0 {
+		gh.CleanUpOldBranch(ctx, client, repoOwner, repoName, oldPRs, newPR.GetNumber())
 
 		go func() {
 			datadog.IncrementCount("superseeded_updates", repoOwner)

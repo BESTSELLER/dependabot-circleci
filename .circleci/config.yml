@@ -78,6 +78,15 @@ jobs:
               -Dsonar.links.scm=$CIRCLE_REPOSITORY_URL \
               -Dsonar.go.coverage.reportPaths=coverage.out
 
+  build:
+    executor: gcp_image
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build image
+          command: |
+            docker build -t $CIRCLE_PROJECT_REPONAME:latest .
   build-push-serverless:
     executor: gcp_image
     steps:
@@ -85,10 +94,6 @@ jobs:
       - setup_remote_docker
       - attach_workspace:
           at: /tmp
-      - run:
-          name: install jq
-          command: |
-            apk add --no-cache jq
       - run:
           name: Build and push image
           command: |
@@ -183,6 +188,10 @@ workflows:
           filters:
             tags:
               ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
+      - build:
+          filters:
+            tags:
+              ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
 
   serverless-test-build-deploy:
     jobs:
@@ -193,25 +202,9 @@ workflows:
               only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
             branches:
               ignore: /.*/
-      - test:
-          requires:
-            - secret-injector/dump-secrets
-          filters:
-            tags:
-              only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
-            branches:
-              ignore: /.*/
-      - test-sonar:
-          requires:
-            - secret-injector/dump-secrets
-          filters:
-            tags:
-              only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
-            branches:
-              ignore: /.*/
       - secret-injector/dump-secrets:
           requires:
-            - test
+            - secret-injector/dump-secrets
           name: secret-injector/cloudrun
           vault-path: "gcp_landingzone/key/cloudrun-admin"
           output-filename: cloudrun_admin
@@ -226,7 +219,6 @@ workflows:
               ignore: /.*/
       - build-push-serverless:
           requires:
-            - secret-injector/dump-secrets
             - secret-injector/cloudrun
           filters:
             tags:
