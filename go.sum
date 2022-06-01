@@ -65,8 +65,8 @@ github.com/BESTSELLER/go-version v1.2.5 h1:naMdfH4XsfyfAQVMSNDmye6pAQx0sIYClV6rP
 github.com/BESTSELLER/go-version v1.2.5/go.mod h1:fltr4n8CU8Ke44wwGCBoEymUuxUHl09ZGVZPK5anwXA=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
-github.com/CircleCI-Public/circleci-cli v0.1.17464 h1:FMxlSumNECyF7DU8KINlrrbeka4HLk4wL5q/atkfLyA=
-github.com/CircleCI-Public/circleci-cli v0.1.17464/go.mod h1:xYct5buDZMWDFmx+uLaH9SUwPZI02HnmcAVo1i4xWM0=
+github.com/CircleCI-Public/circleci-cli v0.1.18678 h1:wJ5Hd5lVpp4nzTwvqx9CD+hrK/pHI+rjHvsL/FRtBgI=
+github.com/CircleCI-Public/circleci-cli v0.1.18678/go.mod h1:TZCk81IKlEJ5jPS6IEJk9lQ4MzR/RijURsUNfPxwpL0=
 github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
 github.com/Masterminds/semver v1.5.0 h1:H65muMkzWKEuNDnfl9d70GUjFniHKHRbFPGBuZ3QEww=
 github.com/Masterminds/semver v1.5.0/go.mod h1:MB6lktGJrhw8PrUyiEoblNEGEQ+RzHPF078ddwwvV3Y=
