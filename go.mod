@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/BESTSELLER/go-vault v0.1.3
-	github.com/CircleCI-Public/circleci-cli v0.1.17464
+	github.com/CircleCI-Public/circleci-cli v0.1.18828
 	github.com/google/go-containerregistry v0.9.0
 	github.com/google/go-github/v43 v43.0.0
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79

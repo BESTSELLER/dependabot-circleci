@@ -58,8 +58,8 @@ github.com/BESTSELLER/go-version v1.2.5/go.mod h1:fltr4n8CU8Ke44wwGCBoEymUuxUHl0
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/toml v0.4.1/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
-github.com/CircleCI-Public/circleci-cli v0.1.17464 h1:FMxlSumNECyF7DU8KINlrrbeka4HLk4wL5q/atkfLyA=
-github.com/CircleCI-Public/circleci-cli v0.1.17464/go.mod h1:xYct5buDZMWDFmx+uLaH9SUwPZI02HnmcAVo1i4xWM0=
+github.com/CircleCI-Public/circleci-cli v0.1.18828 h1:uOJzCxI+ZaPOhIZdZbkxfGb7Z7y4DcQXOqd4DdBtdR8=
+github.com/CircleCI-Public/circleci-cli v0.1.18828/go.mod h1:TZCk81IKlEJ5jPS6IEJk9lQ4MzR/RijURsUNfPxwpL0=
 github.com/Djarvur/go-err113 v0.0.0-20210108212216-aea10b59be24/go.mod h1:4UJr5HIiMZrwgkSPdsjy2uOQExX/WEILpIrO9UPGuXs=
 github.com/Masterminds/goutils v1.1.0/go.mod h1:8cTjp+g8YejhMuvIA5y2vz3BpJxksy863GQaJW2MFNU=
 github.com/Masterminds/semver v1.4.2/go.mod h1:MB6lktGJrhw8PrUyiEoblNEGEQ+RzHPF078ddwwvV3Y=
