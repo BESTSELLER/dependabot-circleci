@@ -33,6 +33,9 @@ workflows:
           dry_run: true
           requires:
             - secret-injector/dump-secrets
+          context:
+            - es02-prod
+            - shared
           filters:
             tags:
               ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
