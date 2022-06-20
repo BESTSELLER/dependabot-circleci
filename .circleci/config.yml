@@ -39,6 +39,24 @@ workflows:
           filters:
             tags:
               ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
+      - cci-common/terraform_plan:
+          path: ./terraform
+          args: '-var tag=1.0.0'
+          lock: false
+          context:
+            - es02-prod
+            - shared
+          requires:
+            - secret-injector/dump-secrets
+          filters:
+            tags:
+              ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
+          pre-steps:
+            - attach_workspace:
+                at: /tmp
+            - run:
+                command: |
+                  cat /tmp/cloudrun_admin | jq -r .private_key_data | base64 -d > /tmp/cloudrun-admin.json
 
   serverless-test-build-deploy:
     jobs:
