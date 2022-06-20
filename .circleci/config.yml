@@ -80,7 +80,6 @@ workflows:
             - cci-common/terraform_plan
       - cci-common/terraform_apply:
           path: ./terraform
-          args: '-var tag=${CIRCLE_TAG}'
           context:
             - es02-prod
             - shared
