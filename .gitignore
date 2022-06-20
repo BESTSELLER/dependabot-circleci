@@ -18,3 +18,7 @@ junit
 /config.yml
 /config.json
 .vscode/launch.json
+terraform/.terraform
+terraform/.terraform.*
+terraform/terraform.*
+
