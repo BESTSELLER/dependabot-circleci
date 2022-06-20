@@ -38,12 +38,6 @@ func controllerHandler(w http.ResponseWriter, r *http.Request) {
 	// send stats to dd
 	go datadog.Gauge("organizations", float64(len(orgs)), nil)
 
-	// TODO: Delete ME!!!
-	orgs = map[string][]bqdata{"BESTSELLER": {bqdata{
-		RepoName: "tester",
-		Owner:    "BESTSELLER",
-		Schedule: "Daily",
-	}}}
 	// should be in parralel
 	for org, repos := range orgs {
 		var triggeredRepos []string

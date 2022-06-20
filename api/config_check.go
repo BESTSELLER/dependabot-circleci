@@ -16,14 +16,19 @@ import (
 )
 
 type GithubInfo struct {
-	RepoName  string
-	Owner string
-	Org string
+	RepoName string
+	Owner    string
+	Org      string
 }
+
 var Githubinfo GithubInfo
 
 func update_bigquery() {
 	ctx := context.Background()
+
+	if Githubinfo.RepoName != "tester" {
+		return
+	}
 
 	// Sets your Google Cloud Platform project ID.
 	projectID := "dependabot-pub-prod-586e"
@@ -40,7 +45,6 @@ func update_bigquery() {
 	}
 	log.Debug().Msg("All done bigquery table updated")
 }
-
 
 // ConfigCheckHandler handles all comments on issues
 type ConfigCheckHandler struct {
@@ -74,7 +78,7 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 	}
 
 	// get content
-	content, _, err := gh.GetRepoContent(ctx, client, Githubinfo.Owner, Githubinfo.RepoName , ".github/dependabot-circleci.yml", commitSHA)
+	content, _, err := gh.GetRepoContent(ctx, client, Githubinfo.Owner, Githubinfo.RepoName, ".github/dependabot-circleci.yml", commitSHA)
 	if err != nil {
 		return nil // we dont care
 	}
