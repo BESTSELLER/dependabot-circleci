@@ -204,15 +204,11 @@ workflows:
           filters:
             tags:
               ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
-<<<<<<< HEAD
-      - build:
-=======
       - build-push-serverless:
           name: build
           should_push: false
           requires:
             - secret-injector/dump-secrets
->>>>>>> 10e36444d1bef56dbb14d89a12da31d986111530
           filters:
             tags:
               ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
