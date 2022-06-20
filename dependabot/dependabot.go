@@ -17,17 +17,23 @@ import (
 )
 
 // Start will run through all repos it has access to and check for updates and make pull requests if needed.
-func Start(ctx context.Context, client *github.Client, reposistories []string) {
+func Start(ctx context.Context, client *github.Client, repositories []string) {
 	// get repos
+	// TODO: Get only repos in the list, but in a single API Call
 	repos, err := gh.GetRepos(ctx, client, 1)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to repos")
 	}
 
 	// Loop through all repos
-	for _, repository := range repos {
-		// maybe only check repo if repo exists in our db?
-		checkRepo(ctx, client, repository)
+	for _, repoName := range repositories {
+		for _, repository := range repos {
+			// only check repo if repo exists in our db and is scheduled to trigger today
+			if repository.GetName() == repoName {
+				checkRepo(ctx, client, repository)
+				break
+			}
+		}
 	}
 }
 
@@ -54,7 +60,7 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 		return
 	}
 
-	proceed, err := applySchedule(repoConfig, repo)
+	proceed, err := applySchedule(repoConfig.Schedule, repo.GetName())
 	if err != nil {
 		log.Error().Err(err).Msgf("found %s for schedule in dependabot-circleci.yml, which is not a valid format", repoConfig.Schedule)
 	}
@@ -117,35 +123,33 @@ func getRepoConfig(ctx context.Context, client *github.Client, repo *github.Repo
 
 	return repoConfig
 }
-func applySchedule(repoConfig *config.RepoConfig, repo *github.Repository) (bool, error) {
+func applySchedule(schedule string, repo string) (bool, error) {
 	// check if an update should be run
 	t := time.Now()
 	layout := "02/01/2006"
-	schedule := strings.ToLower(repoConfig.Schedule)
+	schedule = strings.ToLower(schedule)
 	if schedule == "monthly" {
 		if t.Day() == 1 {
 			return true, nil
 		} else {
 			d := time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, time.UTC)
 			d = d.AddDate(0, 1, 0)
-			log.Debug().Msgf("updates for repository: %s are set to monthly, next update will on %s", repo.GetName(), d.Format(layout))
+			log.Debug().Msgf("updates for repository: %s are set to monthly, next update will on %s", repo, d.Format(layout))
 			return false, nil
 		}
 	} else if schedule == "weekly" {
 		if t.Weekday() == 1 {
 			return true, nil
 		} else {
-			log.Debug().Msgf("updates for repository: %s are set to weekly, next update on monday", repo.GetName())
+			log.Debug().Msgf("updates for repository: %s are set to weekly, next update on monday", repo)
 			return false, nil
 		}
 	} else if schedule == "daily" || schedule == "" {
-		log.Debug().Msgf("updates for repository: %s are set to daily, updates will begin shortly", repo.GetName())
+		log.Debug().Msgf("updates for repository: %s are set to daily, updates will begin shortly", repo)
 		return true, nil
 	} else {
-
 		return false, errors.New("schedule wrong format")
 	}
-
 }
 
 func getTargetBranch(ctx context.Context, client *github.Client, repoOwner string, repoName string, defaultBranch string, repoConfig *config.RepoConfig) string {

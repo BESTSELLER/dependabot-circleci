@@ -1,9 +1,16 @@
 package api
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/BESTSELLER/dependabot-circleci/config"
+	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
+	"io/ioutil"
 	"net/http"
+	"strings"
+	"time"
 
 	"cloud.google.com/go/bigquery"
 	"github.com/BESTSELLER/dependabot-circleci/datadog"
@@ -14,7 +21,11 @@ import (
 type bqdata struct {
 	RepoName string
 	Owner    string
-	Org      string
+	Schedule string
+}
+type WorkerPayload struct {
+	Org   string
+	Repos []string
 }
 
 func controllerHandler(w http.ResponseWriter, r *http.Request) {
@@ -27,18 +38,86 @@ func controllerHandler(w http.ResponseWriter, r *http.Request) {
 	// send stats to dd
 	go datadog.Gauge("organizations", float64(len(orgs)), nil)
 
+	// TODO: Delete ME!!!
+	orgs = map[string][]bqdata{"BESTSELLER": {bqdata{
+		RepoName: "tester",
+		Owner:    "BESTSELLER",
+		Schedule: "Daily",
+	}}}
 	// should be in parralel
 	for org, repos := range orgs {
+		var triggeredRepos []string
+
+		for _, repo := range repos {
+			if shouldRun(repo.Schedule) {
+				triggeredRepos = append(triggeredRepos, repo.RepoName)
+			}
+		}
+		payloadObj := WorkerPayload{Org: org, Repos: triggeredRepos}
+		payloadBytes, err := json.Marshal(payloadObj)
+		if err != nil {
+			log.Err(err).Msg("error marshaling payload")
+			return
+		}
+		err = PostJSON("http://localhost:42420/start", payloadBytes)
+		if err != nil {
+			log.Err(err).Msgf("error triggering worker for org %s", org)
+		}
+		// call webhook - trigger cci on org
 		//start another container i guess
-		fmt.Println(org)
-		fmt.Println(repos)
 	}
 
 }
+func shouldRun(schedule string) bool {
+	// check if an update should be run
+	t := time.Now()
+	schedule = strings.ToLower(schedule)
+	if schedule == "monthly" {
+		if t.Day() == 1 {
+			return true
+		}
+		return false
+	} else if schedule == "weekly" {
+		if t.Weekday() == 1 {
+			return true
+		}
+		return false
 
-func pullRepos() (repos map[string][]string, err error) {
+	} else if schedule == "daily" || schedule == "" {
+		return true
+	}
+	return false
+}
+
+// PostJSON posts the structs as json to the specified url
+func PostJSON(url string, payload []byte) error {
+
+	var myClient = httptrace.WrapClient(&http.Client{Timeout: 30 * time.Second})
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	if err != nil {
+		return fmt.Errorf("Unable to create request: %s", err)
+	}
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", config.AppConfig.HTTP.Token))
+	r, err := myClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("Unable to do request: %s", err)
+	}
+	defer r.Body.Close()
+
+	// check response code
+	if r.StatusCode != http.StatusOK {
+		bodyBytes, _ := ioutil.ReadAll(r.Body)
+		bodyString := string(bodyBytes)
+		return fmt.Errorf("Request failed, expected status: %d got: %d, error message: %s", http.StatusOK, r.StatusCode, bodyString)
+	}
+	return nil
+}
+
+func pullRepos() (repos map[string][]bqdata, err error) {
 	ctx := context.Background()
-	repos = make(map[string][]string)
+	repos = make(map[string][]bqdata)
 
 	// Sets your Google Cloud Platform project ID.
 	projectID := "dependabot-pub-prod-586e"
@@ -65,7 +144,7 @@ func pullRepos() (repos map[string][]string, err error) {
 			return nil, err
 		}
 
-		repos[row.Org] = append(repos[row.Org], row.RepoName)
+		repos[row.Owner] = append(repos[row.Owner], row)
 	}
 	return repos, err
 }
