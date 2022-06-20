@@ -7,7 +7,8 @@ orbs:
 workflows:
   test:
     jobs:
-      - secret-injector/dump-secrets:
+      - secret-injector/dump-secrets-yaml:
+          secret-file: ci-secrets.yaml
           context:
             - es02-prod
             - shared
@@ -25,14 +26,14 @@ workflows:
             - es02-prod
             - shared
           requires:
-            - secret-injector/dump-secrets
+            - secret-injector/dump-secrets-yaml
           filters:
             tags:
               ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
       - cci-common/build_n_push_docker:
           dry_run: true
           requires:
-            - secret-injector/dump-secrets
+            - secret-injector/dump-secrets-yaml
           context:
             - es02-prod
             - shared
@@ -47,7 +48,7 @@ workflows:
             - es02-prod
             - shared
           requires:
-            - secret-injector/dump-secrets
+            - secret-injector/dump-secrets-yaml
           filters:
             tags:
               ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
