@@ -52,8 +52,7 @@ workflows:
       - cci-common/build_n_push_docker:
           tag: ${CIRCLE_TAG}
           requires:
-            - secret-injector/dump-secrets
-            - secret-injector/cloudrun
+            - secret-injector/dump-secrets-yaml
           filters:
             tags:
               only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
