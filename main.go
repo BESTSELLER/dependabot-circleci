@@ -67,5 +67,5 @@ func main() {
 
 	flag.Parse()
 
-	api.SetupRouter*webhookFlag, *workerFlag, *controllerFlag)
+	api.SetupRouter(*webhookFlag, *workerFlag, *controllerFlag)
 }
