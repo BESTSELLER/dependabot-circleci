@@ -28,3 +28,8 @@ variable "scaling" {
     min = "0"
   }
 }
+
+variable "worker_url" {
+  type    = string
+  default = ""
+}

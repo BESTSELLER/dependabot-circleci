@@ -7,9 +7,10 @@ module "bq" {
 }
 
 module "controller" {
-  name   = "controller"
-  source = "./modules/cloud_run"
-  args   = ["-controller"]
+  name       = "controller"
+  source     = "./modules/cloud_run"
+  args       = ["-controller"]
+  worker_url = module.worker.url
   scaling = {
     max = "1"
     min = "0"
@@ -24,6 +25,7 @@ module "worker" {
   name   = "worker"
   source = "./modules/cloud_run"
   args   = ["-worker"]
+
   scaling = {
     max = "1"
     min = "0"
@@ -37,6 +39,7 @@ module "worker" {
 module "webhook" {
   name       = "webhook"
   source     = "./modules/cloud_run"
+  worker_url = module.worker.url
   args       = ["-webhook"]
   project_id = var.project_id
   location   = "europe-west4"
