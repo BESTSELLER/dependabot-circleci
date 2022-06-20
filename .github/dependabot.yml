@@ -17,3 +17,10 @@ updates:
       interval: "monthly"
     reviewers: 
       - BESTSELLER/engineering-services
+  - package-ecosystem: "terraform" # See documentation for possible values
+    directory: "/terraform" # Location of package manifests
+    schedule:
+      interval: "monthly"
+    reviewers: 
+      - BESTSELLER/engineering-services
+  
