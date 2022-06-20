@@ -20,5 +20,5 @@ junit
 .vscode/launch.json
 terraform/.terraform
 terraform/.terraform.*
-terraform/terraform.*
+terraform/terraform.tfstate*
 
