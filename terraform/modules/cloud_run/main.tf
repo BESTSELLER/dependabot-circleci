@@ -3,13 +3,21 @@ resource "google_cloud_run_service" "main" {
   location = var.location
   project  = var.project_id
 
+
+
   template {
     metadata {
       labels = var.labels
+      annotations = {
+        "autoscaling.knative.dev/maxScale" = var.scaling["max"]
+        "autoscaling.knative.dev/minScale" = var.scaling["min"]
+
+      }
     }
     spec {
       containers {
         image = "europe-docker.pkg.dev/artifacts-pub-prod-b57f/es-docker/${var.labels["service"]}:${var.tag}"
+        args  = var.args
         env {
           name  = "VAULT_ADDR"
           value = "https://vault.bestsellerit.com"
