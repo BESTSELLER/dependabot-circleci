@@ -1,4 +1,3 @@
-
 module "bq" {
   source     = "./modules/bq"
   project_id = var.project_id
