@@ -74,17 +74,13 @@ workflows:
               only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
             branches:
               ignore: /.*/
-      - approve-plan:
-          type: approval
-          requires:
-            - cci-common/terraform_plan
       - cci-common/terraform_apply:
           path: ./terraform
           context:
             - es02-prod
             - shared
           requires:
-            - approve-plan
+            - cci-common/terraform_plan
           filters:
             tags:
               only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
