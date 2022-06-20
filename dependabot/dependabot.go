@@ -77,9 +77,7 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 		return
 	}
 
-	go func() {
-		datadog.IncrementCount("analysed_repos", repoOwner)
-	}()
+	go datadog.IncrementCount("analysed_repos", repoOwner)
 
 	// get content of circleci config file
 	content, SHA, err := gh.GetRepoContent(ctx, client, repoOwner, repoName, repoConfig.Directory+"/.circleci/config.yml", targetBranch)
@@ -99,11 +97,19 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 	orbUpdates, dockerUpdates := circleci.GetUpdates(&cciconfig)
 	for old, update := range orbUpdates {
 		// wg.Add(1)
-		handleUpdate(ctx, client, update, "orb", old, content, repoOwner, repoName, targetBranch, SHA, repoConfig)
+		err = handleUpdate(ctx, client, update, "orb", old, content, repoOwner, repoName, targetBranch, SHA, repoConfig)
+		if err != nil {
+			go datadog.IncrementCount("failed_repos", repoOwner)
+			return
+		}
 	}
 	for old, update := range dockerUpdates {
 		// wg.Add(1)
-		handleUpdate(ctx, client, update, "docker", old, content, repoOwner, repoName, targetBranch, SHA, repoConfig)
+		err = handleUpdate(ctx, client, update, "docker", old, content, repoOwner, repoName, targetBranch, SHA, repoConfig)
+		if err != nil {
+			go datadog.IncrementCount("failed_repos", repoOwner)
+			return
+		}
 	}
 }
 
@@ -164,7 +170,7 @@ func getTargetBranch(ctx context.Context, client *github.Client, repoOwner strin
 	return targetBranch
 }
 
-func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node, updateType string, old string, content []byte, repoOwner string, repoName string, targetBranch string, SHA *string, repoConfig *config.RepoConfig) {
+func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node, updateType string, old string, content []byte, repoOwner string, repoName string, targetBranch string, SHA *string, repoConfig *config.RepoConfig) error {
 	// defer wg.Done()
 
 	log.Debug().Msgf("repo: %s, old: %s, update: %s", repoName, old, update.Value)
@@ -181,7 +187,7 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 	}
 
 	if updateType == "orb" && len(newVersion) == 1 {
-		return
+		return fmt.Errorf("")
 	}
 
 	commitMessage := fmt.Sprintf("Bump @%s from %s to %s", oldVersion[0], oldVersion[1], newVersion[1])
@@ -191,10 +197,10 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 	exists, oldPRs, err := gh.CheckPR(ctx, client, repoOwner, repoName, targetBranch, commitBranch, commitMessage, oldVersion[0])
 	if err != nil {
 		log.Error().Err(err).Msgf("could not get old branch in %s", repoName)
-		return
+		return err
 	}
 	if exists {
-		return
+		return err
 	}
 
 	notExists := gh.CheckBranch(ctx, client, repoOwner, repoName, github.String(commitBranch))
@@ -202,7 +208,7 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 		err = gh.CreateBranch(ctx, client, repoOwner, repoName, targetBranch, github.String(commitBranch))
 		if err != nil {
 			log.Error().Err(err).Msgf("could not create branch %s in %s", commitBranch, repoName)
-			return
+			return err
 		}
 	} else {
 		log.Debug().Msgf("branch %s already exists, skipping creation of branch", commitBranch)
@@ -217,7 +223,7 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 	})
 	if err != nil {
 		log.Error().Err(err).Msgf("could not update file in %s", repoName)
-		return
+		return err
 	}
 
 	// create pull req
@@ -230,7 +236,7 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 	})
 	if err != nil {
 		log.Info().Err(err).Msgf("could not create pr in %s", repoName)
-		return
+		return err
 	}
 
 	go func() {
