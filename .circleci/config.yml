@@ -54,6 +54,7 @@ workflows:
               ignore: /.*/
       - cci-common/build_n_push_docker:
           tag: ${CIRCLE_TAG}
+          repo: public-docker
           context:
             - es02-prod
             - shared
