@@ -59,7 +59,7 @@ workflows:
                 command: |
                   cat /tmp/cloudrun_admin | jq -r .private_key_data | base64 -d > /tmp/cloudrun-admin.json
 
-  serverless-test-build-deploy:
+  deploy:
     jobs:
       - secret-injector/dump-secrets-yaml:
           secret-file: ci-secrets.yaml
