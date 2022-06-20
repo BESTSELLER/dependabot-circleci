@@ -1,8 +1,6 @@
 package config
 
 import (
-	"io/ioutil"
-
 	"github.com/palantir/go-baseapp/baseapp"
 	"github.com/palantir/go-githubapp/githubapp"
 	"github.com/pkg/errors"
@@ -38,15 +36,11 @@ type RepoConfig struct {
 // AppConfig contains global app config
 var AppConfig Config
 
+var Version = "1.0.0"
+
 // ReadConfig reads a yaml config file
-func ReadConfig(path string) error {
-
-	bytes, err := ioutil.ReadFile(path)
-	if err != nil {
-		return errors.Wrapf(err, "failed reading server config file: %s", path)
-	}
-
-	if err := yaml.UnmarshalStrict(bytes, &AppConfig); err != nil {
+func ReadConfig(secrets []byte) error {
+	if err := yaml.UnmarshalStrict(secrets, &AppConfig); err != nil {
 		return errors.Wrap(err, "failed parsing configuration file")
 	}
 

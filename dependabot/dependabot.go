@@ -16,10 +16,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// var wg sync.WaitGroup
-
 // Start will run through all repos it has access to and check for updates and make pull requests if needed.
-func Start(ctx context.Context, client *github.Client) {
+func Start(ctx context.Context, client *github.Client, reposistories []string) {
 	// get repos
 	repos, err := gh.GetRepos(ctx, client, 1)
 	if err != nil {
@@ -28,9 +26,8 @@ func Start(ctx context.Context, client *github.Client) {
 
 	// Loop through all repos
 	for _, repository := range repos {
-		// wg.Add(1)
+		// maybe only check repo if repo exists in our db?
 		checkRepo(ctx, client, repository)
-		// wg.Wait()
 	}
 }
 
@@ -41,6 +38,7 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 
 	log.Debug().Msg(fmt.Sprintf("Checking repo: %s", repoName))
 
+	// should we then remove the repo from our db ?
 	if repo.GetArchived() {
 		log.Debug().Msg(fmt.Sprintf("Repo '%s' is archived", repoName))
 		return

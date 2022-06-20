@@ -89,13 +89,26 @@ jobs:
             docker build -t $CIRCLE_PROJECT_REPONAME:latest .
   build-push-serverless:
     executor: gcp_image
+    parameters:
+      should_push:
+        type: boolean
+        default: true
+      tag:
+        type: string
+        default: "1.0.0"
+    environment:
+      DOCKER_BASE: europe-docker.pkg.dev/es-standalone-cb21/es-docker
     steps:
       - checkout
       - setup_remote_docker
       - attach_workspace:
           at: /tmp
       - run:
-          name: Build and push image
+          name: install jq
+          command: |
+            apk add --no-cache jq
+      - run:
+          name: Build and maybe push image
           command: |
             # source /tmp/secrets
 
@@ -103,11 +116,14 @@ jobs:
             gcloud auth configure-docker europe-docker.pkg.dev --quiet
 
             export docker_registry_url=europe-docker.pkg.dev/es-standalone-cb21
-            docker build -t $docker_registry_url/es-docker/$CIRCLE_PROJECT_REPONAME:$CIRCLE_TAG .
-            docker build -t $docker_registry_url/es-docker/$CIRCLE_PROJECT_REPONAME:latest .
 
-            docker push $docker_registry_url/es-docker/$CIRCLE_PROJECT_REPONAME:$CIRCLE_TAG
-            docker push $docker_registry_url/es-docker/$CIRCLE_PROJECT_REPONAME:latest
+            docker build --build-arg VERSION=<< parameters.tag >> \
+              -t $DOCKER_BASE/${CIRCLE_PROJECT_REPONAME}:<< parameters.tag >> \
+              -t $DOCKER_BASE/${CIRCLE_PROJECT_REPONAME}:latest \
+              .
+
+            <<# parameters.should_push >>docker push $DOCKER_BASE/${CIRCLE_PROJECT_REPONAME} --all-tags<</ parameters.should_push >>
+            
 
   deploy-serverless:
     executor: gcp_image
@@ -139,7 +155,7 @@ jobs:
               --project=es-standalone-cb21 \
               --timeout=60m \
               --labels service=dependabot-circleci \
-              --set-env-vars VAULT_ADDR="${VAULT_ADDR}",VAULT_ROLE=dependabot-circleci,VAULT_SECRET=ES/data/dependabot-circleci/prod,DEPENDABOT_VERSION=${CIRCLE_TAG},DEPENDABOT_CONFIG=/secrets/secrets \
+              --set-env-vars VAULT_ADDR="${VAULT_ADDR}",VAULT_ROLE=${$CIRCLE_PROJECT_REPONAME},VAULT_SECRET=ES/data/${CIRCLE}/prod \
               --service-account=dependabot-circleci@es-standalone-cb21.iam.gserviceaccount.com
       - run:
           name: create domain mapping
@@ -188,7 +204,15 @@ workflows:
           filters:
             tags:
               ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
+<<<<<<< HEAD
       - build:
+=======
+      - build-push-serverless:
+          name: build
+          should_push: false
+          requires:
+            - secret-injector/dump-secrets
+>>>>>>> 10e36444d1bef56dbb14d89a12da31d986111530
           filters:
             tags:
               ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
@@ -218,6 +242,7 @@ workflows:
             branches:
               ignore: /.*/
       - build-push-serverless:
+          tag: ${CIRCLE_TAG}
           requires:
             - secret-injector/cloudrun
           filters:

@@ -2,18 +2,21 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/BESTSELLER/dependabot-circleci/config"
-	"github.com/BESTSELLER/dependabot-circleci/datadog"
 	"github.com/BESTSELLER/dependabot-circleci/dependabot"
 	"github.com/BESTSELLER/dependabot-circleci/gh"
 	"github.com/rs/zerolog/log"
 )
 
-// var wg sync.WaitGroup
+type repositories struct {
+	Org   string
+	Repos []string //should this be a map instead
+}
 
 func dependencyHandler(w http.ResponseWriter, r *http.Request) {
 
@@ -32,24 +35,29 @@ func dependencyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// create clients
-	clients, err := gh.GetOrganizationClients(config.AppConfig.Github)
+	// extract repo details
+	var repos repositories
+	err := json.NewDecoder(r.Body).Decode(&repos)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// create client
+	cc, err := gh.CreateGHClient(config.AppConfig.Github)
 	if err != nil {
 		http.Error(w, "failed to register organization client", http.StatusInternalServerError)
 		log.Fatal().Err(err).Msg("failed to register organization client")
 	}
 
-	// send stats to dd
-	go datadog.Gauge("organizations", float64(len(clients)), nil)
-
-	for _, client := range clients {
-		//	wg.Add(1)
-		client := client
-		func() {
-			//		defer wg.Done()
-			dependabot.Start(context.Background(), client)
-		}()
+	client, err := gh.GetSingleOrganizationClient(cc, repos.Org)
+	if err != nil {
+		http.Error(w, "failed to register organization client", http.StatusInternalServerError)
+		log.Fatal().Err(err).Msg("failed to register organization client")
 	}
-	// wg.Wait()
+
+	// do our magic
+	dependabot.Start(context.Background(), client, repos.Repos)
+
 	fmt.Fprintln(w, "Yaaay all done, please check github for pull requests!")
 }

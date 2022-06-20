@@ -3,18 +3,16 @@ package main
 import (
 	"io/ioutil"
 	"os"
-	"sync"
 
 	"github.com/rs/zerolog/log"
 
 	"github.com/BESTSELLER/dependabot-circleci/api"
+	"github.com/BESTSELLER/dependabot-circleci/config"
 	"github.com/BESTSELLER/dependabot-circleci/logger"
 	"github.com/BESTSELLER/go-vault/gcpss"
 
-	"github.com/BESTSELLER/dependabot-circleci/config"
+	"flag"
 )
-
-var wg sync.WaitGroup
 
 func init() {
 	err := config.LoadEnvConfig()
@@ -24,49 +22,55 @@ func init() {
 		log.Fatal().Err(err).Msg("failed to read env config")
 	}
 
-	if _, err := os.Stat(config.EnvVars.Config); err == nil {
-		return
+	var secret []byte
+
+	if config.EnvVars.Config == "" {
+		vaultAddr := os.Getenv("VAULT_ADDR")
+		if vaultAddr == "" {
+			log.Fatal().Msg("VAULT_ADDR must be set")
+		}
+		vaultSecret := os.Getenv("VAULT_SECRET")
+		if vaultSecret == "" {
+			log.Fatal().Msg("VAULT_SECRET must be set")
+		}
+		vaultRole := os.Getenv("VAULT_ROLE")
+		if vaultRole == "" {
+			log.Fatal().Msg("VAULT_ROLE must be set")
+		}
+
+		secretData, err := gcpss.FetchVaultSecret(vaultAddr, vaultSecret, vaultRole)
+		if err != nil {
+			log.Fatal().Err(err)
+		}
+		secret = []byte(secretData)
+	} else {
+		bytes, err := ioutil.ReadFile(config.EnvVars.Config)
+		if err != nil {
+			log.Fatal().Err(err).Msgf("Unable to read file %s", config.EnvVars.Config)
+		}
+
+		secret = bytes
 	}
 
-	vaultAddr := os.Getenv("VAULT_ADDR")
-	if vaultAddr == "" {
-		log.Fatal().Msg("VAULT_ADDR must be set")
-	}
-	vaultSecret := os.Getenv("VAULT_SECRET")
-	if vaultSecret == "" {
-		log.Fatal().Msg("VAULT_SECRET must be set")
-	}
-	vaultRole := os.Getenv("VAULT_ROLE")
-	if vaultRole == "" {
-		log.Fatal().Msg("VAULT_ROLE must be set")
-	}
-
-	secret, err := gcpss.FetchVaultSecret(vaultAddr, vaultSecret, vaultRole)
+	err = config.ReadConfig([]byte(secret))
 	if err != nil {
-		log.Fatal().Err(err)
-	}
-
-	err = os.Mkdir("/secrets", 0644)
-	if err != nil {
-		log.Fatal().Err(err).Msg("unable to create secrets dir")
-	}
-
-	data := []byte(secret)
-	err = ioutil.WriteFile("/secrets/secrets", data, 0644)
-	if err != nil {
-		log.Fatal().Err(err).Msg("unable to write secrets")
+		log.Fatal().Err(err).Msg("failed to read github app config:")
 	}
 
 }
 
 func main() {
 
-	err := config.ReadConfig(config.EnvVars.Config)
-	if err != nil {
-		log.Fatal().Err(err).Msg("failed to read github app config:")
+	standaloneFlag := flag.Bool("standalone", true, "Will run in standalone, which means that it will start all services.")
+	webhookFlag := flag.Bool("webhook", false, "Will start the webhook server.")
+	somethingFlag := flag.Bool("something", false, "Will start the something server.")
+	controllerFlag := flag.Bool("controller", false, "Will start the controller.")
+
+	flag.Parse()
+
+	if *standaloneFlag && (*webhookFlag || *somethingFlag) {
+		log.Fatal().Msg("-standalone is not allowed with any other flags.")
 	}
 
-	// start webhook
-	api.SetupRouter()
-
+	api.SetupRouter(*standaloneFlag, *webhookFlag, *somethingFlag, *controllerFlag)
 }
