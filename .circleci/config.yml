@@ -54,6 +54,9 @@ workflows:
               ignore: /.*/
       - cci-common/build_n_push_docker:
           tag: ${CIRCLE_TAG}
+          context:
+            - es02-prod
+            - shared
           requires:
             - secret-injector/dump-secrets-yaml
           filters:
