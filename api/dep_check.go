@@ -13,11 +13,6 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type repositories struct {
-	Org   string
-	Repos []string //should this be a map instead
-}
-
 func dependencyHandler(w http.ResponseWriter, r *http.Request) {
 
 	// dummy auth check, to decrease chance of ddos
@@ -36,8 +31,8 @@ func dependencyHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// extract repo details
-	var repos repositories
-	err := json.NewDecoder(r.Body).Decode(&repos)
+	var workerPayload WorkerPayload
+	err := json.NewDecoder(r.Body).Decode(&workerPayload)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -50,14 +45,14 @@ func dependencyHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal().Err(err).Msg("failed to register organization client")
 	}
 
-	client, err := gh.GetSingleOrganizationClient(cc, repos.Org)
+	client, err := gh.GetSingleOrganizationClient(cc, workerPayload.Org)
 	if err != nil {
 		http.Error(w, "failed to register organization client", http.StatusInternalServerError)
 		log.Fatal().Err(err).Msg("failed to register organization client")
 	}
 
 	// do our magic
-	dependabot.Start(context.Background(), client, repos.Repos)
+	dependabot.Start(context.Background(), client, workerPayload.Repos)
 
 	fmt.Fprintln(w, "Yaaay all done, please check github for pull requests!")
 }
