@@ -1,174 +1,8 @@
 version: 2.1
-executors:
-  gcp_image:
-    docker:
-      - image: google/cloud-sdk:alpine
-        auth:
-          username: $DOCKERHUB_USER
-          password: $DOCKERHUB_PASS
-  go_image:
-    docker:
-      - image: cimg/go:1.16
-        auth:
-          username: $DOCKERHUB_USER
-          password: $DOCKERHUB_PASS
 
 orbs:
-  secret-injector: bestsellerit/secret-injector@1.5.8
-
-jobs:
-  test:
-    executor: go_image
-    steps:
-      - checkout
-      - run:
-          name: go get
-          command: |
-            go get ./...
-      - run:
-          name: install gotestsum
-          command: go get -u gotest.tools/gotestsum
-      - run:
-          name: go test
-          command: |
-            mkdir junit
-            gotestsum --junitfile junit/unit-tests.xml
-      - store_test_results:
-          path: ~/project/junit
-      - run:
-          name: go build
-          command: |
-            GOOS=linux \
-            GOARCH=amd64 \
-            go build -ldflags="-w -s"
-  test-sonar:
-    executor: go_image
-    steps:
-      - attach_workspace:
-          at: /tmp
-      - checkout
-      - run:
-          name: Install Sonarqube scanner
-          command: |
-            wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.4.0.2170-linux.zip -P /tmp/
-            cd /tmp/
-            unzip sonar-scanner-cli-4.4.0.2170-linux.zip
-      - run:
-          name: go get
-          command: |
-            go get ./...
-      - run:
-          name: go test - sonar
-          command: |
-            go test ./... -coverprofile=coverage.out
-      - run:
-          name: Run SonarCloud Scanner
-          command: |
-            source /tmp/secrets
-            export SONAR_SCANNER_OPTS="-Xmx2048m"
-            eval /tmp/sonar-scanner-4.4.0.2170-linux/bin/sonar-scanner \
-              -Dsonar.projectKey=$K8S_CLUSTER_SONAR_KEY_GH"_"$CIRCLE_PROJECT_REPONAME \
-              -Dsonar.projectName=$CIRCLE_PROJECT_REPONAME \
-              -Dsonar.organization=$K8S_CLUSTER_SONAR_ORG_GH \
-              -Dsonar.sources=. \
-              -Dsonar.test.inclusions=**/**_test.go \
-              -Dsonar.sources.inclusions=**/**.go \
-              -Dsonar.host.url=$K8S_CLUSTER_SONAR_HOST \
-              -Dsonar.login=$K8S_CLUSTER_SONAR_LOGIN_GH \
-              -Dsonar.links.scm=$CIRCLE_REPOSITORY_URL \
-              -Dsonar.go.coverage.reportPaths=coverage.out
-
-  build-push-serverless:
-    executor: gcp_image
-    parameters:
-      should_push:
-        type: boolean
-        default: true
-      tag:
-        type: string
-        default: "1.0.0"
-    environment:
-      DOCKER_BASE: europe-docker.pkg.dev/es-standalone-cb21/es-docker
-    steps:
-      - checkout
-      - setup_remote_docker
-      - attach_workspace:
-          at: /tmp
-      - run:
-          name: install jq
-          command: |
-            apk add --no-cache jq
-      - run:
-          name: Build and maybe push image
-          command: |
-            # source /tmp/secrets
-
-            gcloud auth activate-service-account --key-file=/tmp/cluster_secret.json
-            gcloud auth configure-docker europe-docker.pkg.dev --quiet
-
-            export docker_registry_url=europe-docker.pkg.dev/es-standalone-cb21
-
-            docker build --build-arg VERSION=<< parameters.tag >> \
-              -t $DOCKER_BASE/${CIRCLE_PROJECT_REPONAME}:<< parameters.tag >> \
-              -t $DOCKER_BASE/${CIRCLE_PROJECT_REPONAME}:latest \
-              .
-
-            <<# parameters.should_push >>docker push $DOCKER_BASE/${CIRCLE_PROJECT_REPONAME} --all-tags<</ parameters.should_push >>
-            
-
-  deploy-serverless:
-    executor: gcp_image
-    steps:
-      - checkout
-      - attach_workspace:
-          at: /tmp
-      - run:
-          name: install jq
-          command: |
-            apk add --no-cache jq
-      - run:
-          name: gcloud login
-          command: |
-            gcloud components install beta --quiet
-            cat /tmp/cloudrun_admin | jq -r .private_key_data | base64 -d > cloudrun-admin.json
-            gcloud auth activate-service-account --key-file=./cloudrun-admin.json
-      - run:
-          name: creating deployment
-          command: |
-            gcloud beta run deploy $CIRCLE_PROJECT_REPONAME \
-              --image=europe-docker.pkg.dev/es-standalone-cb21/es-docker/$CIRCLE_PROJECT_REPONAME:$CIRCLE_TAG \
-              --allow-unauthenticated \
-              --min-instances=0 \
-              --max-instances=100 \
-              --port=3000 \
-              --platform=managed \
-              --region=europe-west4 \
-              --project=es-standalone-cb21 \
-              --timeout=60m \
-              --labels service=dependabot-circleci \
-              --set-env-vars VAULT_ADDR="${VAULT_ADDR}",VAULT_ROLE=${$CIRCLE_PROJECT_REPONAME},VAULT_SECRET=ES/data/${CIRCLE}/prod \
-              --service-account=dependabot-circleci@es-standalone-cb21.iam.gserviceaccount.com
-      - run:
-          name: create domain mapping
-          command: |
-            if ! gcloud beta run domain-mappings describe --domain=$CIRCLE_PROJECT_REPONAME.bestsellerit.com --platform=managed --region=europe-west4 --project=es-standalone-cb21; then
-              gcloud beta run domain-mappings create \
-                --service=$CIRCLE_PROJECT_REPONAME \
-                --domain=$CIRCLE_PROJECT_REPONAME.bestsellerit.com \
-                --platform=managed \
-                --region=europe-west4 \
-                --project=es-standalone-cb21
-            fi
-      - run:
-          name: create scheduled job
-          command: |
-            bearer=$(cat /tmp/secrets.json | jq -r .http.token )
-            gcloud beta scheduler jobs update http $CIRCLE_PROJECT_REPONAME --schedule "00 23 * * *" \
-              --http-method=POST \
-              --uri=https://$CIRCLE_PROJECT_REPONAME.bestsellerit.com/start \
-              --update-headers "Authorization"="Bearer $bearer" \
-              --time-zone="Europe/Copenhagen" \
-              --project=es-standalone-cb21
+  secret-injector: bestsellerit/secret-injector@1.7.5
+  cci-common: bestsellerit/cci-common@1.4.2
 
 workflows:
   test:
@@ -180,13 +14,13 @@ workflows:
           filters:
             tags:
               ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
-      - test:
+      - cci-common/go_test_unit:
           context:
             - shared
           filters:
             tags:
               ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
-      - test-sonar:
+      - cci-common/go_test_sonar:
           context:
             - es02-prod
             - shared
@@ -195,9 +29,8 @@ workflows:
           filters:
             tags:
               ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
-      - build-push-serverless:
-          name: build
-          should_push: false
+      - cci-common/build_n_push_docker:
+          dry_run: true
           requires:
             - secret-injector/dump-secrets
           filters:
@@ -206,36 +39,8 @@ workflows:
 
   serverless-test-build-deploy:
     jobs:
-      - secret-injector/dump-secrets:
-          context: es02-prod
-          filters:
-            tags:
-              only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
-            branches:
-              ignore: /.*/
-      - test:
-          requires:
-            - secret-injector/dump-secrets
-          filters:
-            tags:
-              only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
-            branches:
-              ignore: /.*/
-      - test-sonar:
-          requires:
-            - secret-injector/dump-secrets
-          filters:
-            tags:
-              only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
-            branches:
-              ignore: /.*/
-      - secret-injector/dump-secrets:
-          requires:
-            - test
-          name: secret-injector/cloudrun
-          vault-path: "gcp_landingzone/key/cloudrun-admin"
-          output-filename: cloudrun_admin
-          format: json
+      - secret-injector/dump-secrets-yaml:
+          secret-file: ci-secrets.yaml
           context:
             - es02-prod
             - shared
@@ -244,7 +49,7 @@ workflows:
               only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
             branches:
               ignore: /.*/
-      - build-push-serverless:
+      - cci-common/build_n_push_docker:
           tag: ${CIRCLE_TAG}
           requires:
             - secret-injector/dump-secrets
@@ -254,29 +59,33 @@ workflows:
               only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
             branches:
               ignore: /.*/
-      - secret-injector/dump-secrets:
-          name: secret-injector/project
-          vault-path: ES/data/dependabot-circleci/prod
-          format: json
-          output-filename: secrets.json
+      - cci-common/terraform_plan:
+          path: ./terraform
           context:
             - es02-prod
             - shared
           requires:
-            - build-push-serverless
+            - cci-common/build_n_push_docker
           filters:
             tags:
               only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
             branches:
               ignore: /.*/
-      - deploy-serverless:
+      - approve-plan:
+          type: approval
           requires:
-            - secret-injector/project
+            - cci-common/terraform_plan
+      - cci-common/terraform_apply:
+          path: ./terraform
           context:
             - es02-prod
             - shared
+          requires:
+            - approve-plan
           filters:
             tags:
               only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
             branches:
               ignore: /.*/
+
+
