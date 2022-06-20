@@ -10,6 +10,7 @@ type EnvConfig struct {
 	LogLevel  *int   `required:"false"`
 	DDAddress string `required:"false"`
 	Schedule  string `required:"false"`
+	WorkerURL string `required:"false"`
 }
 
 // EnvVars stores the Global Configuration.

@@ -5,12 +5,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/BESTSELLER/dependabot-circleci/config"
-	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/BESTSELLER/dependabot-circleci/config"
+	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
 
 	"cloud.google.com/go/bigquery"
 	"github.com/BESTSELLER/dependabot-circleci/datadog"
@@ -53,7 +54,7 @@ func controllerHandler(w http.ResponseWriter, r *http.Request) {
 			log.Err(err).Msg("error marshaling payload")
 			return
 		}
-		err = PostJSON("http://localhost:42420/start", payloadBytes)
+		err = PostJSON(fmt.Sprintf("%s/start", config.EnvVars.WorkerURL), payloadBytes)
 		if err != nil {
 			log.Err(err).Msgf("error triggering worker for org %s", org)
 		}
