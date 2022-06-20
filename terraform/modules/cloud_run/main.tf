@@ -14,7 +14,7 @@ resource "google_cloud_run_service" "main" {
     }
     spec {
       containers {
-        image = "europe-docker.pkg.dev/artifacts-pub-prod-b57f/es-docker/${var.labels["service"]}:${var.tag}"
+        image = "europe-docker.pkg.dev/artifacts-pub-prod-b57f/public-docker/${var.labels["service"]}:${var.tag}"
         args  = var.args
         env {
           name  = "DEPENDABOT_WORKERURL"
