@@ -26,10 +26,6 @@ module "worker" {
   source = "./modules/cloud_run"
   args   = ["-worker"]
 
-  scaling = {
-    max = "1"
-    min = "0"
-  }
   project_id = var.project_id
   location   = "europe-west4"
   labels     = var.labels
