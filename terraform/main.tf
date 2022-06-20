@@ -7,6 +7,7 @@ module "bq" {
 }
 
 module "controller" {
+  name   = "controller"
   source = "./modules/cloud_run"
   args   = ["-controller"]
   scaling = {
@@ -20,6 +21,7 @@ module "controller" {
 }
 
 module "worker" {
+  name   = "worker"
   source = "./modules/cloud_run"
   args   = ["-worker"]
   scaling = {
@@ -33,6 +35,7 @@ module "worker" {
 }
 
 module "webhook" {
+  name       = "webhook"
   source     = "./modules/cloud_run"
   args       = ["-webhook"]
   project_id = var.project_id

@@ -1,9 +1,7 @@
 resource "google_cloud_run_service" "main" {
-  name     = var.labels["service"]
+  name     = var.name
   location = var.location
   project  = var.project_id
-
-
 
   template {
     metadata {
