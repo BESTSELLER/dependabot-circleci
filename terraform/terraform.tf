@@ -19,5 +19,5 @@ terraform {
 }
 
 provider "google" {
-  credentials = file("../cloudrun-admin.json")
+  credentials = file("/tmp/cloudrun-admin.json")
 }
