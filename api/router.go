@@ -16,7 +16,7 @@ import (
 var appName = "dependabot-circleci"
 
 // SetupRouter initializes the API routes
-func SetupRouter(standaloneMode bool, webhookEnabled bool, somethingEnabled bool, controllerEnabled bool) {
+func SetupRouter(webhookEnabled bool, workerEnabled bool, controllerEnabled bool) {
 	logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
 
 	server, err := baseapp.NewServer(
@@ -40,18 +40,18 @@ func SetupRouter(standaloneMode bool, webhookEnabled bool, somethingEnabled bool
 		logger.Panic().Err(err)
 	}
 
-	if standaloneMode || webhookEnabled {
+	if webhookEnabled {
 		webhookHandler := githubapp.NewEventDispatcher([]githubapp.EventHandler{&ConfigCheckHandler{ClientCreator: cc}}, config.AppConfig.Github.App.WebhookSecret, githubapp.WithScheduler(
 			githubapp.AsyncScheduler(),
 		))
 		server.Mux().Handle(pat.Post("/"), webhookHandler)
 	}
 
-	if standaloneMode || somethingEnabled {
+	if workerEnabled {
 		server.Mux().HandleFunc(pat.Post("/start"), dependencyHandler)
 	}
 
-	if standaloneMode || controllerEnabled {
+	if controllerEnabled {
 		server.Mux().HandleFunc(pat.Post("/start_controller"), controllerHandler)
 	}
 

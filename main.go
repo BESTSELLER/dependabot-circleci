@@ -61,16 +61,11 @@ func init() {
 
 func main() {
 
-	standaloneFlag := flag.Bool("standalone", true, "Will run in standalone, which means that it will start all services.")
 	webhookFlag := flag.Bool("webhook", false, "Will start the webhook server.")
-	somethingFlag := flag.Bool("something", false, "Will start the something server.")
+	workerFlag := flag.Bool("worker", false, "Will start the worker server.")
 	controllerFlag := flag.Bool("controller", false, "Will start the controller.")
 
 	flag.Parse()
 
-	if *standaloneFlag && (*webhookFlag || *somethingFlag) {
-		log.Fatal().Msg("-standalone is not allowed with any other flags.")
-	}
-
-	api.SetupRouter(*standaloneFlag, *webhookFlag, *somethingFlag, *controllerFlag)
+	api.SetupRouter*webhookFlag, *workerFlag, *controllerFlag)
 }
