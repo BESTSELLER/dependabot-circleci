@@ -56,6 +56,7 @@ func SetupRouter(webhookEnabled bool, workerEnabled bool, controllerEnabled bool
 	}
 
 	// Start is blocking
+	logger.Info().Msgf("webhookEnabled %t, workerEnabled %t, controllerEnabled %t", webhookEnabled, workerEnabled, controllerEnabled)
 	err = server.Start()
 	if err != nil {
 		logger.Panic().Err(err)

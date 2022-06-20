@@ -7,5 +7,5 @@ RUN GOOS=linux GOARCH=amd64 go build -ldflags="-w -s -X github.com/BESTSELLER/de
 FROM alpine
 COPY --from=builder /tmp/dependabot-circleci /dependabot-circleci
 
-CMD ["/dependabot-circleci"]
+ENTRYPOINT ["/dependabot-circleci"]
 EXPOSE 3000
