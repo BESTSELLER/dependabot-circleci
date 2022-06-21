@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	cloud.google.com/go/bigquery v1.26.0
-	github.com/BESTSELLER/go-vault v0.1.2
+	github.com/BESTSELLER/go-vault v0.1.3
 	github.com/CircleCI-Public/circleci-cli v0.1.16535
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/docker/cli v20.10.16+incompatible // indirect
