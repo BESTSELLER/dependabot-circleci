@@ -250,4 +250,5 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 			datadog.IncrementCount("superseeded_updates", repoOwner)
 		}()
 	}
+	return nil
 }
