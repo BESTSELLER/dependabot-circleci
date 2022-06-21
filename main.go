@@ -40,7 +40,7 @@ func init() {
 
 		secretData, err := gcpss.FetchVaultSecret(vaultAddr, vaultSecret, vaultRole)
 		if err != nil {
-			log.Fatal().Err(err)
+			log.Fatal().Err(err).Msg("Unable to fetch secrets from vault")
 		}
 		secret = []byte(secretData)
 	} else {
