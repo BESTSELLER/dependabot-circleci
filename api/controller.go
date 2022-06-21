@@ -43,6 +43,8 @@ func controllerHandler(w http.ResponseWriter, r *http.Request) {
 	for org, repos := range orgs {
 		var triggeredRepos []string
 
+		go datadog.Gauge("enabled_repos", float64(len(repos)), []string{org})
+
 		for _, repo := range repos {
 			if shouldRun(repo.Schedule) {
 				triggeredRepos = append(triggeredRepos, repo.RepoName)
