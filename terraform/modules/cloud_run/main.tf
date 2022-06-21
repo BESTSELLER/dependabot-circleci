@@ -26,7 +26,7 @@ resource "google_cloud_run_service" "main" {
         }
         env {
           name  = "VAULT_ROLE"
-          value = "dependabot-circleci-v3"
+          value = "dependabot-circleci"
         }
         env {
           name  = "VAULT_SECRET"
