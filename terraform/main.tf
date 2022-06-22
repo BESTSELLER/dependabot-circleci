@@ -32,14 +32,15 @@ module "worker" {
 }
 
 module "webhook" {
-  name       = "webhook"
-  source     = "./modules/cloud_run"
-  worker_url = module.worker.url
-  args       = ["-webhook"]
-  project_id = var.project_id
-  location   = "europe-west4"
-  labels     = var.labels
-  tag        = var.tag
+  name                  = "webhook"
+  source                = "./modules/cloud_run"
+  worker_url            = module.worker.url
+  args                  = ["-webhook"]
+  project_id            = var.project_id
+  location              = "europe-west4"
+  labels                = var.labels
+  tag                   = var.tag
+  allow_unauthenticated = true
 }
 
 

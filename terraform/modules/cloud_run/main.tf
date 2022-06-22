@@ -47,3 +47,12 @@ resource "google_cloud_run_service" "main" {
     latest_revision = true
   }
 }
+
+resource "google_cloud_run_service_iam_member" "allow_unauthenticated" {
+  count    = var.allow_unauthenticated ? 1 : 0
+  location = google_cloud_run_service.main.location
+  project  = google_cloud_run_service.main.project
+  service  = google_cloud_run_service.main.name
+  role     = "roles/run.invoker"
+  member   = "allUsers"
+}

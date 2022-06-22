@@ -33,3 +33,8 @@ variable "worker_url" {
   type    = string
   default = ""
 }
+
+variable "allow_unauthenticated" {
+  type    = bool
+  default = false
+}
