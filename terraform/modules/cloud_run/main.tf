@@ -30,7 +30,7 @@ resource "google_cloud_run_service" "main" {
         }
         env {
           name  = "VAULT_SECRET"
-          value = "ES/data/${var.labels["service"]}/prod"
+          value = "ES/data/${var.labels["service"]}/v2"
         }
         ports {
           name           = "http1"

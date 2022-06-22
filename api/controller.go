@@ -32,7 +32,7 @@ type WorkerPayload struct {
 func controllerHandler(w http.ResponseWriter, r *http.Request) {
 	orgs, err := pullRepos()
 	if err != nil {
-		log.Err(err).Msgf("pull repos from big query failed: %s", err)
+		log.Error().Err(err).Msgf("pull repos from big query failed: %s", err)
 		http.Error(w, "", http.StatusInternalServerError)
 	}
 
@@ -53,12 +53,12 @@ func controllerHandler(w http.ResponseWriter, r *http.Request) {
 		payloadObj := WorkerPayload{Org: org, Repos: triggeredRepos}
 		payloadBytes, err := json.Marshal(payloadObj)
 		if err != nil {
-			log.Err(err).Msg("error marshaling payload")
+			log.Error().Err(err).Msg("error marshaling payload")
 			return
 		}
 		err = PostJSON(fmt.Sprintf("%s/start", config.EnvVars.WorkerURL), payloadBytes)
 		if err != nil {
-			log.Err(err).Msgf("error triggering worker for org %s", org)
+			log.Error().Err(err).Msgf("error triggering worker for org %s", org)
 		}
 		// call webhook - trigger cci on org
 		//start another container i guess
@@ -137,7 +137,7 @@ func pullRepos() (repos map[string][]bqdata, err error) {
 			break
 		}
 		if err != nil {
-			log.Err(err).Msgf("BQ fuckup: %s", err)
+			log.Error().Err(err).Msgf("BQ fuckup: %s", err)
 			return nil, err
 		}
 
