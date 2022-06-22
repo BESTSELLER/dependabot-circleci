@@ -23,12 +23,8 @@ type GithubInfo struct {
 
 var Githubinfo GithubInfo
 
-func update_bigquery() {
+func update_bigquery() error {
 	ctx := context.Background()
-
-	if Githubinfo.RepoName != "tester" {
-		return
-	}
 
 	// Sets your Google Cloud Platform project ID.
 	projectID := "dependabot-pub-prod-586e"
@@ -36,14 +32,17 @@ func update_bigquery() {
 	// Creates a client.
 	client, err := bigquery.NewClient(ctx, projectID)
 	if err != nil {
-		log.Fatal().Err(err).Msgf("bigquery.NewClient: %v", err)
+		log.Error().Err(err).Msgf("bigquery.NewClient: %v", err)
+		return err
 	}
 	defer client.Close()
 	ins := client.Dataset("dependabot_circleci").Table("repos").Inserter()
 	if err := ins.Put(ctx, Githubinfo); err != nil {
-		log.Err(err).Msgf("Inserting into bigquery table, had the following error: %s", err)
+		log.Error().Err(err).Msgf("Inserting into bigquery table, had the following error: %s", err)
+		return err
 	}
 	log.Debug().Msg("All done bigquery table updated")
+	return nil
 }
 
 // ConfigCheckHandler handles all comments on issues
@@ -74,12 +73,14 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 	// create client
 	client, err := gh.GetSingleOrganizationClient(h.ClientCreator, Githubinfo.Org)
 	if err != nil {
+		log.Error().Err(err).Msgf("Inserting into bigquery table, had the following error: %s", err)
 		return err
 	}
 
 	// get content
 	content, _, err := gh.GetRepoContent(ctx, client, Githubinfo.Owner, Githubinfo.RepoName, ".github/dependabot-circleci.yml", commitSHA)
 	if err != nil {
+		log.Debug().Err(err).Msg("could not read content of repository")
 		return nil // we dont care
 	}
 
@@ -90,6 +91,10 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 		HeadSHA: commitSHA,
 		Status:  github.String("in_progress"),
 	})
+	if err != nil {
+		log.Error().Err(err).Msg("Error creating Github check")
+		return err
+	}
 
 	// unmarshal
 	var config config.RepoConfig
@@ -106,6 +111,7 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 				Text:    github.String("Please refer to the [documentation](https://github.com/BESTSELLER/dependabot-circleci#getting-started) to setup a correct config file"),
 			}})
 		if err != nil {
+			log.Error().Err(err).Msg("Error updating Github check with failed status")
 			return err
 		}
 
@@ -122,8 +128,8 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 			Summary: github.String("Congratulations, the configuration is valid"),
 		}})
 	if err != nil {
+		log.Error().Err(err).Msg("Error updating Github check with success status")
 		return err
 	}
-	update_bigquery()
-	return nil
+	return update_bigquery()
 }
