@@ -16,14 +16,14 @@ import (
 )
 
 type GithubInfo struct {
-	Repo  string
-	Owner string
-	Org   string
+	RepoName string
+	Owner    string
+	Org      string
 }
 
 var Githubinfo GithubInfo
 
-func update_bigquery() error {
+func update_bigquery(data bqdata) error {
 	ctx := context.Background()
 
 	// Sets your Google Cloud Platform project ID.
@@ -37,7 +37,7 @@ func update_bigquery() error {
 	}
 	defer client.Close()
 	ins := client.Dataset("dependabot_circleci").Table("repos").Inserter()
-	if err := ins.Put(ctx, Githubinfo); err != nil {
+	if err := ins.Put(ctx, data); err != nil {
 		log.Error().Err(err).Msgf("Inserting into bigquery table, had the following error: %s", err)
 		return err
 	}
@@ -63,7 +63,7 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 	}
 	repo := event.GetRepo()
 	commitSHA := event.GetAfter()
-	Githubinfo.Repo = repo.GetName()
+	Githubinfo.RepoName = repo.GetName()
 	Githubinfo.Owner = repo.GetOwner().GetLogin()
 	Githubinfo.Org = repo.GetOrganization()
 	if Githubinfo.Org == "" {
@@ -78,7 +78,7 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 	}
 
 	// get content
-	content, _, err := gh.GetRepoContent(ctx, client, Githubinfo.Owner, Githubinfo.Repo, ".github/dependabot-circleci.yml", commitSHA)
+	content, _, err := gh.GetRepoContent(ctx, client, Githubinfo.Owner, Githubinfo.RepoName, ".github/dependabot-circleci.yml", commitSHA)
 	if err != nil {
 		log.Debug().Err(err).Msg("could not read content of repository")
 		return nil // we dont care
@@ -86,7 +86,7 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 
 	checkName := "Check config"
 
-	check, _, err := client.Checks.CreateCheckRun(ctx, Githubinfo.Owner, Githubinfo.Repo, github.CreateCheckRunOptions{
+	check, _, err := client.Checks.CreateCheckRun(ctx, Githubinfo.Owner, Githubinfo.RepoName, github.CreateCheckRunOptions{
 		Name:    checkName,
 		HeadSHA: commitSHA,
 		Status:  github.String("in_progress"),
@@ -100,7 +100,7 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 	var config config.RepoConfig
 	err = yaml.UnmarshalStrict(content, &config)
 	if err != nil {
-		_, _, err := client.Checks.UpdateCheckRun(ctx, Githubinfo.Owner, Githubinfo.Repo, check.GetID(), github.UpdateCheckRunOptions{
+		_, _, err := client.Checks.UpdateCheckRun(ctx, Githubinfo.Owner, Githubinfo.RepoName, check.GetID(), github.UpdateCheckRunOptions{
 			Name:        checkName,
 			Status:      github.String("completed"),
 			Conclusion:  github.String("failure"),
@@ -118,7 +118,7 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 		return nil
 	}
 
-	_, _, err = client.Checks.UpdateCheckRun(ctx, Githubinfo.Owner, Githubinfo.Repo, check.GetID(), github.UpdateCheckRunOptions{
+	_, _, err = client.Checks.UpdateCheckRun(ctx, Githubinfo.Owner, Githubinfo.RepoName, check.GetID(), github.UpdateCheckRunOptions{
 		Name:        checkName,
 		Status:      github.String("completed"),
 		Conclusion:  github.String("success"),
@@ -131,5 +131,10 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 		log.Error().Err(err).Msg("Error updating Github check with success status")
 		return err
 	}
-	return update_bigquery()
+
+	return update_bigquery(bqdata{
+		Repo:     Githubinfo.RepoName,
+		Owner:    Githubinfo.Owner,
+		Schedule: config.Schedule,
+	})
 }

@@ -20,7 +20,7 @@ import (
 )
 
 type bqdata struct {
-	RepoName string
+	Repo     string
 	Owner    string
 	Schedule string
 }
@@ -47,7 +47,7 @@ func controllerHandler(w http.ResponseWriter, r *http.Request) {
 
 		for _, repo := range repos {
 			if shouldRun(repo.Schedule) {
-				triggeredRepos = append(triggeredRepos, repo.RepoName)
+				triggeredRepos = append(triggeredRepos, repo.Repo)
 			}
 		}
 		payloadObj := WorkerPayload{Org: org, Repos: triggeredRepos}
