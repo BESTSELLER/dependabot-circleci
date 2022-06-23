@@ -2,7 +2,7 @@ version: 2.1
 
 orbs:
   secret-injector: bestsellerit/secret-injector@1.7.5
-  cci-common: bestsellerit/cci-common@1.4.2
+  cci-common: bestsellerit/cci-common@1.4.3
 
 workflows:
   test:
