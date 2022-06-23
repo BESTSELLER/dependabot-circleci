@@ -7,6 +7,7 @@ resource "random_password" "password" {
 }
 
 resource "google_sql_database_instance" "main" {
+  project          = var.project_id
   name             = "dependabot_circleci-${random_id.db_name_suffix.hex}"
   database_version = "POSTGRES_14"
   region           = "europe-west4"
