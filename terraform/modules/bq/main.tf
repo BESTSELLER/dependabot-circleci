@@ -38,13 +38,11 @@ EOF
 
 }
 
-data "google_compute_default_service_account" "default" {
-  project = var.project_id
-}
+
 
 resource "google_bigquery_dataset_iam_member" "editor" {
   project    = var.project_id
   dataset_id = google_bigquery_dataset.default.dataset_id
   role       = "roles/bigquery.dataEditor"
-  member     = "serviceAccount:${data.google_compute_default_service_account.default.email}"
+  member     = "serviceAccount:dependabot-circleci-v3@dependabot-pub-prod-586e.iam.gserviceaccount.com"
 }
