@@ -22,39 +22,60 @@ func init() {
 		log.Fatal().Err(err).Msg("failed to read env config")
 	}
 
-	var secret []byte
+	var appsecret []byte
+	var dbsecret []byte
 
 	if config.EnvVars.Config == "" {
 		vaultAddr := os.Getenv("VAULT_ADDR")
 		if vaultAddr == "" {
 			log.Fatal().Msg("VAULT_ADDR must be set")
 		}
-		vaultSecret := os.Getenv("VAULT_SECRET")
-		if vaultSecret == "" {
-			log.Fatal().Msg("VAULT_SECRET must be set")
-		}
 		vaultRole := os.Getenv("VAULT_ROLE")
 		if vaultRole == "" {
 			log.Fatal().Msg("VAULT_ROLE must be set")
 		}
 
-		secretData, err := gcpss.FetchVaultSecret(vaultAddr, vaultSecret, vaultRole)
+		appSecret := os.Getenv("APP_SECRET")
+		if appSecret == "" {
+			log.Fatal().Msg("APP_SECRET must be set")
+		}
+
+		dbSecret := os.Getenv("DB_SECRET")
+		if dbSecret == "" {
+			log.Fatal().Msg("DB_SECRET must be set")
+		}
+
+		// fetch app secrets
+		secretData, err := gcpss.FetchVaultSecret(vaultAddr, appSecret, vaultRole)
 		if err != nil {
 			log.Fatal().Err(err).Msgf("Unable to fetch secrets from vault. error %v", err)
 		}
-		secret = []byte(secretData)
+		appsecret = []byte(secretData)
+
+		// fectch db secrets
+		secretData, err = gcpss.FetchVaultSecret(vaultAddr, dbSecret, vaultRole)
+		if err != nil {
+			log.Fatal().Err(err).Msgf("Unable to fetch secrets from vault. error %v", err)
+		}
+		dbsecret = []byte(secretData)
+
 	} else {
 		bytes, err := ioutil.ReadFile(config.EnvVars.Config)
 		if err != nil {
 			log.Fatal().Err(err).Msgf("Unable to read file %s", config.EnvVars.Config)
 		}
 
-		secret = bytes
+		appsecret = bytes
 	}
 
-	err = config.ReadConfig([]byte(secret))
+	err = config.ReadAppConfig([]byte(appsecret))
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to read github app config:")
+	}
+
+	err = config.ReadDBConfig([]byte(dbsecret))
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to read github db config:")
 	}
 
 }

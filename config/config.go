@@ -25,6 +25,14 @@ type Config struct {
 	Server  baseapp.HTTPConfig `yaml:"server"`
 }
 
+// DBConfig contains global db config
+type DBConfigSpec struct {
+	ConnectionName string `yaml:"connection_name"`
+	DBName         string `yaml:"db_name"`
+	Password       string `yaml:"password"`
+	Username       string `yaml:"username"`
+}
+
 // RepoConfig contains specific config for each repos
 type RepoConfig struct {
 	TargetBranch string   `yaml:"target-branch,omitempty"`
@@ -38,11 +46,23 @@ type RepoConfig struct {
 // AppConfig contains global app config
 var AppConfig Config
 
+// DBConfig contains global db app config
+var DBConfig DBConfigSpec
+
 var Version = "1.0.0"
 
-// ReadConfig reads a yaml config file
-func ReadConfig(secrets []byte) error {
+// ReadAppConfig reads a yaml config file
+func ReadAppConfig(secrets []byte) error {
 	if err := yaml.UnmarshalStrict(secrets, &AppConfig); err != nil {
+		return errors.Wrap(err, "failed parsing configuration file")
+	}
+
+	return nil
+}
+
+// ReadDBConfig reads a yaml config file
+func ReadDBConfig(secrets []byte) error {
+	if err := yaml.UnmarshalStrict(secrets, &DBConfig); err != nil {
 		return errors.Wrap(err, "failed parsing configuration file")
 	}
 
