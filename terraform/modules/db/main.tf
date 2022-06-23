@@ -15,7 +15,7 @@ resource "google_sql_database_instance" "main" {
     tier              = "db-custom-1-3840"
     availability_type = "REGIONAL"
     backup_configuration {
-      enabled = local.env == "prod" ? true : false
+      enabled = true
     }
     insights_config {
       query_insights_enabled = true
