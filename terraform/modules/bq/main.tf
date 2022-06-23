@@ -43,7 +43,8 @@ data "google_compute_default_service_account" "default" {
 }
 
 resource "google_bigquery_dataset_iam_member" "editor" {
+  project    = var.project_id
   dataset_id = google_bigquery_dataset.default.dataset_id
   role       = "roles/bigquery.dataEditor"
-  member     = "serviceAccount:${data.google_compute_default_service_account.default.email}"
+  members    = ["serviceAccount:${data.google_compute_default_service_account.default.email}"]
 }
