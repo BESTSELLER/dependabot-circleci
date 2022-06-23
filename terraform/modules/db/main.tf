@@ -40,7 +40,10 @@ resource "vault_generic_secret" "sql_password" {
 
   data_json = <<EOT
 {
-  "password": "${random_password.password.result}"
+  "connection_name": "${google_sql_database_instance.main.connection_name}",
+  "db_name": "dependabot_circleci-${random_id.db_name_suffix.hex}",
+  "password": "${random_password.password.result}",
+  "username": "dependabot_circleci"
 }
 EOT
 }
