@@ -38,3 +38,8 @@ variable "allow_unauthenticated" {
   type    = bool
   default = false
 }
+
+variable "db_instance" {
+  type    = string
+  default = ""
+}

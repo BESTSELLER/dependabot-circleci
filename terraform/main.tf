@@ -1,7 +1,6 @@
-module "bq" {
-  source     = "./modules/bq"
+module "db" {
+  source     = "./modules/db"
   project_id = var.project_id
-  location   = "EU"
   labels     = var.labels
 }
 
@@ -14,10 +13,11 @@ module "controller" {
     max = "1"
     min = "0"
   }
-  project_id = var.project_id
-  location   = "europe-west4"
-  labels     = var.labels
-  tag        = var.tag
+  project_id  = var.project_id
+  location    = "europe-west4"
+  labels      = var.labels
+  tag         = var.tag
+  db_instance = module.db.db_instance
 }
 
 module "worker" {
@@ -25,10 +25,11 @@ module "worker" {
   source = "./modules/cloud_run"
   args   = ["-worker"]
 
-  project_id = var.project_id
-  location   = "europe-west4"
-  labels     = var.labels
-  tag        = var.tag
+  project_id  = var.project_id
+  location    = "europe-west4"
+  labels      = var.labels
+  tag         = var.tag
+  db_instance = module.db.db_instance
 }
 
 module "webhook" {
@@ -41,6 +42,7 @@ module "webhook" {
   labels                = var.labels
   tag                   = var.tag
   allow_unauthenticated = true
+  db_instance           = module.db.db_instance
 }
 
 

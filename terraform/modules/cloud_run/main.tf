@@ -7,8 +7,9 @@ resource "google_cloud_run_service" "main" {
     metadata {
       labels = var.labels
       annotations = {
-        "autoscaling.knative.dev/maxScale" = var.scaling["max"]
-        "autoscaling.knative.dev/minScale" = var.scaling["min"]
+        "autoscaling.knative.dev/maxScale"      = var.scaling["max"]
+        "autoscaling.knative.dev/minScale"      = var.scaling["min"]
+        "run.googleapis.com/cloudsql-instances" = var.db_instance
 
       }
     }

@@ -46,3 +46,25 @@ resource "google_bigquery_dataset_iam_member" "editor" {
   role       = "roles/bigquery.dataEditor"
   member     = "serviceAccount:dependabot-circleci-v3@dependabot-pub-prod-586e.iam.gserviceaccount.com"
 }
+
+
+resource "google_sql_database_instance" "main" {
+  name             = "dependabot_circleci"
+  database_version = "POSTGRES_14"
+  region           = "europe-west4"
+
+  settings {
+    tier = "db-f1-micro"
+    availability_type = "REGIONAL"
+    backup_configuration {
+      enabled            = local.env == "prod" ? true : false
+  }
+    insights_config {
+      query_insights_enabled = true
+    }
+}
+
+resource "google_sql_database" "database" {
+  name     = "repos"
+  instance = google_sql_database_instance.main.name 
+}
