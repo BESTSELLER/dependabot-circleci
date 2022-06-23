@@ -8,7 +8,7 @@ resource "random_password" "password" {
 
 resource "google_sql_database_instance" "main" {
   project          = var.project_id
-  name             = "dependabot_circleci-${random_id.db_name_suffix.hex}"
+  name             = "dependabot-circleci-${random_id.db_name_suffix.hex}"
   database_version = "POSTGRES_14"
   region           = "europe-west4"
 
@@ -31,7 +31,7 @@ resource "google_sql_database" "database" {
 }
 
 resource "google_sql_user" "users" {
-  name     = "dependabot_circleci"
+  name     = "dependabot-circleci"
   instance = google_sql_database_instance.main.name
   password = random_password.password.result
 }
@@ -42,9 +42,9 @@ resource "vault_generic_secret" "db" {
   data_json = <<EOT
 {
   "connection_name": "${google_sql_database_instance.main.connection_name}",
-  "db_name": "dependabot_circleci-${random_id.db_name_suffix.hex}",
+  "db_name": "dependabot-circleci-${random_id.db_name_suffix.hex}",
   "password": "${random_password.password.result}",
-  "username": "dependabot_circleci"
+  "username": "dependabot-circleci"
 }
 EOT
 }
