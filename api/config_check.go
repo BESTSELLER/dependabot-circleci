@@ -29,6 +29,11 @@ func update_bigquery(data bqdata) error {
 	// Sets your Google Cloud Platform project ID.
 	projectID := "dependabot-pub-prod-586e"
 
+	// set default schedule
+	if data.Schedule == "" {
+		data.Schedule = "daily"
+	}
+
 	// Creates a client.
 	client, err := bigquery.NewClient(ctx, projectID)
 	if err != nil {
@@ -118,6 +123,26 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 		return nil
 	}
 
+	// check config
+	err = config.IsValid()
+	if err != nil {
+		_, _, err := client.Checks.UpdateCheckRun(ctx, Githubinfo.Owner, Githubinfo.RepoName, check.GetID(), github.UpdateCheckRunOptions{
+			Name:        checkName,
+			Status:      github.String("completed"),
+			Conclusion:  github.String("failure"),
+			CompletedAt: &github.Timestamp{Time: time.Now()},
+			Output: &github.CheckRunOutput{
+				Title:   github.String("Failure"),
+				Summary: github.String("The configuration is invalid: " + err.Error()),
+				Text:    github.String("Please refer to the [documentation](https://github.com/BESTSELLER/dependabot-circleci#getting-started) to setup a correct config file"),
+			}})
+		if err != nil {
+			log.Error().Err(err).Msg("Error updating Github check with failed status")
+			return err
+		}
+	}
+
+	// update github check with success state
 	_, _, err = client.Checks.UpdateCheckRun(ctx, Githubinfo.Owner, Githubinfo.RepoName, check.GetID(), github.UpdateCheckRunOptions{
 		Name:        checkName,
 		Status:      github.String("completed"),

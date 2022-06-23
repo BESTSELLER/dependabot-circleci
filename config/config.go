@@ -1,6 +1,8 @@
 package config
 
 import (
+	"strings"
+
 	"github.com/palantir/go-baseapp/baseapp"
 	"github.com/palantir/go-githubapp/githubapp"
 	"github.com/pkg/errors"
@@ -57,4 +59,22 @@ func ReadRepoConfig(content []byte) (*RepoConfig, error) {
 	}
 
 	return &repoConfig, nil
+}
+
+// IsValid checks if Repoconfig is valid
+func (r RepoConfig) IsValid() error {
+	var errMsg []string
+
+	// check schedule
+	switch strings.ToLower(r.Schedule) {
+	case "daily", "weekly", "monthly", "":
+
+	default:
+		errMsg = append(errMsg, "invalid schedule")
+	}
+
+	if len(errMsg) != 0 {
+		return errors.Errorf(strings.Join(errMsg, ", "))
+	}
+	return nil
 }
