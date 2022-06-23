@@ -26,11 +26,13 @@ resource "google_sql_database_instance" "main" {
 }
 
 resource "google_sql_database" "database" {
+  project  = var.project_id
   name     = "repos"
   instance = google_sql_database_instance.main.name
 }
 
 resource "google_sql_user" "users" {
+  project  = var.project_id
   name     = "dependabot-circleci"
   instance = google_sql_database_instance.main.name
   password = random_password.password.result
