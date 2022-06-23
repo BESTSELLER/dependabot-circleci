@@ -35,7 +35,7 @@ resource "google_sql_user" "users" {
   password = random_password.password.result
 }
 
-resource "vault_generic_secret" "sql_password" {
+resource "vault_generic_secret" "db" {
   path = "ES/dependabot-circleci/db"
 
   data_json = <<EOT
