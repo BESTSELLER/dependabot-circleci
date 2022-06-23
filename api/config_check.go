@@ -16,9 +16,9 @@ import (
 )
 
 type GithubInfo struct {
-	RepoName string
-	Owner    string
-	Org      string
+	Repo  string
+	Owner string
+	Org   string
 }
 
 var Githubinfo GithubInfo
@@ -63,7 +63,7 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 	}
 	repo := event.GetRepo()
 	commitSHA := event.GetAfter()
-	Githubinfo.RepoName = repo.GetName()
+	Githubinfo.Repo = repo.GetName()
 	Githubinfo.Owner = repo.GetOwner().GetLogin()
 	Githubinfo.Org = repo.GetOrganization()
 	if Githubinfo.Org == "" {
@@ -78,7 +78,7 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 	}
 
 	// get content
-	content, _, err := gh.GetRepoContent(ctx, client, Githubinfo.Owner, Githubinfo.RepoName, ".github/dependabot-circleci.yml", commitSHA)
+	content, _, err := gh.GetRepoContent(ctx, client, Githubinfo.Owner, Githubinfo.Repo, ".github/dependabot-circleci.yml", commitSHA)
 	if err != nil {
 		log.Debug().Err(err).Msg("could not read content of repository")
 		return nil // we dont care
@@ -86,7 +86,7 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 
 	checkName := "Check config"
 
-	check, _, err := client.Checks.CreateCheckRun(ctx, Githubinfo.Owner, Githubinfo.RepoName, github.CreateCheckRunOptions{
+	check, _, err := client.Checks.CreateCheckRun(ctx, Githubinfo.Owner, Githubinfo.Repo, github.CreateCheckRunOptions{
 		Name:    checkName,
 		HeadSHA: commitSHA,
 		Status:  github.String("in_progress"),
@@ -100,7 +100,7 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 	var config config.RepoConfig
 	err = yaml.UnmarshalStrict(content, &config)
 	if err != nil {
-		_, _, err := client.Checks.UpdateCheckRun(ctx, Githubinfo.Owner, Githubinfo.RepoName, check.GetID(), github.UpdateCheckRunOptions{
+		_, _, err := client.Checks.UpdateCheckRun(ctx, Githubinfo.Owner, Githubinfo.Repo, check.GetID(), github.UpdateCheckRunOptions{
 			Name:        checkName,
 			Status:      github.String("completed"),
 			Conclusion:  github.String("failure"),
@@ -118,7 +118,7 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 		return nil
 	}
 
-	_, _, err = client.Checks.UpdateCheckRun(ctx, Githubinfo.Owner, Githubinfo.RepoName, check.GetID(), github.UpdateCheckRunOptions{
+	_, _, err = client.Checks.UpdateCheckRun(ctx, Githubinfo.Owner, Githubinfo.Repo, check.GetID(), github.UpdateCheckRunOptions{
 		Name:        checkName,
 		Status:      github.String("completed"),
 		Conclusion:  github.String("success"),
