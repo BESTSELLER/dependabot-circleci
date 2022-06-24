@@ -11,19 +11,13 @@ import (
 	"time"
 
 	"github.com/BESTSELLER/dependabot-circleci/config"
+	"github.com/BESTSELLER/dependabot-circleci/db"
 	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
 
-	"cloud.google.com/go/bigquery"
 	"github.com/BESTSELLER/dependabot-circleci/datadog"
 	"github.com/rs/zerolog/log"
-	"google.golang.org/api/iterator"
 )
 
-type bqdata struct {
-	Repo     string
-	Owner    string
-	Schedule string
-}
 type WorkerPayload struct {
 	Org   string
 	Repos []string
@@ -112,36 +106,18 @@ func PostJSON(url string, payload []byte) error {
 	return nil
 }
 
-func pullRepos() (repos map[string][]bqdata, err error) {
+func pullRepos() (repos map[string][]db.RepoData, err error) {
 	ctx := context.Background()
-	repos = make(map[string][]bqdata)
+	repos = make(map[string][]db.RepoData)
 
-	// Sets your Google Cloud Platform project ID.
-	projectID := "dependabot-pub-prod-586e"
-
-	// Creates a client.
-	client, err := bigquery.NewClient(ctx, projectID)
+	repoList, err := db.GetRepos(ctx)
 	if err != nil {
-		log.Fatal().Err(err).Msgf("bigquery.NewClient: %v", err)
+		return nil, err
 	}
-	defer client.Close()
 
-	// pull everything, because we dare!
-	q := client.Query("SELECT * FROM `dependabot_circleci.repos` ")
-
-	it, err := q.Read(ctx)
-	for {
-		var row bqdata
-		err := it.Next(&row)
-		if err == iterator.Done {
-			break
-		}
-		if err != nil {
-			log.Error().Err(err).Msgf("BQ fuckup: %s", err)
-			return nil, err
-		}
-
-		repos[row.Owner] = append(repos[row.Owner], row)
+	for _, repo := range repoList {
+		repos[repo.Owner] = append(repos[repo.Owner], repo)
 	}
+
 	return repos, err
 }

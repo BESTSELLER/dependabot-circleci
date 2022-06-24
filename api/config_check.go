@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"time"
 
-	"cloud.google.com/go/bigquery"
 	"github.com/BESTSELLER/dependabot-circleci/config"
+	"github.com/BESTSELLER/dependabot-circleci/db"
 	"github.com/BESTSELLER/dependabot-circleci/gh"
 	"github.com/google/go-github/v43/github"
 	"github.com/palantir/go-githubapp/githubapp"
@@ -22,33 +22,6 @@ type GithubInfo struct {
 }
 
 var Githubinfo GithubInfo
-
-func update_bigquery(data bqdata) error {
-	ctx := context.Background()
-
-	// Sets your Google Cloud Platform project ID.
-	projectID := "dependabot-pub-prod-586e"
-
-	// set default schedule
-	if data.Schedule == "" {
-		data.Schedule = "daily"
-	}
-
-	// Creates a client.
-	client, err := bigquery.NewClient(ctx, projectID)
-	if err != nil {
-		log.Error().Err(err).Msgf("bigquery.NewClient: %v", err)
-		return err
-	}
-	defer client.Close()
-	ins := client.Dataset("dependabot_circleci").Table("repos").Inserter()
-	if err := ins.Put(ctx, data); err != nil {
-		log.Error().Err(err).Msgf("Inserting into bigquery table, had the following error: %s", err)
-		return err
-	}
-	log.Debug().Msg("All done bigquery table updated")
-	return nil
-}
 
 // ConfigCheckHandler handles all comments on issues
 type ConfigCheckHandler struct {
@@ -157,9 +130,10 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 		return err
 	}
 
-	return update_bigquery(bqdata{
+	return db.UpdateRepo(db.RepoData{
+		ID:       repo.GetID(),
 		Repo:     Githubinfo.RepoName,
 		Owner:    Githubinfo.Owner,
 		Schedule: config.Schedule,
-	})
+	}, ctx)
 }
