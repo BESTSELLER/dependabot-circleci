@@ -104,7 +104,7 @@ workflows:
             - run:
                 command: |
                   cat /tmp/cloudrun_admin | jq -r .private_key_data | base64 -d > /tmp/cloudrun-admin.json
-              - persist_to_workspace:
+            - persist_to_workspace:
                 root: /tmp
                 paths:
                   - /tmp/cloudrun-admin.json
