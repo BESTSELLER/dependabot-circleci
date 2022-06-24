@@ -3,6 +3,7 @@ version: 2.1
 orbs:
   secret-injector: bestsellerit/secret-injector@1.7.5
   cci-common: bestsellerit/cci-common@1.4.3
+  google-sql-operations: bestsellerit/google-sql-operations@1.5.0
 
 workflows:
   test:
@@ -121,5 +122,26 @@ workflows:
             - run:
                 command: |
                   cat /tmp/cloudrun_admin | jq -r .private_key_data | base64 -d > /tmp/cloudrun-admin.json
-
-
+      - google-sql-operations/init-db:
+          instance: $instance
+          db-name: $db_name
+          username: $username
+          password: $password
+          gcloud-service-account: /tmp/cloudrun-admin.json
+          post-script:
+          context:
+            - es02-prod
+            - shared
+          requires:
+            - cci-common/terraform_apply
+          filters:
+            tags:
+              only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
+            branches:
+              ignore: /.*/
+          pre-steps:
+            - attach_workspace:
+                at: /tmp
+            - run:
+                command: |
+                  cat /tmp/cloudrun_admin | jq -r .private_key_data | base64 -d > /tmp/cloudrun-admin.json
