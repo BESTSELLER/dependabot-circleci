@@ -107,7 +107,7 @@ workflows:
             - persist_to_workspace:
                 root: /tmp
                 paths:
-                  - /tmp/cloudrun-admin.json
+                  - cloudrun-admin.json
       - cci-common/terraform_apply:
           path: ./terraform
           context:
