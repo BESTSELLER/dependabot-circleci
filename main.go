@@ -75,7 +75,7 @@ func init() {
 
 	err = config.ReadDBConfig([]byte(dbsecret))
 	if err != nil {
-		log.Fatal().Err(err).Msg("failed to read github db config:")
+		log.Fatal().Err(err).Msg("failed to read db config:")
 	}
 
 }

@@ -29,6 +29,7 @@ type Config struct {
 type DBConfigSpec struct {
 	ConnectionName string `yaml:"connection_name"`
 	DBName         string `yaml:"db_name"`
+	Instance       string `yaml:"instance"`
 	Password       string `yaml:"password"`
 	Username       string `yaml:"username"`
 }
