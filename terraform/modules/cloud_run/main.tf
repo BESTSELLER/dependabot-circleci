@@ -30,8 +30,12 @@ resource "google_cloud_run_service" "main" {
           value = "dependabot-circleci-v3"
         }
         env {
-          name  = "VAULT_SECRET"
+          name  = "APP_SECRET"
           value = "ES/data/${var.labels["service"]}/v2"
+        }
+        env {
+          name  = "DB_SECRET"
+          value = "ES/data/${var.labels["service"]}/db"
         }
         ports {
           name           = "http1"

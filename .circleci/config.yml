@@ -129,6 +129,7 @@ workflows:
           password: $password
           gcloud-service-account: /tmp/cloudrun-admin.json
           post-script: ./init.sql
+          project: dependabot-pub-prod-586e
           context:
             - es02-prod
             - shared
