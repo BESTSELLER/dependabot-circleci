@@ -88,20 +88,13 @@ jobs:
       - cloud_sql_proxy_login:
           instance: "<< parameters.instance >>"
           credential-file: "<< parameters.credential-file >>"
-          project: "<< paramteres.project >>"
+          project: "<< parameters.project >>"
       - install_psql
       - init-db:
           user: "<< parameters.user >>"
           pass: "<< parameters.pass >>"
           database: "<< parameters.database >>"
           init-file: "<< parameters.init-file >>"
-      
-
-
-    
-            
-
-
 
 workflows:
   test:
