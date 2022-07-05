@@ -86,6 +86,10 @@ jobs:
       - attach_workspace:
           at: /tmp
       - run:
+          name: install jq
+          command: |
+            apk add --no-cache jq
+      - run:
           name: gcloud login
           command: |
             gcloud components install beta --quiet
