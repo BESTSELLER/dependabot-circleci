@@ -5,55 +5,6 @@ orbs:
   cci-common: bestsellerit/cci-common@1.4.3
   google-sql-operations: bestsellerit/google-sql-operations@1.5.1
 
-commands:
-  cloud_sql_proxy_login:
-    description: |
-      Install Cloud SQL Proxy and open connection
-    parameters:
-      instance:
-        description: The Cloud SQL instance to connect to
-        type: string
-      credential-file:
-        description: Location of credential-file
-        type: string
-      project:
-        description: Project name
-        type: string
-    steps:
-      - run: |
-          source /tmp/secrets
-          wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O /usr/bin/./cloud_sql_proxy
-          chmod +x /usr/bin/./cloud_sql_proxy
-          HOST=$(gcloud sql instances describe "<< parameters.instance >>" --format="value(connectionName)" --project="<< parameters.project >>")
-          cloud_sql_proxy -instances="$HOST"=tcp:5432 -credential_file="<< parameters.credential-file >>"
-  install_psql:
-    description: |
-      Install psql client
-    steps:
-      - run: |
-          apk update
-          apk --update add postgresql-client
-  init-db:
-    description: |
-      Initialize db using psql
-    parameters:
-      user:
-        description: User name
-        type: string
-      pass:
-        description: Password for user
-        type: string
-      database:
-        description: Name of DB
-        type: string
-      init-file:
-        description: File to use for initialising table
-        type: string
-    steps:
-      - run: |
-          export PGPASSWORD="<< parameters.pass >>"
-          psql "host=127.0.0.1 sslmode=disable dbname="<< parameters.database >>" user="<< parameters.user >>" -f "<< parameters.init-file >>""
-
 jobs:
   init-db:
     description: |
@@ -69,13 +20,13 @@ jobs:
       project:
         description: Project name
         type: string
-      user:
+      username:
         description: User name
         type: string
-      pass:
+      password:
         description: Password for user
         type: string
-      database:
+      db_name:
         description: Name of DB
         type: string
       init-file:
@@ -92,19 +43,26 @@ jobs:
       - run:
           name: gcloud login
           command: |
-            gcloud components install beta --quiet
             cat /tmp/cloudrun_admin | jq -r .private_key_data | base64 -d > cloudrun-admin.json
             gcloud auth activate-service-account --key-file=./cloudrun-admin.json
-      - cloud_sql_proxy_login:
-          instance: "<< parameters.instance >>"
-          credential-file: "<< parameters.credential-file >>"
-          project: "<< parameters.project >>"
-      - install_psql
-      - init-db:
-          user: "<< parameters.user >>"
-          pass: "<< parameters.pass >>"
-          database: "<< parameters.database >>"
-          init-file: "<< parameters.init-file >>"
+      - run:
+          name: Install Cloud SQL Proxy
+          command: |
+            source /tmp/secrets
+            wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O /usr/bin/./cloud_sql_proxy
+            chmod +x /usr/bin/./cloud_sql_proxy
+      - run:
+          name: Install psql
+          command: |
+            apk update
+            apk --update add postgresql-client
+      - run:
+          name: Initalize DB with table
+          command: |
+            export PGPASSWORD="<< parameters.password >>"
+            psql "host=127.0.0.1 sslmode=disable dbname="<< parameters.db_name >>" user="<< parameters.username >>" -f "<< parameters.init-file >>""
+            HOST=$(gcloud sql instances describe "<< parameters.instance >>" --format="value(connectionName)" --project="<< parameters.project >>")
+            cloud_sql_proxy -instances="$HOST"=tcp:5432 -credential_file="<< parameters.credential-file >>" 
 
 workflows:
   test:
@@ -223,10 +181,10 @@ workflows:
               ignore: /.*/
       - init-db:
           instance: $instance
-          database: $db_name
+          db_name: $db_name
           project: dependabot-pub-prod-586e
-          user: $username
-          pass: $password
+          username: $username
+          password: $password
           credential-file: /tmp/cloudrun-admin.json
           init-file: ./init.sql
           context:
