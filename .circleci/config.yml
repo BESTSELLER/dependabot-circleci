@@ -59,8 +59,9 @@ jobs:
       - run:
           name: Initalize DB with table
           command: |
+            source /tmp/secrets
             HOST=$(gcloud sql instances describe "<< parameters.instance >>" --format="value(connectionName)" --project="<< parameters.project >>")
-            cloud_sql_proxy -instances="$HOST"=tcp:5432 -credential_file="<< parameters.credential-file >>" 
+            cloud_sql_proxy -instances="$HOST"=tcp:5432 -credential_file="<< parameters.credential-file >>" &
             export PGPASSWORD="<< parameters.password >>"
             psql "host=127.0.0.1 sslmode=disable dbname="<< parameters.db_name >>" user="<< parameters.username >>" -f "<< parameters.init-file >>""
             
