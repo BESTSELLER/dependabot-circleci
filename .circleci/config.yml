@@ -44,6 +44,7 @@ commands:
         type: string
       init-file:
         description: File to use for initialising table
+        type: string
     steps:
       - run: |
           export PGPASSWORD="<< parameters.pass >>"
@@ -72,6 +73,7 @@ jobs:
         type: string
       init-file:
         description: File to use for initialising table
+        type: string
     steps:
       - checkout
       - attach_workspace:
