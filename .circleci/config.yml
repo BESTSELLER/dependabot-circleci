@@ -5,6 +5,94 @@ orbs:
   cci-common: bestsellerit/cci-common@1.4.3
   google-sql-operations: bestsellerit/google-sql-operations@1.5.1
 
+commands:
+  cloud_sql_proxy_login:
+    description: |
+      Install Cloud SQL Proxy and open connection
+    parameters:
+      instance:
+        description: The Cloud SQL instance to connect to
+        type: string
+      credential-file:
+        description: Location of credential-file
+        type: string
+    steps:
+      - run: |
+          source /tmp/secrets
+          wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O /usr/bin/./cloud_sql_proxy
+          chmod +x /usr/bin/./cloud_sql_proxy
+          cloud_sql_proxy -instances="<< parameters.instance >>"=tcp:5432 -credential_file="<< parameters.credential-file >>"
+  install_psql:
+    description: |
+      Install psql client
+    steps:
+      - run: |
+          apk update
+          apk --update add postgresql-client
+  init-db:
+    description: |
+      Initialize db using psql
+    parameters:
+      user:
+        description: User name
+        type: string
+      pass:
+        description: Password for user
+        type: string
+      database:
+        description: Name of DB
+        type: string
+      init-file:
+        description: File to use for initialising table
+    steps:
+      - run: |
+          export PGPASSWORD="<< parameters.pass >>"
+          psql "host=127.0.0.1 sslmode=disable dbname="<< parameters.database >>" user="<< parameters.user >>" -f "<< parameters.init-file >>""
+
+jobs:
+  init-db:
+    description: |
+      Connects to database using cloud sql proxy and creates tabel using psql
+    executor: cci-common/cloudsdk_image
+    parameters:
+      instance:
+        description: The Cloud SQL instance to connect to
+        type: string
+      credential-file:
+        description: Location of credential-file
+        type: string
+      user:
+        description: User name
+        type: string
+      pass:
+        description: Password for user
+        type: string
+      database:
+        description: Name of DB
+        type: string
+      init-file:
+        description: File to use for initialising table
+    steps:
+      - checkout
+      - attach_workspace:
+          at: /tmp
+      - cloud_sql_proxy_login:
+          instance: "<< parameters.instance >>"
+          credential-file: "<< parameters.instance >>"
+      - install_psql
+      - init-db:
+          user: "<< parameters.user >>"
+          pass: "<< parameters.pass >>"
+          database: "<< parameters.database >>"
+          init-file: "<< parameters.init-file >>"
+      
+
+
+    
+            
+
+
+
 workflows:
   test:
     jobs:
@@ -120,14 +208,13 @@ workflows:
               only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
             branches:
               ignore: /.*/
-      - google-sql-operations/init-db:
+      - init-db:
           instance: $instance
-          db-name: $db_name
-          username: $username
-          password: $password
-          gcloud-service-account: /tmp/cloudrun-admin.json
-          post-script: ./init.sql
-          project: dependabot-pub-prod-586e
+          database: $db_name
+          user: $username
+          pass: $password
+          credential-file: /tmp/cloudrun-admin.json
+          init-file: ./init.sql
           context:
             - es02-prod
             - shared
