@@ -16,12 +16,16 @@ commands:
       credential-file:
         description: Location of credential-file
         type: string
+      project:
+        description: Project name
+        type: string
     steps:
       - run: |
           source /tmp/secrets
           wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O /usr/bin/./cloud_sql_proxy
           chmod +x /usr/bin/./cloud_sql_proxy
-          cloud_sql_proxy -instances="<< parameters.instance >>"=tcp:5432 -credential_file="<< parameters.credential-file >>"
+          HOST=$(gcloud sql instances describe "<< parameters.instance >>" --format="value(connectionName)" --project="<< parameters.project >>")
+          cloud_sql_proxy -instances="$HOST"=tcp:5432 -credential_file="<< parameters.credential-file >>"
   install_psql:
     description: |
       Install psql client
@@ -62,6 +66,9 @@ jobs:
       credential-file:
         description: Location of credential-file
         type: string
+      project:
+        description: Project name
+        type: string
       user:
         description: User name
         type: string
@@ -80,7 +87,8 @@ jobs:
           at: /tmp
       - cloud_sql_proxy_login:
           instance: "<< parameters.instance >>"
-          credential-file: "<< parameters.instance >>"
+          credential-file: "<< parameters.credential-file >>"
+          project: dependabot-pub-prod-586e
       - install_psql
       - init-db:
           user: "<< parameters.user >>"
