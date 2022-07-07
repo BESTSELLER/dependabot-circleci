@@ -57,11 +57,15 @@ jobs:
             apk update
             apk --update add postgresql-client
       - run:
-          name: Initalize DB with table
+          name: Start Cloud SQL Proxy
           command: |
             source /tmp/secrets
             HOST=$(gcloud sql instances describe "<< parameters.instance >>" --format="value(connectionName)" --project="<< parameters.project >>")
             cloud_sql_proxy -instances="$HOST"=tcp:5432 -credential_file="<< parameters.credential-file >>"
+          background: true
+      - run:
+          name: Initalize DB with table
+          command: |
             export PGPASSWORD="<< parameters.password >>"
             psql -f "<< parameters.init-file >>" -U "<< parameters.username >>" -d "<< parameters.db_name >>" -h 127.0.0.1
             
