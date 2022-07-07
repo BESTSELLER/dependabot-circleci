@@ -67,6 +67,7 @@ jobs:
           name: Initalize DB with table
           command: |
             source /tmp/secrets
+            sleep 10s
             export PGPASSWORD="<< parameters.password >>"
             psql -f "<< parameters.init-file >>" -U "<< parameters.username >>" -d "<< parameters.db_name >>" -h 127.0.0.1
             
