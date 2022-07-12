@@ -68,7 +68,7 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 			Name:        checkName,
 			Status:      github.String("completed"),
 			Conclusion:  github.String("failure"),
-			CompletedAt: &github.Timestamp{time.Now()},
+			CompletedAt: &github.Timestamp{Time: time.Now()},
 			Output: &github.CheckRunOutput{
 				Title:   github.String("Failure"),
 				Summary: github.String("The configuration is invalid: " + err.Error()),
@@ -85,7 +85,7 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 		Name:        checkName,
 		Status:      github.String("completed"),
 		Conclusion:  github.String("success"),
-		CompletedAt: &github.Timestamp{time.Now()},
+		CompletedAt: &github.Timestamp{Time: time.Now()},
 		Output: &github.CheckRunOutput{
 			Title:   github.String("Success"),
 			Summary: github.String("Congratulations, the configuration is valid"),

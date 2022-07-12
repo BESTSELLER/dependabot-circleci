@@ -114,6 +114,8 @@ workflows:
           dry_run: true
           requires:
             - secret-injector/dump-secrets
+          <<: *prod_context
+          <<: *no_deploy_filter
 
   serverless-test-build-deploy:
     jobs:
