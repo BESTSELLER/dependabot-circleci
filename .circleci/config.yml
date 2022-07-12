@@ -55,7 +55,12 @@ jobs:
       - run:
           name: create domain mapping
           command: |
-            if ! gcloud beta run domain-mappings describe --domain=$CIRCLE_PROJECT_REPONAME.bestsellerit.com --platform=managed --region=europe-west4 --project=es-standalone-cb21; then
+            if ! gcloud beta run domain-mappings describe \
+                --domain=$CIRCLE_PROJECT_REPONAME.bestsellerit.com \
+                --platform=managed \
+                --region=europe-west4 \ 
+                --project=es-standalone-cb21 \
+                --access-token-file=./cloudrun-admin.json; then
               gcloud beta run domain-mappings create \
                 --service=$CIRCLE_PROJECT_REPONAME \
                 --domain=$CIRCLE_PROJECT_REPONAME.bestsellerit.com \
