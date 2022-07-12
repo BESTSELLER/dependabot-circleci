@@ -73,7 +73,7 @@ jobs:
               --uri=https://$CIRCLE_PROJECT_REPONAME.bestsellerit.com/start \
               --update-headers "Authorization"="Bearer $bearer" \
               --time-zone="Europe/Copenhagen" \
-              --project=es-standalone-cb21
+              --project=es-standalone-cb21 \
               --access-token-file=./cloudrun-admin.json
 
 deploy_filter: &deploy_filter
