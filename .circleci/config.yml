@@ -112,6 +112,8 @@ workflows:
       - cci-common/build_n_push_docker:
           tag: $CIRCLE_TAG
           dry_run: true
+          requires:
+            - secret-injector/dump-secrets
 
   serverless-test-build-deploy:
     jobs:
