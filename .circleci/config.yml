@@ -137,7 +137,7 @@ workflows:
           format: json
           output-filename: secrets.json
           requires:
-            - build-push-serverless
+            - cci-common/build_n_push_docker
           <<: *prod_context
           <<: *deploy_filter
       - deploy-serverless:
