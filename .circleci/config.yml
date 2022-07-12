@@ -110,7 +110,6 @@ workflows:
           requires:
             - secret-injector/dump-secrets
       - cci-common/build_n_push_docker:
-          tag: $CIRCLE_TAG
           dry_run: true
           requires:
             - secret-injector/dump-secrets
@@ -130,7 +129,7 @@ workflows:
           <<: *prod_context
           <<: *deploy_filter
       - cci-common/build_n_push_docker:
-          tag: $CIRCLE_TAG
+          tag: "$CIRCLE_TAG"
           requires:
             - secret-injector/cloudrun
           <<: *prod_context
