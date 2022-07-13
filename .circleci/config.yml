@@ -1,17 +1,4 @@
 version: 2.1
-executors:
-  gcp_image:
-    docker:
-      - image: google/cloud-sdk:alpine
-        auth:
-          username: $DOCKERHUB_USER
-          password: $DOCKERHUB_PASS
-  go_image:
-    docker:
-      - image: cimg/go:1.16
-        auth:
-          username: $DOCKERHUB_USER
-          password: $DOCKERHUB_PASS
 
 orbs:
   cci-common: 'bestsellerit/cci-common@1.4.8'
@@ -19,7 +6,7 @@ orbs:
 
 jobs: 
   deploy-serverless:
-    executor: gcp_image
+    executor: cci-common/ci_image
     steps:
       - checkout
       - attach_workspace:
