@@ -21,7 +21,7 @@ jobs:
           name: gcloud login
           command: |
             gcloud components install beta --quiet
-            echo 'export CLOUDSDK_AUTH_ACCESS_TOKEN=$(cat /tmp/cloudrun_admin | jq -r .token | sed 's/\.*$//' | tr -d "\n")' >> $BASH_ENV
+            cat /tmp/cloudrun_admin | jq -r .token | sed 's/\.*$//' | tr -d "\n" > cloudrun-admin.json
 
       - run:
           name: creating deployment
@@ -39,7 +39,8 @@ jobs:
               --timeout=60m \
               --labels service=dependabot-circleci \
               --set-env-vars VAULT_ADDR="${VAULT_ADDR}",VAULT_ROLE=dependabot-circleci,VAULT_SECRET=ES/data/dependabot-circleci/prod,DEPENDABOT_VERSION=${CIRCLE_TAG},DEPENDABOT_CONFIG=/secrets/secrets \
-              --service-account=dependabot-circleci@es-standalone-cb21.iam.gserviceaccount.com
+              --service-account=dependabot-circleci@es-standalone-cb21.iam.gserviceaccount.com \
+              --access-token-file=./cloudrun-admin.json
       - run:
           name: create domain mapping
           command: |
@@ -47,13 +48,15 @@ jobs:
                 --domain=$CIRCLE_PROJECT_REPONAME.bestsellerit.com \
                 --platform=managed \
                 --region=europe-west4 \ 
-                --project=es-standalone-cb21; then
+                --project=es-standalone-cb21 \
+                --access-token-file=./cloudrun-admin.json; then
               gcloud beta run domain-mappings create \
                 --service=$CIRCLE_PROJECT_REPONAME \
                 --domain=$CIRCLE_PROJECT_REPONAME.bestsellerit.com \
                 --platform=managed \
                 --region=europe-west4 \
-                --project=es-standalone-cb21
+                --project=es-standalone-cb21 \
+                --access-token-file=./cloudrun-admin.json
             fi
       - run:
           name: create scheduled job
@@ -64,7 +67,8 @@ jobs:
               --uri=https://$CIRCLE_PROJECT_REPONAME.bestsellerit.com/start \
               --update-headers "Authorization"="Bearer $bearer" \
               --time-zone="Europe/Copenhagen" \
-              --project=es-standalone-cb21
+              --project=es-standalone-cb21 \
+              --access-token-file=./cloudrun-admin.json
 
 deploy_filter: &deploy_filter
   filters:
