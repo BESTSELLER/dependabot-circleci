@@ -135,6 +135,7 @@ workflows:
           tag: "$CIRCLE_TAG"
           requires:
             - secret-injector/cloudrun
+            - secret-injector/dump-secrets
           <<: *prod_context
           <<: *deploy_filter
       - secret-injector/dump-secrets:
