@@ -34,10 +34,12 @@ jobs:
           name: gcloud login
           command: |
             gcloud components install beta --quiet
-            cat /tmp/cloudrun_admin | jq -r .token | sed 's/\.*$//' | tr -d "\n" > cloudrun-admin.json
+            echo 'export CLOUDSDK_AUTH_ACCESS_TOKEN=$(cat /tmp/cloudrun_admin | jq -r .token | sed 's/\.*$//' | tr -d "\n" ) >> $BASH_ENV
+
       - run:
           name: creating deployment
           command: |
+            source ${BASH_ENV}
             gcloud beta run deploy $CIRCLE_PROJECT_REPONAME \
               --image=$K8S_CLUSTER_artifact_registry_url/$K8S_CLUSTER_artifact_registry_project/$SHORT-docker/"$CIRCLE_PROJECT_REPONAME":"$CIRCLE_TAG" \
               --allow-unauthenticated \
@@ -50,8 +52,7 @@ jobs:
               --timeout=60m \
               --labels service=dependabot-circleci \
               --set-env-vars VAULT_ADDR="${VAULT_ADDR}",VAULT_ROLE=dependabot-circleci,VAULT_SECRET=ES/data/dependabot-circleci/prod,DEPENDABOT_VERSION=${CIRCLE_TAG},DEPENDABOT_CONFIG=/secrets/secrets \
-              --service-account=dependabot-circleci@es-standalone-cb21.iam.gserviceaccount.com \
-              --access-token-file=./cloudrun-admin.json
+              --service-account=dependabot-circleci@es-standalone-cb21.iam.gserviceaccount.com
       - run:
           name: create domain mapping
           command: |
@@ -59,15 +60,13 @@ jobs:
                 --domain=$CIRCLE_PROJECT_REPONAME.bestsellerit.com \
                 --platform=managed \
                 --region=europe-west4 \ 
-                --project=es-standalone-cb21 \
-                --access-token-file=./cloudrun-admin.json; then
+                --project=es-standalone-cb21; then
               gcloud beta run domain-mappings create \
                 --service=$CIRCLE_PROJECT_REPONAME \
                 --domain=$CIRCLE_PROJECT_REPONAME.bestsellerit.com \
                 --platform=managed \
                 --region=europe-west4 \
-                --project=es-standalone-cb21 \
-                --access-token-file=./cloudrun-admin.json
+                --project=es-standalone-cb21
             fi
       - run:
           name: create scheduled job
@@ -78,8 +77,7 @@ jobs:
               --uri=https://$CIRCLE_PROJECT_REPONAME.bestsellerit.com/start \
               --update-headers "Authorization"="Bearer $bearer" \
               --time-zone="Europe/Copenhagen" \
-              --project=es-standalone-cb21 \
-              --access-token-file=./cloudrun-admin.json
+              --project=es-standalone-cb21
 
 deploy_filter: &deploy_filter
   filters:
