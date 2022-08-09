@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/BESTSELLER/go-vault v0.1.3
-	github.com/CircleCI-Public/circleci-cli v0.1.18828
+	github.com/CircleCI-Public/circleci-cli v0.1.20397
 	github.com/google/go-containerregistry v0.11.0
 	github.com/google/go-github/v45 v45.2.0
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
@@ -16,7 +16,7 @@ require (
 	github.com/rs/zerolog v1.27.0
 	goji.io v2.0.2+incompatible
 	gopkg.in/yaml.v2 v2.4.0
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -41,7 +41,8 @@ require (
 	github.com/shurcooL/githubv4 v0.0.0-20220520033151-0b4e3294ff00 // indirect
 	github.com/shurcooL/graphql v0.0.0-20200928012149-18c5c3165e3a // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
-	golang.org/x/crypto v0.0.0-20220427172511-eb4f295cb31f // indirect
+	github.com/stretchr/testify v1.8.0 // indirect
+	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d // indirect
 	golang.org/x/net v0.0.0-20220708220712-1185a9018129 // indirect
 	golang.org/x/oauth2 v0.0.0-20220718184931-c8730f7fcb92 // indirect
 	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f // indirect
