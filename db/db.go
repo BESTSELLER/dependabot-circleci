@@ -22,7 +22,7 @@ type RepoData struct {
 }
 
 func DBClient() *bun.DB {
-	dsn := fmt.Sprintf("postgres://%s:%s@%s:5432/%s?sslmode=disable", config.DBConfig.Username, config.DBConfig.Password, config.DBConfig.ConnectionName, config.DBConfig.DBName)
+	dsn := fmt.Sprintf("postgres://%s:'%s'@%s:5432/%s?sslmode=disable", config.DBConfig.Username, config.DBConfig.Password, config.DBConfig.ConnectionName, config.DBConfig.DBName)
 	sqldb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn)))
 
 	return bun.NewDB(sqldb, pgdialect.New())
