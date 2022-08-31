@@ -85,7 +85,7 @@ func shouldRun(schedule string) bool {
 // PostJSON posts the structs as json to the specified url
 func PostJSON(url string, payload []byte) error {
 
-	clientWithAuth, err := idtoken.NewClient(context.Background(), url, nil)
+	clientWithAuth, err := idtoken.NewClient(context.Background(), url)
 	if err != nil {
 		return fmt.Errorf("idtoken.NewClient: %v", err)
 	}
