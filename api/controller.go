@@ -16,6 +16,8 @@ import (
 
 	"github.com/BESTSELLER/dependabot-circleci/datadog"
 	"github.com/rs/zerolog/log"
+
+	"google.golang.org/api/idtoken"
 )
 
 type WorkerPayload struct {
@@ -83,7 +85,12 @@ func shouldRun(schedule string) bool {
 // PostJSON posts the structs as json to the specified url
 func PostJSON(url string, payload []byte) error {
 
-	var myClient = httptrace.WrapClient(&http.Client{Timeout: 30 * time.Second})
+	clientWithAuth, err := idtoken.NewClient(context.Background(), url, nil)
+	if err != nil {
+		return fmt.Errorf("idtoken.NewClient: %v", err)
+	}
+
+	var myClient = httptrace.WrapClient(clientWithAuth)
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	if err != nil {
