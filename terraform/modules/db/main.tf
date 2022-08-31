@@ -18,6 +18,9 @@ resource "google_sql_database_instance" "main" {
     backup_configuration {
       enabled = true
     }
+    ip_configuration {
+      require_ssl = true
+    }
     insights_config {
       query_insights_enabled = true
     }
