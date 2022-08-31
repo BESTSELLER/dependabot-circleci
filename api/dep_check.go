@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/BESTSELLER/dependabot-circleci/config"
 	"github.com/BESTSELLER/dependabot-circleci/dependabot"
@@ -14,21 +13,6 @@ import (
 )
 
 func dependencyHandler(w http.ResponseWriter, r *http.Request) {
-
-	// dummy auth check, to decrease chance of ddos
-	reqToken := r.Header.Get("Authorization")
-	splitToken := strings.Split(reqToken, "Bearer")
-	if len(splitToken) != 2 {
-		http.Error(w, "please provide a valid bearer token", http.StatusUnauthorized)
-		return
-	}
-
-	reqToken = strings.TrimSpace(splitToken[1])
-
-	if reqToken != config.AppConfig.HTTP.Token {
-		http.Error(w, "please provide a valid bearer token", http.StatusUnauthorized)
-		return
-	}
 
 	// extract repo details
 	var workerPayload WorkerPayload
