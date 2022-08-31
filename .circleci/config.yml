@@ -37,9 +37,9 @@ jobs:
       - attach_workspace:
           at: /tmp
       - run:
-          name: install jq
+          name: install jq and gettext
           command: |
-            apk add --no-cache jq
+            apk add --no-cache jq gettext
       - run:
           name: gcloud login
           command: |
@@ -63,6 +63,11 @@ jobs:
             HOST=$(gcloud sql instances describe "<< parameters.instance >>" --format="value(connectionName)" --project="<< parameters.project >>")
             cloud_sql_proxy -instances="$HOST"=tcp:5432 -credential_file="<< parameters.credential-file >>"
           background: true
+      - run:
+          name: Replace vars
+          command: |
+            source /tmp/secrets
+            envsubst < "<< parameters.init-file >>" > init-temp && mv init-temp "<< parameters.init-file >>"
       - run:
           name: Initalize DB with table
           command: |
