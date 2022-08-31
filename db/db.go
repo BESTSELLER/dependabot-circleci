@@ -27,6 +27,7 @@ func DBClient() *bun.DB {
 		pgdriver.WithDatabase(config.DBConfig.DBName),
 		pgdriver.WithUser(config.DBConfig.Username),
 		pgdriver.WithPassword(config.DBConfig.Password),
+		pgdriver.WithInsecure(true),
 		pgdriver.WithDSN(dsn),
 	))
 
