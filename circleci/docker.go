@@ -86,7 +86,7 @@ func findNewestDockerVersion(currentVersion string) string {
 	}
 
 	if len(errorList) > 0 {
-		log.Debug().Err(fmt.Errorf("You have the following errors: %s", errorList))
+		log.Debug().Err(fmt.Errorf("you have the following errors: %s", errorList))
 	}
 
 	sort.Sort(version.Collection(versions))
@@ -125,11 +125,11 @@ func getTags(circleciTag string) ([]string, error) {
 func splitVersion(version string) map[string]string {
 	result := make(map[string]string)
 	// Regex stolen with love from dependabot-core
-	// https://github.com/dependabot/dependabot-core/blob/v0.123.0/docker/lib/dependabot/docker/update_checker.rb#L15-L27
-	versionRegex := `v?(?P<version>([0-9]+)\.([0-9]+)\.([0-9]+)?(?:\+[0-9A-Za-z-]+)?)`
+	// https://github.com/dependabot/dependabot-core/blob/v0.211.0/docker/lib/dependabot/docker/update_checker.rb#L45-L56
+	versionRegex := `v?(?P<version>[0-9]+(?:(?:\.[a-z0-9]+)|(?:-(?:kb)?[0-9]+))*)`
 	versionWithSFX := versionRegex + `(?P<suffix>-[a-z0-9.\-]+)?$`
-	versionWithPFX := `(?P<prefix>[a-z0-9.\-]+-)?` + versionRegex + `$`
-	versionWithPFXSFX := `(?P<prefix>[a-z\-]+-)?` + versionRegex + `(?P<suffix>-[a-z\-]+)?$`
+	versionWithPFX := `^(?P<prefix>[a-z0-9.\-]+-)?` + versionRegex + `$`
+	versionWithPFXSFX := `^(?P<prefix>[a-z\-]+-)?` + versionRegex + `(?P<suffix>-[a-z\-]+)?$`
 
 	nameWithVersion := versionWithPFX + `|` + versionWithSFX + `|` + versionWithPFXSFX
 
