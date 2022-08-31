@@ -22,8 +22,13 @@ type RepoData struct {
 }
 
 func DBClient() *bun.DB {
-	dsn := fmt.Sprintf("unix://%s:%s@/%s/cloudsql/%s/.s.PGSQL.5432", config.DBConfig.Username, config.DBConfig.Password, config.DBConfig.DBName, config.DBConfig.ConnectionName)
-	sqldb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn)))
+	dsn := fmt.Sprintf("unix://cloudsql/%s/.s.PGSQL.5432", config.DBConfig.ConnectionName)
+	sqldb := sql.OpenDB(pgdriver.NewConnector(
+		pgdriver.WithDatabase(config.DBConfig.DBName),
+		pgdriver.WithUser(config.DBConfig.Username),
+		pgdriver.WithPassword(config.DBConfig.Password),
+		pgdriver.WithDSN(dsn),
+	))
 
 	return bun.NewDB(sqldb, pgdialect.New())
 
