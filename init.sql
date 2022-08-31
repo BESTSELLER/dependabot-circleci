@@ -8,4 +8,4 @@ ADD COLUMN IF NOT EXISTS schedule VARCHAR(100) NOT NULL,
 ADD COLUMN IF NOT EXISTS lastrun TIMESTAMP;
 
 GRANT CONNECT ON DATABASE "$db_name" TO "$username";
-GRANT USAGE ON SCHEMA "$db_name" TO "$username";
+GRANT USAGE ON SCHEMA "information_schema" TO "$username";
