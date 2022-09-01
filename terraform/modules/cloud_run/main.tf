@@ -16,7 +16,7 @@ resource "google_cloud_run_service" "main" {
         env     = var.env
         service = var.service
         team    = var.team
-        version = var.tag
+        version = replace(var.tag, ".", "_")
       }
       annotations = {
         "autoscaling.knative.dev/maxScale"      = var.scaling["max"]
