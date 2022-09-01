@@ -1,23 +1,21 @@
-locals {
-  local_version = var.tag
-}
-
 variable "project_id" {
   default = "dependabot-pub-prod-586e"
 }
 
-variable "labels" {
-  default = {
-    env     = "dev"
-    service = "dependabot-circleci"
-    team    = "engineering-services"
-    version = local.local_version
-  }
+variable "team" {
+  type = string
+}
+
+variable "env" {
+  type = string
+}
+
+variable "service" {
+  type = string
 }
 
 variable "tag" {
-  type    = string
-  default = "0.0.1"
+  type = string
 }
 
 variable "monitor_project_id" {

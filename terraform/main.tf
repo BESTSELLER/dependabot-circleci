@@ -1,7 +1,9 @@
 module "db" {
   source     = "./modules/db"
   project_id = var.project_id
-  labels     = var.labels
+  service    = var.service
+  env        = var.env
+  team       = var.team
 }
 
 module "controller" {
@@ -15,7 +17,9 @@ module "controller" {
   }
   project_id  = var.project_id
   location    = "europe-west4"
-  labels      = var.labels
+  service     = var.service
+  env         = var.env
+  team        = var.team
   tag         = var.tag
   db_instance = module.db.db_instance
 }
@@ -27,7 +31,9 @@ module "worker" {
 
   project_id  = var.project_id
   location    = "europe-west4"
-  labels      = var.labels
+  service     = var.service
+  env         = var.env
+  team        = var.team
   tag         = var.tag
   db_instance = module.db.db_instance
 }
@@ -39,7 +45,9 @@ module "webhook" {
   args                  = ["-webhook"]
   project_id            = var.project_id
   location              = "europe-west4"
-  labels                = var.labels
+  service               = var.service
+  env                   = var.env
+  team                  = var.team
   tag                   = var.tag
   allow_unauthenticated = true
   db_instance           = module.db.db_instance
@@ -51,7 +59,7 @@ module "schedule" {
   project_id = var.project_id
   url        = module.controller.url
   location   = "europe-west4"
-  labels     = var.labels
+  service    = var.service
 }
 
 module "logs" {

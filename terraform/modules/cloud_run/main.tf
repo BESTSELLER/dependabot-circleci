@@ -3,11 +3,21 @@ resource "google_cloud_run_service" "main" {
   location = var.location
   project  = var.project_id
   metadata {
-    labels = var.labels
+    labels = {
+      env     = var.env
+      service = var.service
+      team    = var.team
+      version = var.tag
+    }
   }
   template {
     metadata {
-      labels = var.labels
+      labels = {
+        env     = var.env
+        service = var.service
+        team    = var.team
+        version = var.tag
+      }
       annotations = {
         "autoscaling.knative.dev/maxScale"      = var.scaling["max"]
         "autoscaling.knative.dev/minScale"      = var.scaling["min"]
@@ -17,7 +27,7 @@ resource "google_cloud_run_service" "main" {
     }
     spec {
       containers {
-        image = "europe-docker.pkg.dev/artifacts-pub-prod-b57f/public-docker/${var.labels["service"]}:${var.tag}"
+        image = "europe-docker.pkg.dev/artifacts-pub-prod-b57f/public-docker/${var.service}:${var.tag}"
         args  = var.args
         env {
           name  = "DEPENDABOT_WORKERURL"
@@ -33,18 +43,18 @@ resource "google_cloud_run_service" "main" {
         }
         env {
           name  = "APP_SECRET"
-          value = "ES/data/${var.labels["service"]}/v2"
+          value = "ES/data/${var.service}/v2"
         }
         env {
           name  = "DB_SECRET"
-          value = "ES/data/${var.labels["service"]}/db"
+          value = "ES/data/${var.service}/db"
         }
         ports {
           name           = "http1"
           container_port = 3000
         }
       }
-      service_account_name = "${var.labels["service"]}-v3@${var.project_id}.iam.gserviceaccount.com"
+      service_account_name = "${var.service}-v3@${var.project_id}.iam.gserviceaccount.com"
       timeout_seconds      = 1800
     }
   }

@@ -159,7 +159,7 @@ workflows:
               ignore: /.*/
       - cci-common/terraform_plan:
           path: ./terraform
-          args: '-var tag=${CIRCLE_TAG}'
+          args: '-var tag=${CIRCLE_TAG} -var env=prod -var team=engineering-services -var service=${$CIRCLE_PROJECT_REPONAME}'
           context:
             - es02-prod
             - shared

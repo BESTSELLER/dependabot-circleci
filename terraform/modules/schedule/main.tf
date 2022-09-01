@@ -6,7 +6,7 @@ resource "google_project_service" "cloudscheduler" {
 }
 
 resource "google_cloud_scheduler_job" "job" {
-  name       = var.labels["service"]
+  name       = var.service
   project    = var.project_id
   region     = "us-central1"
   depends_on = [google_project_service.cloudscheduler]

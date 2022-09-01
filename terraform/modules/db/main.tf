@@ -24,7 +24,11 @@ resource "google_sql_database_instance" "main" {
     insights_config {
       query_insights_enabled = true
     }
-    user_labels = var.labels
+    user_labels = {
+      env     = var.env
+      service = var.service
+      team    = var.team
+    }
   }
 }
 
