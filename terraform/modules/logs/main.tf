@@ -7,8 +7,8 @@ resource "google_logging_project_sink" "cloud-run" {
   filter                 = "resource.type = cloud_run_revision OR resource.type = cloud_run_job severity>=DEFAULT"
 }
 
-resource "google_project_iam_binding" "pubsub_publish" {
-  project = var.project_id
+resource "google_project_iam_member" "pubsub_publish" {
+  project = var.monitor_project_id
   role    = "roles/pubsub.publisher"
 
   members = [
