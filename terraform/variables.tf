@@ -14,3 +14,7 @@ variable "tag" {
   type    = string
   default = "0.0.1"
 }
+
+variable "monitor_project_id" {
+  default = "monitor-6b94"
+}

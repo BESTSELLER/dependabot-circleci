@@ -53,3 +53,9 @@ module "schedule" {
   location   = "europe-west4"
   labels     = var.labels
 }
+
+module "logs" {
+  source             = "./modules/logs"
+  project_id         = var.project_id
+  monitor_project_id = var.monitor_project_id
+}
