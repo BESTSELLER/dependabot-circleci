@@ -7,6 +7,7 @@ variable "labels" {
     env     = "dev"
     service = "dependabot-circleci"
     team    = "engineering-services"
+    version = "0.0.1"
   }
 }
 
