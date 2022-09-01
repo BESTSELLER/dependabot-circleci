@@ -10,8 +10,5 @@ resource "google_logging_project_sink" "cloud-run" {
 resource "google_project_iam_member" "pubsub_publish" {
   project = var.monitor_project_id
   role    = "roles/pubsub.publisher"
-
-  members = [
-    google_logging_project_sink.cloud-run.writer_identity,
-  ]
+  member  = google_logging_project_sink.cloud-run.writer_identity
 }
