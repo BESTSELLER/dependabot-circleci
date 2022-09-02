@@ -85,3 +85,5 @@ require (
 	inet.af/netaddr v0.0.0-20220617031823-097006376321 // indirect
 	mellium.im/sasl v0.3.0 // indirect
 )
+
+replace github.com/hashicorp/go-version => github.com/BESTSELLER/go-version v1.2.5
