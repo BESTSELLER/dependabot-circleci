@@ -5,14 +5,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/BESTSELLER/dependabot-circleci/config"
+	"github.com/BESTSELLER/dependabot-circleci/datadog"
 	"github.com/BESTSELLER/dependabot-circleci/dependabot"
 	"github.com/BESTSELLER/dependabot-circleci/gh"
 	"github.com/rs/zerolog/log"
 )
 
 func dependencyHandler(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
 
 	// extract repo details
 	var workerPayload WorkerPayload
@@ -37,6 +40,9 @@ func dependencyHandler(w http.ResponseWriter, r *http.Request) {
 
 	// do our magic
 	dependabot.Start(context.Background(), client, workerPayload.Repos)
+
+	// send stats to DD
+	defer datadog.TimeTrackAndHistogram("dependency_check_duration", []string{workerPayload.Org}, start)
 
 	fmt.Fprintln(w, "Yaaay all done, please check github for pull requests!")
 }

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/BESTSELLER/dependabot-circleci/config"
+	"github.com/BESTSELLER/dependabot-circleci/datadog"
 	"github.com/BESTSELLER/dependabot-circleci/db"
 	"github.com/BESTSELLER/dependabot-circleci/gh"
 	"github.com/google/go-github/v45/github"
@@ -35,6 +36,7 @@ func (h *ConfigCheckHandler) Handles() []string {
 
 // Handle has ALL the logic! ;)
 func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID string, payload []byte) error {
+	start := time.Now()
 	var event github.PushEvent
 	if err := json.Unmarshal(payload, &event); err != nil {
 		return errors.Wrap(err, "failed to parse push event")
@@ -129,6 +131,8 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 		log.Error().Err(err).Msg("Error updating Github check with success status")
 		return err
 	}
+
+	defer datadog.TimeTrackAndHistogram("config_check_duration", []string{Githubinfo.Owner, Githubinfo.RepoName}, start)
 
 	return db.UpdateRepo(db.RepoData{
 		ID:       repo.GetID(),
