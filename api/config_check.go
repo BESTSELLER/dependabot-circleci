@@ -133,7 +133,7 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 		return err
 	}
 
-	defer datadog.TimeTrackAndHistogram("config_check_duration", []string{fmt.Sprintf("organization:%s", Githubinfo.Owner), fmt.Sprintf("repo:%s", Githubinfo.RepoName)}, start)
+	defer datadog.TimeTrackAndDistribution("config_check_duration", []string{fmt.Sprintf("organization:%s", Githubinfo.Owner), fmt.Sprintf("repo:%s", Githubinfo.RepoName)}, start)
 
 	return db.UpdateRepo(db.RepoData{
 		ID:       repo.GetID(),

@@ -46,11 +46,11 @@ func Gauge(metricName string, value float64, tags []string) {
 }
 
 // Histogram ...
-func Histogram(metricName string, value float64, tags []string) {
+func Distribution(metricName string, value float64, tags []string) {
 	metric := metricPrefix + "." + metricName
-	err := postDataDogMetric(metric, int64(value), "histogram", tags)
+	err := postDataDogMetric(metric, int64(value), "distribution", tags)
 	if err != nil {
-		log.Debug().Err(err).Msgf("could not send histogram to datadog %s", metricName)
+		log.Debug().Err(err).Msgf("could not send distribution to datadog %s", metricName)
 	}
 
 }
@@ -117,8 +117,8 @@ func postStructAsJSON(url string, payload interface{}, target interface{}) (stri
 	return bodyString, nil
 }
 
-// TimeTrackAndHistogram logs the ammount of time it take for a function to execute and send it as a histogram to datadog.
-func TimeTrackAndHistogram(metric string, tags []string, start time.Time) {
+// TimeTrackAndHistogram logs the ammount of time it take for a function to execute and send it as a Distribution to datadog.
+func TimeTrackAndDistribution(metric string, tags []string, start time.Time) {
 	elapsed := time.Since(start)
-	Histogram(metric, float64(elapsed.Milliseconds()), tags)
+	Distribution(metric, float64(elapsed.Milliseconds()), tags)
 }
