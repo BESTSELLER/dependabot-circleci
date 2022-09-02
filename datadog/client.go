@@ -120,5 +120,5 @@ func postStructAsJSON(url string, payload interface{}, target interface{}) (stri
 // TimeTrackAndHistogram logs the ammount of time it take for a function to execute and send it as a histogram to datadog.
 func TimeTrackAndHistogram(metric string, tags []string, start time.Time) {
 	elapsed := time.Since(start)
-	Histogram(metric, float64(elapsed), tags)
+	Histogram(metric, float64(elapsed.Milliseconds()), tags)
 }
