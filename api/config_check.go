@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/BESTSELLER/dependabot-circleci/config"
@@ -132,7 +133,7 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 		return err
 	}
 
-	defer datadog.TimeTrackAndHistogram("config_check_duration", []string{Githubinfo.Owner, Githubinfo.RepoName}, start)
+	defer datadog.TimeTrackAndHistogram("config_check_duration", []string{fmt.Sprintf("organization: %s", Githubinfo.Owner), fmt.Sprintf("repo: %s", Githubinfo.RepoName)}, start)
 
 	return db.UpdateRepo(db.RepoData{
 		ID:       repo.GetID(),
