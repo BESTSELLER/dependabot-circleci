@@ -42,7 +42,7 @@ func dependencyHandler(w http.ResponseWriter, r *http.Request) {
 	dependabot.Start(context.Background(), client, workerPayload.Repos)
 
 	// send stats to DD
-	defer datadog.TimeTrackAndDistribution("dependency_check_duration", []string{fmt.Sprintf("organization:%s", workerPayload.Org)}, start)
+	defer datadog.TimeTrackAndGauge("dependency_check_duration", []string{fmt.Sprintf("organization:%s", workerPayload.Org)}, start)
 
 	fmt.Fprintln(w, "Yaaay all done, please check github for pull requests!")
 }
