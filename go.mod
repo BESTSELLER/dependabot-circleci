@@ -1,6 +1,6 @@
 module github.com/BESTSELLER/dependabot-circleci
 
-go 1.18
+go 1.19
 
 require (
 	github.com/BESTSELLER/go-vault v0.1.3

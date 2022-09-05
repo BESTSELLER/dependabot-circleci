@@ -1,9 +1,8 @@
 version: 2.1
 
 orbs:
-  secret-injector: bestsellerit/secret-injector@1.7.5
-  cci-common: bestsellerit/cci-common@1.4.3
-  google-sql-operations: bestsellerit/google-sql-operations@1.5.1
+  secret-injector: bestsellerit/secret-injector@2.0.6
+  cci-common: bestsellerit/cci-common@1.6.3
 
 jobs:
   init-db:
