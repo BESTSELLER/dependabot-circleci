@@ -77,7 +77,7 @@ func UpdateFile(ctx context.Context, client *github.Client, repoOwner string, re
 	if resp.StatusCode == http.StatusConflict {
 		log.Debug().Str("repo_name", repoName).Err(err).Msg("Conflict, the updated file might already exists")
 	}
-	if err != nil && resp.StatusCode != 409 {
+	if err != nil && resp.StatusCode != http.StatusConflict {
 		return err
 	}
 	return nil
