@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/BESTSELLER/dependabot-circleci/config"
@@ -25,7 +26,11 @@ type WorkerPayload struct {
 	Repos []string
 }
 
+var wg sync.WaitGroup
+
 func controllerHandler(w http.ResponseWriter, r *http.Request) {
+	defer wg.Done()
+
 	orgs, err := pullRepos()
 	if err != nil {
 		log.Error().Err(err).Msgf("pull repos from big query failed: %s", err)
@@ -37,6 +42,7 @@ func controllerHandler(w http.ResponseWriter, r *http.Request) {
 
 	// should be in parralel
 	for org, repos := range orgs {
+		wg.Add(1)
 		var triggeredRepos []string
 
 		go datadog.Gauge("enabled_repos", float64(len(repos)), []string{fmt.Sprintf("organization:%s", org)})
@@ -52,12 +58,15 @@ func controllerHandler(w http.ResponseWriter, r *http.Request) {
 			log.Error().Err(err).Msg("error marshaling payload")
 			return
 		}
-		err = PostJSON(fmt.Sprintf("%s/start", config.EnvVars.WorkerURL), payloadBytes)
-		if err != nil {
-			log.Error().Err(err).Msgf("error triggering worker for org %s", org)
-		}
-		// call webhook - trigger cci on org
-		//start another container i guess
+
+		go func(organization string) {
+			err = PostJSON(fmt.Sprintf("%s/start", config.EnvVars.WorkerURL), payloadBytes)
+			if err != nil {
+				log.Error().Err(err).Msgf("error triggering worker for org %s", organization)
+			}
+		}(org)
+
+		wg.Wait()
 	}
 
 }
