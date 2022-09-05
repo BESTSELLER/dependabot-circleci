@@ -1,6 +1,7 @@
 version: 2.1
 
 orbs:
+<<<<<<< HEAD
   secret-injector: bestsellerit/secret-injector@2.0.6
   cci-common: bestsellerit/cci-common@1.6.3
 
@@ -31,10 +32,20 @@ jobs:
       init-file:
         description: File to use for initialising table
         type: string
+=======
+  cci-common: 'bestsellerit/cci-common@1.4.8'
+  secret-injector: bestsellerit/secret-injector@2.0.6
+
+jobs: 
+  deploy-serverless:
+    executor: cci-common/ci_image
+>>>>>>> de69e14ce084b593297dc291bddafcecd444a6c0
     steps:
       - checkout
       - attach_workspace:
           at: /tmp
+      - cci-common/vault_login
+      - secret-injector/use-secrets
       - run:
           name: install jq and gettext
           command: |
@@ -42,19 +53,56 @@ jobs:
       - run:
           name: gcloud login
           command: |
+<<<<<<< HEAD
             cat /tmp/cloudrun_admin | jq -r .private_key_data | base64 -d > cloudrun-admin.json
             gcloud auth activate-service-account --key-file=./cloudrun-admin.json
+=======
+            gcloud components install beta --quiet
+            echo 'export CLOUDSDK_AUTH_ACCESS_TOKEN=$(cat /tmp/cloudrun_admin | jq -r .token | sed "s/\.*$//" | tr -d "\n")' >> $BASH_ENV
+>>>>>>> de69e14ce084b593297dc291bddafcecd444a6c0
       - run:
           name: Install Cloud SQL Proxy
           command: |
+<<<<<<< HEAD
             source /tmp/secrets
             wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O /usr/bin/./cloud_sql_proxy
             chmod +x /usr/bin/./cloud_sql_proxy
+=======
+            source ${BASH_ENV}
+            gcloud beta run deploy $CIRCLE_PROJECT_REPONAME \
+              --image=$K8S_CLUSTER_artifact_registry_url/$K8S_CLUSTER_artifact_registry_project/$SHORT-docker/"$CIRCLE_PROJECT_REPONAME":"$CIRCLE_TAG" \
+              --allow-unauthenticated \
+              --min-instances=0 \
+              --max-instances=100 \
+              --port=3000 \
+              --platform=managed \
+              --region=europe-west4 \
+              --project=es-standalone-cb21 \
+              --timeout=60m \
+              --labels service=dependabot-circleci \
+              --set-env-vars VAULT_ADDR="${VAULT_ADDR}",VAULT_ROLE=dependabot-circleci,VAULT_SECRET=ES/data/dependabot-circleci/prod,DEPENDABOT_VERSION=${CIRCLE_TAG},DEPENDABOT_CONFIG=/secrets/secrets \
+              --service-account=dependabot-circleci@es-standalone-cb21.iam.gserviceaccount.com
+>>>>>>> de69e14ce084b593297dc291bddafcecd444a6c0
       - run:
           name: Install psql
           command: |
+<<<<<<< HEAD
             apk update
             apk --update add postgresql-client
+=======
+            if ! gcloud beta run domain-mappings describe \
+                --domain=$CIRCLE_PROJECT_REPONAME.bestsellerit.com \
+                --platform=managed \
+                --region=europe-west4 \ 
+                --project=es-standalone-cb21; then
+              gcloud beta run domain-mappings create \
+                --service=$CIRCLE_PROJECT_REPONAME \
+                --domain=$CIRCLE_PROJECT_REPONAME.bestsellerit.com \
+                --platform=managed \
+                --region=europe-west4 \
+                --project=es-standalone-cb21
+            fi
+>>>>>>> de69e14ce084b593297dc291bddafcecd444a6c0
       - run:
           name: Start Cloud SQL Proxy
           command: |
@@ -76,9 +124,27 @@ jobs:
             psql -f "<< parameters.init-file >>" -U "<< parameters.username >>" -d "<< parameters.db_name >>" -h 127.0.0.1
             
 
+deploy_filter: &deploy_filter
+  filters:
+    branches:
+      ignore: /.*/
+    tags:
+      only: /[0-9]+.[0-9]+.[0-9]+/
+
+no_deploy_filter: &no_deploy_filter
+  filters:
+    tags:
+      ignore: /[0-9]+.[0-9]+.[0-9]+/
+
+prod_context: &prod_context
+  context:
+    - es02-prod
+    - shared
+
 workflows:
   test:
     jobs:
+<<<<<<< HEAD
       - secret-injector/dump-secrets-yaml:
           secret-file: ci-secrets.yaml
           context:
@@ -130,9 +196,31 @@ workflows:
             - run:
                 command: |
                   cat /tmp/cloudrun_admin | jq -r .private_key_data | base64 -d > /tmp/cloudrun-admin.json
+=======
+      - secret-injector/dump-secrets:
+          <<: *prod_context
+          <<: *no_deploy_filter
+      - cci-common/go_test_unit:
+          name: go test
+          <<: *prod_context
+          <<: *no_deploy_filter
+      - cci-common/go_test_sonar:
+          name: SonarCloud
+          <<: *prod_context
+          <<: *no_deploy_filter
+          requires:
+            - secret-injector/dump-secrets
+      - cci-common/build_n_push_docker:
+          dry_run: true
+          requires:
+            - secret-injector/dump-secrets
+          <<: *prod_context
+          <<: *no_deploy_filter
+>>>>>>> de69e14ce084b593297dc291bddafcecd444a6c0
 
   deploy:
     jobs:
+<<<<<<< HEAD
       - secret-injector/dump-secrets-yaml:
           secret-file: ci-secrets.yaml
           context:
@@ -209,3 +297,36 @@ workflows:
               only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
             branches:
               ignore: /.*/
+=======
+      - secret-injector/dump-secrets:
+          <<: *prod_context
+          <<: *deploy_filter
+      - secret-injector/dump-secrets:
+          name: secret-injector/cloudrun
+          vault-path: "gcp_cloudrun/roleset/cloudrun/token"
+          output-filename: cloudrun_admin
+          format: json
+          <<: *prod_context
+          <<: *deploy_filter
+      - cci-common/build_n_push_docker:
+          tag: "$CIRCLE_TAG"
+          requires:
+            - secret-injector/cloudrun
+            - secret-injector/dump-secrets
+          <<: *prod_context
+          <<: *deploy_filter
+      - secret-injector/dump-secrets:
+          name: secret-injector/project
+          vault-path: ES/data/dependabot-circleci/prod
+          format: json
+          output-filename: secrets.json
+          requires:
+            - cci-common/build_n_push_docker
+          <<: *prod_context
+          <<: *deploy_filter
+      - deploy-serverless:
+          requires:
+            - secret-injector/project
+          <<: *prod_context
+          <<: *deploy_filter
+>>>>>>> de69e14ce084b593297dc291bddafcecd444a6c0

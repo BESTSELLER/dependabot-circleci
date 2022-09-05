@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 FROM golang:1.19-alpine AS builder
+=======
+FROM golang:1.19.0-alpine AS builder
+>>>>>>> de69e14ce084b593297dc291bddafcecd444a6c0
 WORKDIR $GOPATH/src/dependabot-circleci
 COPY . .
 ARG VERSION=1.0.0
