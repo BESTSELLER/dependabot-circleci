@@ -43,7 +43,7 @@ resource "google_cloud_run_service" "main" {
         }
         env {
           name  = "APP_SECRET"
-          value = "ES/data/${var.service}/v2"
+          value = "ES/data/${var.service}/prod"
         }
         env {
           name  = "DB_SECRET"
@@ -54,8 +54,8 @@ resource "google_cloud_run_service" "main" {
           container_port = 3000
         }
       }
-      service_account_name = "${var.service}-v3@${var.project_id}.iam.gserviceaccount.com"
-      timeout_seconds      = 1800
+      service_account_name  = "${var.service}-v3@${var.project_id}.iam.gserviceaccount.com"
+      timeout_seconds       = 1800
       container_concurrency = var.container_concurrency
     }
   }
