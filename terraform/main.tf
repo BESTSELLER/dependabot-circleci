@@ -52,6 +52,7 @@ module "webhook" {
   tag                   = var.tag
   allow_unauthenticated = true
   db_instance           = module.db.db_instance
+  container_concurrency = 300
 }
 
 
