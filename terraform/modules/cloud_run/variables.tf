@@ -42,6 +42,10 @@ variable "container_concurrency" {
   default = 80
 }
 
+variable "custom_domain" {
+  type = bool
+}
+
 
 variable "worker_url" {
   type    = string

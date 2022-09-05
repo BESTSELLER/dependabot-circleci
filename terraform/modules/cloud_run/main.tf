@@ -74,3 +74,19 @@ resource "google_cloud_run_service_iam_member" "allow_unauthenticated" {
   role     = "roles/run.invoker"
   member   = "allUsers"
 }
+
+
+resource "google_cloud_run_domain_mapping" "default" {
+  count    = var.custom_domain ? 1 : 0
+  location = var.location
+  project  = var.project_id
+  name     = "dependabot-circleci.bestsellerit.com"
+
+  metadata {
+    namespace = var.project_id
+  }
+
+  spec {
+    route_name = google_cloud_run_service.main.name
+  }
+}
