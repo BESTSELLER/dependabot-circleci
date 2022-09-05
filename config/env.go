@@ -16,7 +16,7 @@ type EnvConfig struct {
 // EnvVars stores the Global Configuration.
 var EnvVars EnvConfig
 
-//LoadEnvConfig Loads config from env
+// LoadEnvConfig Loads config from env
 func LoadEnvConfig() error {
 	err := envconfig.Process("dependabot", &EnvVars)
 	if err != nil {
