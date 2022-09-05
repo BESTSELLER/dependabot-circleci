@@ -29,13 +29,14 @@ module "worker" {
   source = "./modules/cloud_run"
   args   = ["-worker"]
 
-  project_id  = var.project_id
-  location    = "europe-west4"
-  service     = var.service
-  env         = var.env
-  team        = var.team
-  tag         = var.tag
-  db_instance = module.db.db_instance
+  project_id            = var.project_id
+  location              = "europe-west4"
+  service               = var.service
+  env                   = var.env
+  team                  = var.team
+  tag                   = var.tag
+  db_instance           = module.db.db_instance
+  container_concurrency = 1
 }
 
 module "webhook" {

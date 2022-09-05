@@ -37,6 +37,12 @@ variable "scaling" {
   }
 }
 
+variable "container_concurrency" {
+  type    = number
+  default = 80
+}
+
+
 variable "worker_url" {
   type    = string
   default = ""

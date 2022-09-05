@@ -56,6 +56,7 @@ resource "google_cloud_run_service" "main" {
       }
       service_account_name = "${var.service}-v3@${var.project_id}.iam.gserviceaccount.com"
       timeout_seconds      = 1800
+      container_concurrency = var.container_concurrency
     }
   }
 
