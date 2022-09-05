@@ -35,8 +35,6 @@ jobs:
       - checkout
       - attach_workspace:
           at: /tmp
-      - cci-common/vault_login
-      - secret-injector/use-secrets
       - run:
           name: install jq and gettext
           command: |
