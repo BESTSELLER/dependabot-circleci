@@ -29,8 +29,6 @@ type WorkerPayload struct {
 var wg sync.WaitGroup
 
 func controllerHandler(w http.ResponseWriter, r *http.Request) {
-	defer wg.Done()
-
 	orgs, err := pullRepos()
 	if err != nil {
 		log.Error().Err(err).Msgf("pull repos from big query failed: %s", err)
@@ -56,19 +54,20 @@ func controllerHandler(w http.ResponseWriter, r *http.Request) {
 		payloadBytes, err := json.Marshal(payloadObj)
 		if err != nil {
 			log.Error().Err(err).Msg("error marshaling payload")
-			return
+			continue
 		}
 
 		go func(organization string) {
+			defer wg.Done()
 			err = PostJSON(fmt.Sprintf("%s/start", config.EnvVars.WorkerURL), payloadBytes)
 			if err != nil {
 				log.Error().Err(err).Msgf("error triggering worker for org %s", organization)
 			}
 		}(org)
 
-		wg.Wait()
 	}
 
+	wg.Wait()
 }
 func shouldRun(schedule string) bool {
 	// check if an update should be run
