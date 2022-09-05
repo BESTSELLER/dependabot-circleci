@@ -8,7 +8,7 @@
 
 <br/>
 
-`dependabot-circleci` is as its name suggests a small dependabot for circleci orbs and images.
+`dependabot-circleci` is, as its name suggests, a small dependabot for circleci orbs and images.
 We have created this as at the time of creation it was nearly impossible getting changes into the official [dependabot](https://github.com/dependabot/dependabot-core).
 
 ---
