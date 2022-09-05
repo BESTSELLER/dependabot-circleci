@@ -43,7 +43,8 @@ variable "container_concurrency" {
 }
 
 variable "custom_domain" {
-  type = bool
+  type    = bool
+  default = false
 }
 
 
