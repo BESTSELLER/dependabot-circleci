@@ -52,7 +52,6 @@ module "webhook" {
   tag                   = var.tag
   allow_unauthenticated = true
   db_instance           = module.db.db_instance
-  custom_domain         = true
 }
 
 
