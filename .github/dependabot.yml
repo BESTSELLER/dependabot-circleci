@@ -7,18 +7,28 @@ version: 2
 updates:
   - package-ecosystem: "gomod" # See documentation for possible values
     directory: "/" # Location of package manifests
+    open-pull-requests-limit: 10
     schedule:
       interval: "monthly"
     reviewers: 
       - BESTSELLER/engineering-services
   - package-ecosystem: "docker" # See documentation for possible values
     directory: "/" # Location of package manifests
+    open-pull-requests-limit: 10
     schedule:
       interval: "monthly"
     reviewers: 
       - BESTSELLER/engineering-services
   - package-ecosystem: "terraform" # See documentation for possible values
     directory: "/terraform" # Location of package manifests
+    open-pull-requests-limit: 10
+    schedule:
+      interval: "monthly"
+    reviewers: 
+      - BESTSELLER/engineering-services
+  - package-ecosystem: "github-action" # See documentation for possible values
+    directory: "/" # Location of package manifests
+    open-pull-requests-limit: 10
     schedule:
       interval: "monthly"
     reviewers: 
