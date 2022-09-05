@@ -14,10 +14,9 @@ import (
 )
 
 var appName = "dependabot-circleci"
-var version = config.EnvVars.Version
 
 // SetupRouter initializes the API routes
-func SetupRouter() {
+func SetupRouter(webhookEnabled bool, workerEnabled bool, controllerEnabled bool) {
 	logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
 
 	server, err := baseapp.NewServer(
@@ -30,7 +29,7 @@ func SetupRouter() {
 
 	cc, err := githubapp.NewDefaultCachingClientCreator(
 		config.AppConfig.Github,
-		githubapp.WithClientUserAgent(fmt.Sprintf("%s/%s", appName, version)),
+		githubapp.WithClientUserAgent(fmt.Sprintf("%s/%s", appName, config.Version)),
 		githubapp.WithClientTimeout(10*time.Second),
 		githubapp.WithClientCaching(false, func() httpcache.Cache { return httpcache.NewMemoryCache() }),
 		githubapp.WithClientMiddleware(
@@ -41,13 +40,23 @@ func SetupRouter() {
 		logger.Panic().Err(err)
 	}
 
-	webhookHandler := githubapp.NewEventDispatcher([]githubapp.EventHandler{&ConfigCheckHandler{ClientCreator: cc}}, config.AppConfig.Github.App.WebhookSecret, githubapp.WithScheduler(
-		githubapp.AsyncScheduler(),
-	))
-	server.Mux().Handle(pat.Post("/"), webhookHandler)
-	server.Mux().HandleFunc(pat.Post("/start"), dependencyHandler)
+	if webhookEnabled {
+		webhookHandler := githubapp.NewEventDispatcher([]githubapp.EventHandler{&ConfigCheckHandler{ClientCreator: cc}}, config.AppConfig.Github.App.WebhookSecret, githubapp.WithScheduler(
+			githubapp.AsyncScheduler(),
+		))
+		server.Mux().Handle(pat.Post("/"), webhookHandler)
+	}
+
+	if workerEnabled {
+		server.Mux().HandleFunc(pat.Post("/start"), dependencyHandler)
+	}
+
+	if controllerEnabled {
+		server.Mux().HandleFunc(pat.Post("/start_controller"), controllerHandler)
+	}
 
 	// Start is blocking
+	logger.Info().Msgf("webhookEnabled %t, workerEnabled %t, controllerEnabled %t", webhookEnabled, workerEnabled, controllerEnabled)
 	err = server.Start()
 	if err != nil {
 		logger.Panic().Err(err)

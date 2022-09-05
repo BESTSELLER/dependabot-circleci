@@ -2,9 +2,10 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
+	"time"
 
 	"github.com/BESTSELLER/dependabot-circleci/config"
 	"github.com/BESTSELLER/dependabot-circleci/datadog"
@@ -13,43 +14,35 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// var wg sync.WaitGroup
-
 func dependencyHandler(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
 
-	// dummy auth check, to decrease chance of ddos
-	reqToken := r.Header.Get("Authorization")
-	splitToken := strings.Split(reqToken, "Bearer")
-	if len(splitToken) != 2 {
-		http.Error(w, "please provide a valid bearer token", http.StatusUnauthorized)
+	// extract repo details
+	var workerPayload WorkerPayload
+	err := json.NewDecoder(r.Body).Decode(&workerPayload)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	reqToken = strings.TrimSpace(splitToken[1])
-
-	if reqToken != config.AppConfig.HTTP.Token {
-		http.Error(w, "please provide a valid bearer token", http.StatusUnauthorized)
-		return
-	}
-
-	// create clients
-	clients, err := gh.GetOrganizationClients(config.AppConfig.Github)
+	// create client
+	cc, err := gh.CreateGHClient(config.AppConfig.Github)
 	if err != nil {
 		http.Error(w, "failed to register organization client", http.StatusInternalServerError)
 		log.Fatal().Err(err).Msg("failed to register organization client")
 	}
 
-	// send stats to dd
-	go datadog.Gauge("organizations", float64(len(clients)), nil)
-
-	for _, client := range clients {
-		//	wg.Add(1)
-		client := client
-		func() {
-			//		defer wg.Done()
-			dependabot.Start(context.Background(), client)
-		}()
+	client, err := gh.GetSingleOrganizationClient(cc, workerPayload.Org)
+	if err != nil {
+		http.Error(w, "failed to register organization client", http.StatusInternalServerError)
+		log.Fatal().Err(err).Msg("failed to register organization client")
 	}
-	// wg.Wait()
+
+	// do our magic
+	dependabot.Start(context.Background(), client, workerPayload.Repos)
+
+	// send stats to DD
+	defer datadog.TimeTrackAndGauge("dependency_check_duration", []string{fmt.Sprintf("organization:%s", workerPayload.Org)}, start)
+
 	fmt.Fprintln(w, "Yaaay all done, please check github for pull requests!")
 }

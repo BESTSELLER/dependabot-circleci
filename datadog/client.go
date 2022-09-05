@@ -32,7 +32,7 @@ func IncrementCount(metricName string, org string) {
 	metric := metricPrefix + "." + metricName
 	err := postDataDogMetric(metric, 1, "count", []string{"organistation:" + org})
 	if err != nil {
-		log.Debug().Err(err).Msgf("could increment datadog counter %s", metricName)
+		log.Debug().Err(err).Msgf("could not increment datadog counter %s", metricName)
 	}
 }
 
@@ -41,7 +41,16 @@ func Gauge(metricName string, value float64, tags []string) {
 	metric := metricPrefix + "." + metricName
 	err := postDataDogMetric(metric, int64(value), "gauge", tags)
 	if err != nil {
-		log.Debug().Err(err).Msgf("could send gauge to datadog %s", metricName)
+		log.Debug().Err(err).Msgf("could not send gauge to datadog %s", metricName)
+	}
+}
+
+// Distribution ...
+func Distribution(metricName string, value float64, tags []string) {
+	metric := metricPrefix + "." + metricName
+	err := postDataDogMetric(metric, int64(value), "distribution", tags)
+	if err != nil {
+		log.Debug().Err(err).Msgf("could not send distribution to datadog %s", metricName)
 	}
 
 }
@@ -106,4 +115,10 @@ func postStructAsJSON(url string, payload interface{}, target interface{}) (stri
 	}
 
 	return bodyString, nil
+}
+
+// TimeTrackAndHistogram logs the ammount of time it take for a function to execute and send it as a Gauge to datadog.
+func TimeTrackAndGauge(metric string, tags []string, start time.Time) {
+	elapsed := time.Since(start)
+	Gauge(metric, float64(elapsed.Milliseconds()), tags)
 }

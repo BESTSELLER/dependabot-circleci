@@ -1,7 +1,7 @@
 package config
 
 import (
-	"io/ioutil"
+	"strings"
 
 	"github.com/palantir/go-baseapp/baseapp"
 	"github.com/palantir/go-githubapp/githubapp"
@@ -25,6 +25,15 @@ type Config struct {
 	Server  baseapp.HTTPConfig `yaml:"server"`
 }
 
+// DBConfig contains global db config
+type DBConfigSpec struct {
+	ConnectionName string `yaml:"connection_name"`
+	DBName         string `yaml:"db_name"`
+	Instance       string `yaml:"instance"`
+	Password       string `yaml:"password"`
+	Username       string `yaml:"username"`
+}
+
 // RepoConfig contains specific config for each repos
 type RepoConfig struct {
 	TargetBranch string   `yaml:"target-branch,omitempty"`
@@ -38,15 +47,23 @@ type RepoConfig struct {
 // AppConfig contains global app config
 var AppConfig Config
 
-// ReadConfig reads a yaml config file
-func ReadConfig(path string) error {
+// DBConfig contains global db app config
+var DBConfig DBConfigSpec
 
-	bytes, err := ioutil.ReadFile(path)
-	if err != nil {
-		return errors.Wrapf(err, "failed reading server config file: %s", path)
+var Version = "1.0.0"
+
+// ReadAppConfig reads a yaml config file
+func ReadAppConfig(secrets []byte) error {
+	if err := yaml.UnmarshalStrict(secrets, &AppConfig); err != nil {
+		return errors.Wrap(err, "failed parsing configuration file")
 	}
 
-	if err := yaml.UnmarshalStrict(bytes, &AppConfig); err != nil {
+	return nil
+}
+
+// ReadDBConfig reads a yaml config file
+func ReadDBConfig(secrets []byte) error {
+	if err := yaml.UnmarshalStrict(secrets, &DBConfig); err != nil {
 		return errors.Wrap(err, "failed parsing configuration file")
 	}
 
@@ -63,4 +80,22 @@ func ReadRepoConfig(content []byte) (*RepoConfig, error) {
 	}
 
 	return &repoConfig, nil
+}
+
+// IsValid checks if Repoconfig is valid
+func (r RepoConfig) IsValid() error {
+	var errMsg []string
+
+	// check schedule
+	switch strings.ToLower(r.Schedule) {
+	case "daily", "weekly", "monthly", "":
+
+	default:
+		errMsg = append(errMsg, "invalid schedule")
+	}
+
+	if len(errMsg) != 0 {
+		return errors.Errorf(strings.Join(errMsg, ", "))
+	}
+	return nil
 }

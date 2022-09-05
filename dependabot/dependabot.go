@@ -2,10 +2,8 @@ package dependabot
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/BESTSELLER/dependabot-circleci/circleci"
 	"github.com/BESTSELLER/dependabot-circleci/config"
@@ -16,21 +14,24 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// var wg sync.WaitGroup
-
 // Start will run through all repos it has access to and check for updates and make pull requests if needed.
-func Start(ctx context.Context, client *github.Client) {
+func Start(ctx context.Context, client *github.Client, repositories []string) {
 	// get repos
+	// TODO: Get only repos in the list, but in a single API Call
 	repos, err := gh.GetRepos(ctx, client, 1)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to repos")
 	}
 
 	// Loop through all repos
-	for _, repository := range repos {
-		// wg.Add(1)
-		checkRepo(ctx, client, repository)
-		// wg.Wait()
+	for _, repoName := range repositories {
+		for _, repository := range repos {
+			// only check repo if repo exists in our db and is scheduled to trigger today
+			if repository.GetName() == repoName {
+				checkRepo(ctx, client, repository)
+				break
+			}
+		}
 	}
 }
 
@@ -41,6 +42,7 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 
 	log.Debug().Msg(fmt.Sprintf("Checking repo: %s", repoName))
 
+	// should we then remove the repo from our db ?
 	if repo.GetArchived() {
 		log.Debug().Msg(fmt.Sprintf("Repo '%s' is archived", repoName))
 		return
@@ -56,14 +58,6 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 		return
 	}
 
-	proceed, err := applySchedule(repoConfig, repo)
-	if err != nil {
-		log.Error().Err(err).Msgf("found %s for schedule in dependabot-circleci.yml, which is not a valid format", repoConfig.Schedule)
-	}
-	if !proceed {
-		return
-	}
-
 	// determine repo details
 	repoOwner := repo.GetOwner().GetLogin()
 	repoDefaultBranch := repo.GetDefaultBranch()
@@ -73,9 +67,7 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 		return
 	}
 
-	go func() {
-		datadog.IncrementCount("analysed_repos", repoOwner)
-	}()
+	go datadog.IncrementCount("analysed_repos", repoOwner)
 
 	// get content of circleci config file
 	content, SHA, err := gh.GetRepoContent(ctx, client, repoOwner, repoName, repoConfig.Directory+"/.circleci/config.yml", targetBranch)
@@ -95,11 +87,19 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 	orbUpdates, dockerUpdates := circleci.GetUpdates(&cciconfig)
 	for old, update := range orbUpdates {
 		// wg.Add(1)
-		handleUpdate(ctx, client, update, "orb", old, content, repoOwner, repoName, targetBranch, SHA, repoConfig)
+		err = handleUpdate(ctx, client, update, "orb", old, content, repoOwner, repoName, targetBranch, SHA, repoConfig)
+		if err != nil {
+			go datadog.IncrementCount("failed_repos", repoOwner)
+			return
+		}
 	}
 	for old, update := range dockerUpdates {
 		// wg.Add(1)
-		handleUpdate(ctx, client, update, "docker", old, content, repoOwner, repoName, targetBranch, SHA, repoConfig)
+		err = handleUpdate(ctx, client, update, "docker", old, content, repoOwner, repoName, targetBranch, SHA, repoConfig)
+		if err != nil {
+			go datadog.IncrementCount("failed_repos", repoOwner)
+			return
+		}
 	}
 }
 
@@ -119,36 +119,6 @@ func getRepoConfig(ctx context.Context, client *github.Client, repo *github.Repo
 
 	return repoConfig
 }
-func applySchedule(repoConfig *config.RepoConfig, repo *github.Repository) (bool, error) {
-	// check if an update should be run
-	t := time.Now()
-	layout := "02/01/2006"
-	schedule := strings.ToLower(repoConfig.Schedule)
-	if schedule == "monthly" {
-		if t.Day() == 1 {
-			return true, nil
-		} else {
-			d := time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, time.UTC)
-			d = d.AddDate(0, 1, 0)
-			log.Debug().Msgf("updates for repository: %s are set to monthly, next update will on %s", repo.GetName(), d.Format(layout))
-			return false, nil
-		}
-	} else if schedule == "weekly" {
-		if t.Weekday() == 1 {
-			return true, nil
-		} else {
-			log.Debug().Msgf("updates for repository: %s are set to weekly, next update on monday", repo.GetName())
-			return false, nil
-		}
-	} else if schedule == "daily" || schedule == "" {
-		log.Debug().Msgf("updates for repository: %s are set to daily, updates will begin shortly", repo.GetName())
-		return true, nil
-	} else {
-
-		return false, errors.New("schedule wrong format")
-	}
-
-}
 
 func getTargetBranch(ctx context.Context, client *github.Client, repoOwner string, repoName string, defaultBranch string, repoConfig *config.RepoConfig) string {
 	targetBranch := defaultBranch
@@ -162,7 +132,7 @@ func getTargetBranch(ctx context.Context, client *github.Client, repoOwner strin
 	return targetBranch
 }
 
-func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node, updateType string, old string, content []byte, repoOwner string, repoName string, targetBranch string, SHA *string, repoConfig *config.RepoConfig) {
+func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node, updateType string, old string, content []byte, repoOwner string, repoName string, targetBranch string, SHA *string, repoConfig *config.RepoConfig) error {
 	// defer wg.Done()
 
 	log.Debug().Msgf("repo: %s, old: %s, update: %s", repoName, old, update.Value)
@@ -179,7 +149,7 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 	}
 
 	if updateType == "orb" && len(newVersion) == 1 {
-		return
+		return fmt.Errorf("")
 	}
 
 	commitMessage := fmt.Sprintf("Bump @%s from %s to %s", oldVersion[0], oldVersion[1], newVersion[1])
@@ -189,10 +159,10 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 	exists, oldPRs, err := gh.CheckPR(ctx, client, repoOwner, repoName, targetBranch, commitBranch, commitMessage, oldVersion[0])
 	if err != nil {
 		log.Error().Err(err).Msgf("could not get old branch in %s", repoName)
-		return
+		return err
 	}
 	if exists {
-		return
+		return err
 	}
 
 	notExists := gh.CheckBranch(ctx, client, repoOwner, repoName, github.String(commitBranch))
@@ -200,7 +170,7 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 		err = gh.CreateBranch(ctx, client, repoOwner, repoName, targetBranch, github.String(commitBranch))
 		if err != nil {
 			log.Error().Err(err).Msgf("could not create branch %s in %s", commitBranch, repoName)
-			return
+			return err
 		}
 	} else {
 		log.Debug().Msgf("branch %s already exists, skipping creation of branch", commitBranch)
@@ -215,7 +185,7 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 	})
 	if err != nil {
 		log.Error().Err(err).Msgf("could not update file in %s", repoName)
-		return
+		return err
 	}
 
 	// create pull req
@@ -228,7 +198,7 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 	})
 	if err != nil {
 		log.Info().Err(err).Msgf("could not create pr in %s", repoName)
-		return
+		return err
 	}
 
 	go func() {
@@ -242,4 +212,5 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 			datadog.IncrementCount("superseeded_updates", repoOwner)
 		}()
 	}
+	return nil
 }

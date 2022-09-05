@@ -3,18 +3,16 @@ package main
 import (
 	"io/ioutil"
 	"os"
-	"sync"
 
 	"github.com/rs/zerolog/log"
 
 	"github.com/BESTSELLER/dependabot-circleci/api"
+	"github.com/BESTSELLER/dependabot-circleci/config"
 	"github.com/BESTSELLER/dependabot-circleci/logger"
 	"github.com/BESTSELLER/go-vault/gcpss"
 
-	"github.com/BESTSELLER/dependabot-circleci/config"
+	"flag"
 )
-
-var wg sync.WaitGroup
 
 func init() {
 	err := config.LoadEnvConfig()
@@ -24,49 +22,71 @@ func init() {
 		log.Fatal().Err(err).Msg("failed to read env config")
 	}
 
-	if _, err := os.Stat(config.EnvVars.Config); err == nil {
-		return
+	var appsecret []byte
+	var dbsecret []byte
+
+	if config.EnvVars.Config == "" {
+		vaultAddr := os.Getenv("VAULT_ADDR")
+		if vaultAddr == "" {
+			log.Fatal().Msg("VAULT_ADDR must be set")
+		}
+		vaultRole := os.Getenv("VAULT_ROLE")
+		if vaultRole == "" {
+			log.Fatal().Msg("VAULT_ROLE must be set")
+		}
+
+		appSecret := os.Getenv("APP_SECRET")
+		if appSecret == "" {
+			log.Fatal().Msg("APP_SECRET must be set")
+		}
+
+		dbSecret := os.Getenv("DB_SECRET")
+		if dbSecret == "" {
+			log.Fatal().Msg("DB_SECRET must be set")
+		}
+
+		// fetch app secrets
+		secretData, err := gcpss.FetchVaultSecret(vaultAddr, appSecret, vaultRole)
+		if err != nil {
+			log.Fatal().Err(err).Msgf("Unable to fetch secrets from vault. error %v", err)
+		}
+		appsecret = []byte(secretData)
+
+		// fectch db secrets
+		secretData, err = gcpss.FetchVaultSecret(vaultAddr, dbSecret, vaultRole)
+		if err != nil {
+			log.Fatal().Err(err).Msgf("Unable to fetch secrets from vault. error %v", err)
+		}
+		dbsecret = []byte(secretData)
+
+	} else {
+		bytes, err := ioutil.ReadFile(config.EnvVars.Config)
+		if err != nil {
+			log.Fatal().Err(err).Msgf("Unable to read file %s", config.EnvVars.Config)
+		}
+
+		appsecret = bytes
 	}
 
-	vaultAddr := os.Getenv("VAULT_ADDR")
-	if vaultAddr == "" {
-		log.Fatal().Msg("VAULT_ADDR must be set")
-	}
-	vaultSecret := os.Getenv("VAULT_SECRET")
-	if vaultSecret == "" {
-		log.Fatal().Msg("VAULT_SECRET must be set")
-	}
-	vaultRole := os.Getenv("VAULT_ROLE")
-	if vaultRole == "" {
-		log.Fatal().Msg("VAULT_ROLE must be set")
-	}
-
-	secret, err := gcpss.FetchVaultSecret(vaultAddr, vaultSecret, vaultRole)
+	err = config.ReadAppConfig([]byte(appsecret))
 	if err != nil {
-		log.Fatal().Err(err)
+		log.Fatal().Err(err).Msg("failed to read github app config:")
 	}
 
-	err = os.Mkdir("/secrets", 0644)
+	err = config.ReadDBConfig([]byte(dbsecret))
 	if err != nil {
-		log.Fatal().Err(err).Msg("unable to create secrets dir")
-	}
-
-	data := []byte(secret)
-	err = ioutil.WriteFile("/secrets/secrets", data, 0644)
-	if err != nil {
-		log.Fatal().Err(err).Msg("unable to write secrets")
+		log.Fatal().Err(err).Msg("failed to read db config:")
 	}
 
 }
 
 func main() {
 
-	err := config.ReadConfig(config.EnvVars.Config)
-	if err != nil {
-		log.Fatal().Err(err).Msg("failed to read github app config:")
-	}
+	webhookFlag := flag.Bool("webhook", false, "Will start the webhook server.")
+	workerFlag := flag.Bool("worker", false, "Will start the worker server.")
+	controllerFlag := flag.Bool("controller", false, "Will start the controller.")
 
-	// start webhook
-	api.SetupRouter()
+	flag.Parse()
 
+	api.SetupRouter(*webhookFlag, *workerFlag, *controllerFlag)
 }

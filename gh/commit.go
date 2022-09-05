@@ -3,6 +3,7 @@ package gh
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/google/go-github/v45/github"
@@ -70,9 +71,13 @@ func CreateBranch(ctx context.Context, client *github.Client, repoOwner string, 
 }
 
 // UpdateFile updates the circleci config and creates a commit
+// we ignore conflicts as it saves us API calls and avoids GHs ratelimit
 func UpdateFile(ctx context.Context, client *github.Client, repoOwner string, repoName string, file string, options *github.RepositoryContentFileOptions) error {
-	_, _, err := client.Repositories.UpdateFile(ctx, repoOwner, repoName, strings.TrimPrefix(file, "/"), options)
-	if err != nil {
+	_, resp, err := client.Repositories.UpdateFile(ctx, repoOwner, repoName, strings.TrimPrefix(file, "/"), options)
+	if resp.StatusCode == http.StatusConflict {
+		log.Debug().Str("repo_name", repoName).Err(err).Msg("Conflict, the updated file might already exists")
+	}
+	if err != nil && resp.StatusCode != http.StatusConflict {
 		return err
 	}
 	return nil

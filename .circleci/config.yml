@@ -1,12 +1,36 @@
 version: 2.1
 
 orbs:
-  cci-common: 'bestsellerit/cci-common@1.4.8'
   secret-injector: bestsellerit/secret-injector@2.0.6
+  cci-common: bestsellerit/cci-common@1.6.3
 
-jobs: 
-  deploy-serverless:
-    executor: cci-common/ci_image
+jobs:
+  init-db:
+    description: |
+      Connects to database using cloud sql proxy and creates tabel using psql
+    executor: cci-common/cloudsdk_image
+    parameters:
+      instance:
+        description: The Cloud SQL instance to connect to
+        type: string
+      credential-file:
+        description: Location of credential-file
+        type: string
+      project:
+        description: Project name
+        type: string
+      username:
+        description: User name
+        type: string
+      password:
+        description: Password for user
+        type: string
+      db_name:
+        description: Name of DB
+        type: string
+      init-file:
+        description: File to use for initialising table
+        type: string
     steps:
       - checkout
       - attach_workspace:
@@ -14,56 +38,45 @@ jobs:
       - cci-common/vault_login
       - secret-injector/use-secrets
       - run:
-          name: install jq
+          name: install jq and gettext
           command: |
-            apk add --no-cache jq
+            apk add --no-cache jq gettext
       - run:
           name: gcloud login
           command: |
-            gcloud components install beta --quiet
-            echo 'export CLOUDSDK_AUTH_ACCESS_TOKEN=$(cat /tmp/cloudrun_admin | jq -r .token | sed "s/\.*$//" | tr -d "\n")' >> $BASH_ENV
+            cat /tmp/cloudrun_admin | jq -r .private_key_data | base64 -d > cloudrun-admin.json
+            gcloud auth activate-service-account --key-file=./cloudrun-admin.json
       - run:
-          name: creating deployment
+          name: Install Cloud SQL Proxy
           command: |
-            source ${BASH_ENV}
-            gcloud beta run deploy $CIRCLE_PROJECT_REPONAME \
-              --image=$K8S_CLUSTER_artifact_registry_url/$K8S_CLUSTER_artifact_registry_project/$SHORT-docker/"$CIRCLE_PROJECT_REPONAME":"$CIRCLE_TAG" \
-              --allow-unauthenticated \
-              --min-instances=0 \
-              --max-instances=100 \
-              --port=3000 \
-              --platform=managed \
-              --region=europe-west4 \
-              --project=es-standalone-cb21 \
-              --timeout=60m \
-              --labels service=dependabot-circleci \
-              --set-env-vars VAULT_ADDR="${VAULT_ADDR}",VAULT_ROLE=dependabot-circleci,VAULT_SECRET=ES/data/dependabot-circleci/prod,DEPENDABOT_VERSION=${CIRCLE_TAG},DEPENDABOT_CONFIG=/secrets/secrets \
-              --service-account=dependabot-circleci@es-standalone-cb21.iam.gserviceaccount.com
+            source /tmp/secrets
+            wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O /usr/bin/./cloud_sql_proxy
+            chmod +x /usr/bin/./cloud_sql_proxy
       - run:
-          name: create domain mapping
+          name: Install psql
           command: |
-            if ! gcloud beta run domain-mappings describe \
-                --domain=$CIRCLE_PROJECT_REPONAME.bestsellerit.com \
-                --platform=managed \
-                --region=europe-west4 \ 
-                --project=es-standalone-cb21; then
-              gcloud beta run domain-mappings create \
-                --service=$CIRCLE_PROJECT_REPONAME \
-                --domain=$CIRCLE_PROJECT_REPONAME.bestsellerit.com \
-                --platform=managed \
-                --region=europe-west4 \
-                --project=es-standalone-cb21
-            fi
+            apk update
+            apk --update add postgresql-client
       - run:
-          name: create scheduled job
+          name: Start Cloud SQL Proxy
           command: |
-            bearer=$(cat /tmp/secrets.json | jq -r .http.token )
-            gcloud beta scheduler jobs update http $CIRCLE_PROJECT_REPONAME --schedule "00 23 * * *" \
-              --http-method=POST \
-              --uri=https://$CIRCLE_PROJECT_REPONAME.bestsellerit.com/start \
-              --update-headers "Authorization"="Bearer $bearer" \
-              --time-zone="Europe/Copenhagen" \
-              --project=es-standalone-cb21
+            source /tmp/secrets
+            HOST=$(gcloud sql instances describe "<< parameters.instance >>" --format="value(connectionName)" --project="<< parameters.project >>")
+            cloud_sql_proxy -instances="$HOST"=tcp:5432 -credential_file="<< parameters.credential-file >>"
+          background: true
+      - run:
+          name: Replace vars
+          command: |
+            source /tmp/secrets
+            envsubst < "<< parameters.init-file >>" > init-temp && mv init-temp "<< parameters.init-file >>"
+      - run:
+          name: Initalize DB with table
+          command: |
+            source /tmp/secrets
+            sleep 10s
+            export PGPASSWORD="<< parameters.password >>"
+            psql -f "<< parameters.init-file >>" -U "<< parameters.username >>" -d "<< parameters.db_name >>" -h 127.0.0.1
+            
 
 deploy_filter: &deploy_filter
   filters:
@@ -85,56 +98,133 @@ prod_context: &prod_context
 workflows:
   test:
     jobs:
-      - secret-injector/dump-secrets:
-          <<: *prod_context
-          <<: *no_deploy_filter
+      - secret-injector/dump-secrets-yaml:
+          secret-file: ci-secrets.yaml
+          context:
+            - es02-prod
+            - shared
+          filters:
+            tags:
+              ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
       - cci-common/go_test_unit:
-          name: go test
-          <<: *prod_context
-          <<: *no_deploy_filter
+          context:
+            - shared
+          filters:
+            tags:
+              ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
       - cci-common/go_test_sonar:
-          name: SonarCloud
-          <<: *prod_context
-          <<: *no_deploy_filter
+          context:
+            - es02-prod
+            - shared
           requires:
-            - secret-injector/dump-secrets
+            - secret-injector/dump-secrets-yaml
+          filters:
+            tags:
+              ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
       - cci-common/build_n_push_docker:
           dry_run: true
           requires:
-            - secret-injector/dump-secrets
-          <<: *prod_context
-          <<: *no_deploy_filter
-
-  serverless-test-build-deploy:
-    jobs:
-      - secret-injector/dump-secrets:
-          <<: *prod_context
-          <<: *deploy_filter
-      - secret-injector/dump-secrets:
-          name: secret-injector/cloudrun
-          vault-path: "gcp_cloudrun/roleset/cloudrun/token"
-          output-filename: cloudrun_admin
-          format: json
-          <<: *prod_context
-          <<: *deploy_filter
-      - cci-common/build_n_push_docker:
-          tag: "$CIRCLE_TAG"
+            - secret-injector/dump-secrets-yaml
+          context:
+            - es02-prod
+            - shared
+          filters:
+            tags:
+              ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
+      - cci-common/terraform_plan:
+          path: ./terraform
+          args: '-var tag="$CIRCLE_SHA1" -var env="prod" -var team="engineering-services" -var service="$CIRCLE_PROJECT_REPONAME"'
+          lock: false
+          context:
+            - es02-prod
+            - shared
           requires:
-            - secret-injector/cloudrun
-            - secret-injector/dump-secrets
-          <<: *prod_context
-          <<: *deploy_filter
-      - secret-injector/dump-secrets:
-          name: secret-injector/project
-          vault-path: ES/data/dependabot-circleci/prod
-          format: json
-          output-filename: secrets.json
+            - secret-injector/dump-secrets-yaml
+          filters:
+            tags:
+              ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
+          pre-steps:
+            - attach_workspace:
+                at: /tmp
+            - run:
+                command: |
+                  cat /tmp/cloudrun_admin | jq -r .private_key_data | base64 -d > /tmp/cloudrun-admin.json
+
+  deploy:
+    jobs:
+      - secret-injector/dump-secrets-yaml:
+          secret-file: ci-secrets.yaml
+          context:
+            - es02-prod
+            - shared
+          filters:
+            tags:
+              only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
+            branches:
+              ignore: /.*/
+      - cci-common/build_n_push_docker:
+          tag: ${CIRCLE_TAG}
+          repo: public-docker
+          context:
+            - es02-prod
+            - shared
+          requires:
+            - secret-injector/dump-secrets-yaml
+          filters:
+            tags:
+              only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
+            branches:
+              ignore: /.*/
+      - cci-common/terraform_plan:
+          path: ./terraform
+          args: '-var tag="$CIRCLE_TAG" -var env="prod" -var team="engineering-services" -var service="$CIRCLE_PROJECT_REPONAME"'
+          context:
+            - es02-prod
+            - shared
           requires:
             - cci-common/build_n_push_docker
-          <<: *prod_context
-          <<: *deploy_filter
-      - deploy-serverless:
+          filters:
+            tags:
+              only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
+            branches:
+              ignore: /.*/
+          pre-steps:
+            - attach_workspace:
+                at: /tmp
+            - run:
+                command: |
+                  cat /tmp/cloudrun_admin | jq -r .private_key_data | base64 -d > /tmp/cloudrun-admin.json
+            - persist_to_workspace:
+                root: /tmp
+                paths:
+                  - cloudrun-admin.json
+      - cci-common/terraform_apply:
+          path: ./terraform
+          context:
+            - es02-prod
+            - shared
           requires:
-            - secret-injector/project
-          <<: *prod_context
-          <<: *deploy_filter
+            - cci-common/terraform_plan
+          filters:
+            tags:
+              only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
+            branches:
+              ignore: /.*/
+      - init-db:
+          instance: $instance
+          db_name: $db_name
+          project: dependabot-pub-prod-586e
+          username: $username
+          password: $password
+          credential-file: /tmp/cloudrun-admin.json
+          init-file: ./init.sql
+          context:
+            - es02-prod
+            - shared
+          requires:
+            - cci-common/terraform_apply
+          filters:
+            tags:
+              only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
+            branches:
+              ignore: /.*/
