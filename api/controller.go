@@ -39,32 +39,31 @@ func controllerHandler(w http.ResponseWriter, r *http.Request) {
 	go datadog.Gauge("organizations", float64(len(orgs)), nil)
 
 	// should be in parralel
-	for org, repos := range orgs {
+	for organization, repositories := range orgs {
 		wg.Add(1)
-		var triggeredRepos []string
-
-		go datadog.Gauge("enabled_repos", float64(len(repos)), []string{fmt.Sprintf("organization:%s", org)})
-
-		for _, repo := range repos {
-			if shouldRun(repo.Schedule) {
-				triggeredRepos = append(triggeredRepos, repo.Repo)
-			}
-		}
-		payloadObj := WorkerPayload{Org: org, Repos: triggeredRepos}
-		payloadBytes, err := json.Marshal(payloadObj)
-		if err != nil {
-			log.Error().Err(err).Msg("error marshaling payload")
-			continue
-		}
-
-		go func(organization string) {
+		go func(org string, repos []db.RepoData) {
 			defer wg.Done()
+			var triggeredRepos []string
+
+			go datadog.Gauge("enabled_repos", float64(len(repos)), []string{fmt.Sprintf("organization:%s", org)})
+
+			for _, repo := range repos {
+				if shouldRun(repo.Schedule) {
+					triggeredRepos = append(triggeredRepos, repo.Repo)
+				}
+			}
+			payloadObj := WorkerPayload{Org: org, Repos: triggeredRepos}
+			payloadBytes, err := json.Marshal(payloadObj)
+			if err != nil {
+				log.Error().Err(err).Msg("error marshaling payload")
+				return
+			}
+
 			err = PostJSON(fmt.Sprintf("%s/start", config.EnvVars.WorkerURL), payloadBytes)
 			if err != nil {
-				log.Error().Err(err).Msgf("error triggering worker for org %s", organization)
+				log.Error().Err(err).Msgf("error triggering worker for org %s", org)
 			}
-		}(org)
-
+		}(organization, repositories)
 	}
 
 	wg.Wait()
