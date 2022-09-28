@@ -58,3 +58,25 @@ func TestReadRepoConfigScheduleNotAsExpected(t *testing.T) {
 	assert.NotNil(t, err, "error expected")
 
 }
+
+// TestReadDBConfigAsExpected tests if the config is loaded as expected
+func TestReadDBConfigAsExpected(t *testing.T) {
+	// arrange
+	var jsonExpected = []byte(`{
+		"connection_name": "connection",
+		"db_name": "db",
+		"instance": "instance",
+		"password": "password",
+		"username": "username",
+	}`)
+
+	// act
+	err := ReadDBConfig(jsonExpected)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// assert
+	assert.Equal(t, "instance", DBConfig.Instance)
+
+}
