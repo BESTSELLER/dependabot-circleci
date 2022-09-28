@@ -14,12 +14,13 @@ require (
 	github.com/palantir/go-githubapp v0.13.2
 	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.28.0
+	github.com/stretchr/testify v1.8.0
 	github.com/uptrace/bun v1.1.8
 	github.com/uptrace/bun/dialect/pgdialect v1.1.8
 	github.com/uptrace/bun/driver/pgdriver v1.1.8
 	goji.io v2.0.2+incompatible
 	google.golang.org/api v0.94.0
-	gopkg.in/DataDog/dd-trace-go.v1 v1.41.0
+	gopkg.in/DataDog/dd-trace-go.v1 v1.42.1
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -65,7 +66,6 @@ require (
 	github.com/shurcooL/githubv4 v0.0.0-20220520033151-0b4e3294ff00 // indirect
 	github.com/shurcooL/graphql v0.0.0-20181231061246-d48a9a75455f // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
-	github.com/stretchr/testify v1.8.0 // indirect
 	github.com/tinylib/msgp v1.1.2 // indirect
 	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
