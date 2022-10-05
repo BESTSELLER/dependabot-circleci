@@ -10,6 +10,8 @@ updates:
     open-pull-requests-limit: 10
     schedule:
       interval: "monthly"
+    labels:
+      - "automerge"
     reviewers: 
       - BESTSELLER/engineering-services
   - package-ecosystem: "docker" # See documentation for possible values
@@ -17,6 +19,8 @@ updates:
     open-pull-requests-limit: 10
     schedule:
       interval: "monthly"
+    labels:
+      - "automerge"
     reviewers: 
       - BESTSELLER/engineering-services
   - package-ecosystem: "terraform" # See documentation for possible values
@@ -24,6 +28,8 @@ updates:
     open-pull-requests-limit: 10
     schedule:
       interval: "monthly"
+    labels:
+      - "automerge"
     reviewers: 
       - BESTSELLER/engineering-services
   - package-ecosystem: "github-actions" # See documentation for possible values
@@ -31,6 +37,8 @@ updates:
     open-pull-requests-limit: 10
     schedule:
       interval: "monthly"
+    labels:
+      - "automerge"
     reviewers: 
       - BESTSELLER/engineering-services
   
