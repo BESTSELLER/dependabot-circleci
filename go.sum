@@ -72,8 +72,8 @@ github.com/BESTSELLER/go-version v1.2.5/go.mod h1:fltr4n8CU8Ke44wwGCBoEymUuxUHl0
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/toml v0.4.1/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
-github.com/CircleCI-Public/circleci-cli v0.1.21812 h1:jaJ2hpRqys3T+4LbG+1r5c+2aO0u7GRACsi3csSa4tE=
-github.com/CircleCI-Public/circleci-cli v0.1.21812/go.mod h1:cSxao15PEzcmtVwanOFXfQ++Pd5+tggfKhr3DnrSupE=
+github.com/CircleCI-Public/circleci-cli v0.1.22100 h1:Aemq4tonXMvziIySeYzR5UO8oacfb5Z9Zsfr/KuGEnU=
+github.com/CircleCI-Public/circleci-cli v0.1.22100/go.mod h1:RtYPvHp4xsdMs+EhrZtvzertJ0TAZef7ohDDmu9AeLc=
 github.com/DataDog/datadog-agent/pkg/obfuscate v0.0.0-20211129110424-6491aa3bf583 h1:3nVO1nQyh64IUY6BPZUpMYMZ738Pu+LsMt3E0eqqIYw=
 github.com/DataDog/datadog-agent/pkg/obfuscate v0.0.0-20211129110424-6491aa3bf583/go.mod h1:EP9f4GqaDJyP1F5jTNMtzdIpw3JpNs3rMSJOnYywCiw=
 github.com/DataDog/datadog-go v4.8.2+incompatible h1:qbcKSx29aBLD+5QLvlQZlGmRMF/FfGqFLFev/1TDzRo=
