@@ -8,9 +8,9 @@ resource "google_cloud_run_service" "main" {
       service = var.service
       team    = var.team
       version = replace(var.tag, ".", "_")
-      tags.datadoghq.com / env : var.env
-      tags.datadoghq.com / service : var.service
-      tags.datadoghq.com / version : replace(var.tag, ".", "_")
+      "tags.datadoghq.com/env" : var.env
+      "tags.datadoghq.com/service" : var.service
+      "tags.datadoghq.com/version" : replace(var.tag, ".", "_")
     }
   }
   template {
@@ -20,9 +20,9 @@ resource "google_cloud_run_service" "main" {
         service = var.service
         team    = var.team
         version = replace(var.tag, ".", "_")
-        tags.datadoghq.com / env : var.env
-        tags.datadoghq.com / service : var.service
-        tags.datadoghq.com / version : replace(var.tag, ".", "_")
+        "tags.datadoghq.com/env" : var.env
+        "tags.datadoghq.com/service" : var.service
+        "tags.datadoghq.com/version" : replace(var.tag, ".", "_")
       }
       annotations = {
         "autoscaling.knative.dev/maxScale"      = var.scaling["max"]
