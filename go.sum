@@ -135,8 +135,8 @@ github.com/opencontainers/go-digest v1.0.0/go.mod h1:0JzlMkj0TRzQZfJkVvzbP0HBR3I
 github.com/opencontainers/image-spec v1.1.0-rc2 h1:2zx/Stx4Wc5pIPDvIxHXvXtQFW/7XWJGmnM7r3wg034=
 github.com/opencontainers/image-spec v1.1.0-rc2/go.mod h1:3OVijpioIKYWTqjiG0zfF6wvoJ4fAXGbjdZuI2NgsRQ=
 github.com/opentracing/opentracing-go v1.2.0 h1:uEJPy/1a5RIPAJ0Ov+OIO8OxWu77jEv+1B0VhjKrZUs=
-github.com/palantir/go-baseapp v0.4.0 h1:TmgTcZGmgOkn+lN2WR3m2AxtP4D61dDXI+G0vCTwoAw=
-github.com/palantir/go-baseapp v0.4.0/go.mod h1:yL4WaVAOzMgD0vuQfiea4TLfaeBJDnZKsoZ59OeOtaE=
+github.com/palantir/go-baseapp v0.4.1 h1:/sJXCedLsOrnSprixEtZFfvG6J1ba594jbViZ3lxU5I=
+github.com/palantir/go-baseapp v0.4.1/go.mod h1:Wmt2iFIyI6ATAbXXdRVocFulKQ6JxrAUrF9WIYghkvY=
 github.com/palantir/go-githubapp v0.14.0 h1:UbUAIEQHSqPzoFMy3P6veYFREmjpQBf6Tijre8XIzvE=
 github.com/palantir/go-githubapp v0.14.0/go.mod h1:a4IzV8xv1d8hRwYMn1+CBbYjhBjq75kapm3lTDgq1uM=
 github.com/philhofer/fwd v1.1.1 h1:GdGcTjf5RNAxwS4QLsiMzJYj5KEvPJD3Abr261yRQXQ=
