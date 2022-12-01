@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/BESTSELLER/go-vault v0.1.3
-	github.com/CircleCI-Public/circleci-cli v0.1.22426
+	github.com/CircleCI-Public/circleci-cli v0.1.22675
 	github.com/google/go-containerregistry v0.12.1
 	github.com/google/go-github/v47 v47.1.0
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
@@ -38,7 +38,7 @@ require (
 	github.com/bradleyfalzon/ghinstallation/v2 v2.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/dgraph-io/ristretto v0.1.0 // indirect
+	github.com/dgraph-io/ristretto v0.1.1 // indirect
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/docker/cli v20.10.20+incompatible // indirect
 	github.com/docker/distribution v2.8.1+incompatible // indirect
