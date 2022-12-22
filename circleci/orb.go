@@ -43,7 +43,7 @@ func findNewestOrbVersion(orb string) string {
 	// if requests fails, return current version
 	orbInfo, err := api.OrbInfo(client, orbSplitString[0])
 	if err != nil {
-		log.Error().Err(err).Msg("error finding latests orb version failed")
+		log.Error().Err(err).Msgf("error finding latests orb version failed for orb: %s", orbSplitString[0])
 		return fmt.Sprintf("%s@%s", orbSplitString[0], orbSplitString[1])
 	}
 
