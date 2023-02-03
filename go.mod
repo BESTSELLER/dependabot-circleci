@@ -96,7 +96,7 @@ require (
 	google.golang.org/grpc v1.51.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	inet.af/netaddr v0.0.0-20220617031823-097006376321 // indirect
-	mellium.im/sasl v0.3.0 // indirect
+	mellium.im/sasl v0.3.1 // indirect
 )
 
 replace github.com/hashicorp/go-version => github.com/BESTSELLER/go-version v1.2.5
