@@ -13,7 +13,7 @@ require (
 	github.com/palantir/go-baseapp v0.4.1
 	github.com/palantir/go-githubapp v0.14.0
 	github.com/pkg/errors v0.9.1
-	github.com/rs/zerolog v1.28.0
+	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.1
 	github.com/uptrace/bun v1.1.9
 	github.com/uptrace/bun/dialect/pgdialect v1.1.9
