@@ -3,7 +3,7 @@ package gh
 import (
 	"context"
 
-	"github.com/google/go-github/v47/github"
+	"github.com/google/go-github/v50/github"
 )
 
 // GetRepos returns a list of repos for an orginasation
