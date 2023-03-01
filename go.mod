@@ -17,7 +17,7 @@ require (
 	github.com/stretchr/testify v1.8.1
 	github.com/uptrace/bun v1.1.12
 	github.com/uptrace/bun/dialect/pgdialect v1.1.12
-	github.com/uptrace/bun/driver/pgdriver v1.1.11
+	github.com/uptrace/bun/driver/pgdriver v1.1.12
 	goji.io v2.0.2+incompatible
 	google.golang.org/api v0.111.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.47.0
@@ -81,7 +81,7 @@ require (
 	go.opencensus.io v0.24.0 // indirect
 	go4.org/intern v0.0.0-20211027215823-ae77deb06f29 // indirect
 	go4.org/unsafe/assume-no-moving-gc v0.0.0-20220617031537-928513b29760 // indirect
-	golang.org/x/crypto v0.5.0 // indirect
+	golang.org/x/crypto v0.6.0 // indirect
 	golang.org/x/mod v0.7.0 // indirect
 	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/oauth2 v0.5.0 // indirect
