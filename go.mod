@@ -96,7 +96,7 @@ require (
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20230223222841-637eb2293923 // indirect
 	google.golang.org/grpc v1.53.0 // indirect
-	google.golang.org/protobuf v1.29.0 // indirect
+	google.golang.org/protobuf v1.29.1 // indirect
 	inet.af/netaddr v0.0.0-20220617031823-097006376321 // indirect
 	mellium.im/sasl v0.3.1 // indirect
 )
