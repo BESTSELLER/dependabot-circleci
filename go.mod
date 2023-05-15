@@ -6,7 +6,7 @@ require (
 	github.com/BESTSELLER/go-vault v0.1.3
 	github.com/CircleCI-Public/circleci-cli v0.1.26094
 	github.com/google/go-containerregistry v0.14.0
-	github.com/google/go-github/v50 v50.2.0
+	github.com/google/go-github/v52 v52.0.0
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
 	github.com/hashicorp/go-version v1.6.0
 	github.com/kelseyhightower/envconfig v1.4.0
@@ -52,7 +52,6 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
-	github.com/google/go-github/v52 v52.0.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/s2a-go v0.1.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect

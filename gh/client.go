@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/google/go-github/v50/github"
+	"github.com/google/go-github/v52/github"
 	"github.com/gregjones/httpcache"
 	"github.com/palantir/go-githubapp/githubapp"
 
