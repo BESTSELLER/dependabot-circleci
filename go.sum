@@ -11,8 +11,8 @@ github.com/BESTSELLER/go-version v1.2.5 h1:naMdfH4XsfyfAQVMSNDmye6pAQx0sIYClV6rP
 github.com/BESTSELLER/go-version v1.2.5/go.mod h1:fltr4n8CU8Ke44wwGCBoEymUuxUHl09ZGVZPK5anwXA=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/toml v1.2.1/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
-github.com/CircleCI-Public/circleci-cli v0.1.26094 h1:BWbvfLVaWFy8do2Lz77dEw4dcn8fLXMUnFdsgqHf40E=
-github.com/CircleCI-Public/circleci-cli v0.1.26094/go.mod h1:4XwujKTAez1VOI3fzpvDscZn4+cTXE75y0JPGM1prjY=
+github.com/CircleCI-Public/circleci-cli v0.1.26896 h1:9wTMnS1I5ORb1z751uLi+SSch4wpr+bVtEwkMXil4Ac=
+github.com/CircleCI-Public/circleci-cli v0.1.26896/go.mod h1:ImcDgwe0NzS9CoTnDQpSy+QfpknLBNS6fAjvVfctdEY=
 github.com/DataDog/appsec-internal-go v1.0.0 h1:2u5IkF4DBj3KVeQn5Vg2vjPUtt513zxEYglcqnd500U=
 github.com/DataDog/appsec-internal-go v1.0.0/go.mod h1:+Y+4klVWKPOnZx6XESG7QHydOaUGEXyH2j/vSg9JiNM=
 github.com/DataDog/datadog-agent/pkg/obfuscate v0.45.0-rc.1 h1:XyYvstMFpSyZtfJHWJm1Sf1meNyCdfhKJrjB6+rUNOk=
@@ -34,8 +34,9 @@ github.com/Microsoft/go-winio v0.5.0/go.mod h1:JPGBdM1cNvN/6ISo+n8V5iA4v8pBzdOpz
 github.com/Microsoft/go-winio v0.5.1/go.mod h1:JPGBdM1cNvN/6ISo+n8V5iA4v8pBzdOpzfwIujj1a84=
 github.com/Microsoft/go-winio v0.6.1 h1:9/kr64B9VUZrLm5YYwbGtUJnMgqWVOdUAXu6Migciow=
 github.com/Microsoft/go-winio v0.6.1/go.mod h1:LRdKpFKfdobln8UmuiYcKPot9D2v6svN5+sAH+4kjUM=
-github.com/ProtonMail/go-crypto v0.0.0-20230217124315-7d5c6f04bbb8 h1:wPbRQzjjwFc0ih8puEVAOFGELsn1zoIIYdxvML7mDxA=
 github.com/ProtonMail/go-crypto v0.0.0-20230217124315-7d5c6f04bbb8/go.mod h1:I0gYDMZ6Z5GRU7l58bNFSkPTFN6Yl12dsUlAZ8xy98g=
+github.com/ProtonMail/go-crypto v0.0.0-20230518184743-7afd39499903 h1:ZK3C5DtzV2nVAQTx5S5jQvMeDqWtD1By5mOoyY/xJek=
+github.com/ProtonMail/go-crypto v0.0.0-20230518184743-7afd39499903/go.mod h1:8TI4H3IbrackdNgv+92dI+rhpCaLqM0IfpgCgenFvRE=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
 github.com/bluekeyes/hatpear v0.1.1 h1:FA5diKynoYJi6YVTJPEDbe4MG6eA8h+7LYHUlm8bppc=
 github.com/bluekeyes/hatpear v0.1.1/go.mod h1:2bh+rl4wLhqzzL0hT7Q4SVGXIivrE8oKgH2WYM3ubt0=
