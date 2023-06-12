@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/BESTSELLER/go-vault v0.1.3
-	github.com/CircleCI-Public/circleci-cli v0.1.26094
+	github.com/CircleCI-Public/circleci-cli v0.1.26896
 	github.com/google/go-containerregistry v0.15.2
 	github.com/google/go-github/v52 v52.0.0
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
@@ -37,7 +37,7 @@ require (
 	github.com/DataDog/sketches-go v1.2.1 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
-	github.com/ProtonMail/go-crypto v0.0.0-20230217124315-7d5c6f04bbb8 // indirect
+	github.com/ProtonMail/go-crypto v0.0.0-20230518184743-7afd39499903 // indirect
 	github.com/bluekeyes/hatpear v0.1.1 // indirect
 	github.com/bradleyfalzon/ghinstallation/v2 v2.4.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
