@@ -200,8 +200,8 @@ github.com/opencontainers/image-spec v1.1.0-rc3/go.mod h1:X4pATf0uXsnn3g5aiGIsVn
 github.com/opentracing/opentracing-go v1.2.0 h1:uEJPy/1a5RIPAJ0Ov+OIO8OxWu77jEv+1B0VhjKrZUs=
 github.com/outcaste-io/ristretto v0.2.1 h1:KCItuNIGJZcursqHr3ghO7fc5ddZLEHspL9UR0cQM64=
 github.com/outcaste-io/ristretto v0.2.1/go.mod h1:W8HywhmtlopSB1jeMg3JtdIhf+DYkLAr0VN/s4+MHac=
-github.com/palantir/go-baseapp v0.4.2 h1:467eN5W1CbFKTuMwNJ2O+9IpT8oQZyTSlBceq4l9Guw=
-github.com/palantir/go-baseapp v0.4.2/go.mod h1:q9HkqNo8w4I9U8nUrDn7/Cy0natYX1ZMI6ABEljxnlI=
+github.com/palantir/go-baseapp v0.5.0 h1:UwS79NpRSPG8+PpCb51nQ6g3RKhwAvFv3m8JZdJWwwo=
+github.com/palantir/go-baseapp v0.5.0/go.mod h1:+0ywLkE51MlJT9hHqZzOvlW1ccQjozS14Ujld50RNfg=
 github.com/palantir/go-githubapp v0.16.0 h1:bLeK3oTLyMvhTAQ0/aVy9ad9MuA/atHj9RkZbZRehkM=
 github.com/palantir/go-githubapp v0.16.0/go.mod h1:VdCUkPW8zfd+R2DOy6soNRarRHVfROLI3fytYX4/VHA=
 github.com/philhofer/fwd v1.1.1 h1:GdGcTjf5RNAxwS4QLsiMzJYj5KEvPJD3Abr261yRQXQ=
@@ -218,8 +218,9 @@ github.com/richardartoul/molecule v1.0.1-0.20221107223329-32cfee06a052 h1:Qp27Id
 github.com/rogpeppe/fastuuid v1.2.0/go.mod h1:jVj6XXZzXRy/MSR5jhDC/2q6DgLz+nrA6LYCDYWNEvQ=
 github.com/rogpeppe/go-internal v1.9.0 h1:73kH8U+JUqXU8lRuOHeVHaa/SZPifC7BkcraZVejAe8=
 github.com/rogpeppe/go-internal v1.9.0/go.mod h1:WtVeX8xhTBvf0smdhujwtBcq4Qrzq/fJaraNFVN+nFs=
-github.com/rs/xid v1.4.0 h1:qd7wPTDkN6KQx2VmMBLrpHkiyQwgFXRnkOLacUiaSNY=
 github.com/rs/xid v1.4.0/go.mod h1:trrq9SKmegXys3aeAKXMUTdJsYXVwGY3RLcfgqegfbg=
+github.com/rs/xid v1.5.0 h1:mKX4bl4iPYJtEIxp6CYiUuLQ/8DYMoz0PUdtGgMFRVc=
+github.com/rs/xid v1.5.0/go.mod h1:trrq9SKmegXys3aeAKXMUTdJsYXVwGY3RLcfgqegfbg=
 github.com/rs/zerolog v1.29.1 h1:cO+d60CHkknCbvzEWxP0S9K6KqyTjrCNUy1LdQLCGPc=
 github.com/rs/zerolog v1.29.1/go.mod h1:Le6ESbR7hc+DP6Lt1THiV8CQSdkkNrd3R0XbEgp3ZBU=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
