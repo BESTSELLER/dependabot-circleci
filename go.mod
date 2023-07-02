@@ -10,7 +10,7 @@ require (
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
 	github.com/hashicorp/go-version v1.6.0
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/palantir/go-baseapp v0.4.2
+	github.com/palantir/go-baseapp v0.5.0
 	github.com/palantir/go-githubapp v0.16.0
 	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.29.1
@@ -70,7 +70,7 @@ require (
 	github.com/philhofer/fwd v1.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
-	github.com/rs/xid v1.4.0 // indirect
+	github.com/rs/xid v1.5.0 // indirect
 	github.com/secure-systems-lab/go-securesystemslib v0.6.0 // indirect
 	github.com/shurcooL/githubv4 v0.0.0-20230424031643-6cea62ecd5a9 // indirect
 	github.com/shurcooL/graphql v0.0.0-20181231061246-d48a9a75455f // indirect
