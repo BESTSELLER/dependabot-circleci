@@ -1,4 +1,4 @@
-FROM golang:1.20-alpine AS builder
+FROM golang:1.20.5-alpine AS builder
 WORKDIR $GOPATH/src/dependabot-circleci
 COPY . .
 ARG VERSION=1.0.0

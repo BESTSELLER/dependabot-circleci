@@ -2,7 +2,7 @@ version: 2.1
 
 orbs:
   secret-injector: bestsellerit/secret-injector@2.3.0
-  cci-common: bestsellerit/cci-common@1.6.3
+  cci-common: bestsellerit/cci-common@1.12.2
 
 jobs:
   init-db:
@@ -74,19 +74,19 @@ jobs:
             sleep 10s
             export PGPASSWORD="<< parameters.password >>"
             psql -f "<< parameters.init-file >>" -U "<< parameters.username >>" -d "<< parameters.db_name >>" -h 127.0.0.1
-            
+
 
 deploy_filter: &deploy_filter
   filters:
     branches:
       ignore: /.*/
     tags:
-      only: /[0-9]+.[0-9]+.[0-9]+/
+      only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
 
 no_deploy_filter: &no_deploy_filter
   filters:
     tags:
-      ignore: /[0-9]+.[0-9]+.[0-9]+/
+      ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
 
 prod_context: &prod_context
   context:
@@ -98,49 +98,25 @@ workflows:
     jobs:
       - secret-injector/dump-secrets-yaml:
           secret-file: ci-secrets.yaml
-          context:
-            - es02-prod
-            - shared
-          filters:
-            tags:
-              ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
+          <<: [*prod_context, *no_deploy_filter]
       - cci-common/go_test_unit:
-          context:
-            - shared
-          filters:
-            tags:
-              ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
+          <<: [*prod_context, *no_deploy_filter]
       - cci-common/go_test_sonar:
-          context:
-            - es02-prod
-            - shared
           requires:
             - secret-injector/dump-secrets-yaml
-          filters:
-            tags:
-              ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
+          <<: [*prod_context, *no_deploy_filter]
       - cci-common/build_n_push_docker:
           dry_run: true
           requires:
             - secret-injector/dump-secrets-yaml
-          context:
-            - es02-prod
-            - shared
-          filters:
-            tags:
-              ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
+          <<: [*prod_context, *no_deploy_filter]
       - cci-common/terraform_plan:
           path: ./terraform
           args: '-var tag="$CIRCLE_SHA1" -var env="prod" -var team="engineering-services" -var service="$CIRCLE_PROJECT_REPONAME"'
           lock: false
-          context:
-            - es02-prod
-            - shared
           requires:
             - secret-injector/dump-secrets-yaml
-          filters:
-            tags:
-              ignore: /^[0-9]+(\.[0-9]+)*(-.*)*$/
+          <<: [*prod_context, *no_deploy_filter]
           pre-steps:
             - attach_workspace:
                 at: /tmp
@@ -152,40 +128,19 @@ workflows:
     jobs:
       - secret-injector/dump-secrets-yaml:
           secret-file: ci-secrets.yaml
-          context:
-            - es02-prod
-            - shared
-          filters:
-            tags:
-              only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
-            branches:
-              ignore: /.*/
+          <<: [*prod_context, *deploy_filter]
       - cci-common/build_n_push_docker:
           tag: ${CIRCLE_TAG}
           repo: public-docker
-          context:
-            - es02-prod
-            - shared
           requires:
             - secret-injector/dump-secrets-yaml
-          filters:
-            tags:
-              only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
-            branches:
-              ignore: /.*/
+          <<: [*prod_context, *deploy_filter]
       - cci-common/terraform_plan:
           path: ./terraform
           args: '-var tag="$CIRCLE_TAG" -var env="prod" -var team="engineering-services" -var service="$CIRCLE_PROJECT_REPONAME"'
-          context:
-            - es02-prod
-            - shared
           requires:
             - cci-common/build_n_push_docker
-          filters:
-            tags:
-              only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
-            branches:
-              ignore: /.*/
+          <<: [*prod_context, *deploy_filter]
           pre-steps:
             - attach_workspace:
                 at: /tmp
@@ -198,16 +153,9 @@ workflows:
                   - cloudrun-admin.json
       - cci-common/terraform_apply:
           path: ./terraform
-          context:
-            - es02-prod
-            - shared
           requires:
             - cci-common/terraform_plan
-          filters:
-            tags:
-              only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
-            branches:
-              ignore: /.*/
+          <<: [*prod_context, *deploy_filter]
       - init-db:
           instance: $instance
           db_name: $db_name
@@ -216,13 +164,6 @@ workflows:
           password: $password
           credential-file: /tmp/cloudrun-admin.json
           init-file: ./init.sql
-          context:
-            - es02-prod
-            - shared
           requires:
             - cci-common/terraform_apply
-          filters:
-            tags:
-              only: /^[0-9]+(\.[0-9]+)*(-.*)*$/
-            branches:
-              ignore: /.*/
+          <<: [*prod_context, *deploy_filter]
