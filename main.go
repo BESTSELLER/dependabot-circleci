@@ -52,7 +52,7 @@ func init() {
 		}
 		appsecret = []byte(secretData)
 
-		// fectch db secrets
+		// fetch db secrets
 		secretData, err = gcpss.FetchVaultSecret(vaultAddr, dbSecret, vaultRole)
 		if err != nil {
 			log.Fatal().Err(err).Msgf("Unable to fetch secrets from vault. error %v", err)
