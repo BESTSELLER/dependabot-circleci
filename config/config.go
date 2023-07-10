@@ -6,6 +6,7 @@ import (
 	"github.com/palantir/go-baseapp/baseapp"
 	"github.com/palantir/go-githubapp/githubapp"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v2"
 )
 
@@ -27,11 +28,12 @@ type Config struct {
 
 // DBConfig contains global db config
 type DBConfigSpec struct {
-	ConnectionName string `yaml:"connection_name"`
-	DBName         string `yaml:"db_name"`
-	Instance       string `yaml:"instance"`
-	Password       string `yaml:"password"`
-	Username       string `yaml:"username"`
+	ConnectionName   string `yaml:"connection_name"`
+	ConnectionString string `yaml:"connection_string"`
+	DBName           string `yaml:"db_name"`
+	Instance         string `yaml:"instance"`
+	Password         string `yaml:"password"`
+	Username         string `yaml:"username"`
 }
 
 // RepoConfig contains specific config for each repos
@@ -66,6 +68,8 @@ func ReadDBConfig(secrets []byte) error {
 	if err := yaml.UnmarshalStrict(secrets, &DBConfig); err != nil {
 		return errors.Wrap(err, "failed parsing configuration file")
 	}
+
+	log.Debug().Msg("Both DBConficSpec.ConnectionName and DBConfigSpec.ConnectionString are set. DBConfigSpec.ConnectionString is overwriting DBConficSpec.ConnectionName")
 
 	return nil
 }
