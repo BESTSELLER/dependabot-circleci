@@ -3,10 +3,12 @@ package logger
 import (
 	"github.com/BESTSELLER/dependabot-circleci/config"
 	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 // Init sets the global loglevel
 func Init() {
+	log.Debug().Msgf("Setting log level to %d (%s)", *config.EnvVars.LogLevel, zerolog.Level(*config.EnvVars.LogLevel).String())
 
 	if config.EnvVars.LogLevel == nil {
 		zerolog.SetGlobalLevel(zerolog.InfoLevel)
