@@ -21,8 +21,19 @@ type RepoData struct {
 	LastRun  bun.NullTime `bun:"lastrun"`
 }
 
+// client to be returned instead of creating a new one repeatedly
+var client *bun.DB
+
 func DBClient() *bun.DB {
+	if client != nil {
+		return client
+	}
+
 	dsn := fmt.Sprintf("unix:///cloudsql/%s/.s.PGSQL.5432?sslmode=disable", config.DBConfig.ConnectionName)
+	if config.DBConfig.ConnectionString != "" {
+		dsn = config.DBConfig.ConnectionString
+	}
+
 	sqldb := sql.OpenDB(pgdriver.NewConnector(
 		pgdriver.WithDatabase(config.DBConfig.DBName),
 		pgdriver.WithUser(config.DBConfig.Username),
@@ -31,7 +42,8 @@ func DBClient() *bun.DB {
 		pgdriver.WithDSN(dsn),
 	))
 
-	return bun.NewDB(sqldb, pgdialect.New())
+	client = bun.NewDB(sqldb, pgdialect.New())
+	return client
 
 }
 
