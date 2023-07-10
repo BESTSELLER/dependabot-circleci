@@ -38,7 +38,7 @@ func controllerHandler(w http.ResponseWriter, r *http.Request) {
 	// send stats to dd
 	go datadog.Gauge("organizations", float64(len(orgs)), nil)
 
-	// should be in parralel
+	// should be in parallel
 	for organization, repositories := range orgs {
 		wg.Add(1)
 		go func(org string, repos []db.RepoData) {
