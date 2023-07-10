@@ -22,3 +22,8 @@ terraform/.terraform
 terraform/.terraform.*
 terraform/terraform.tfstate*
 
+# Just for safety
+cloudrun_admin*
+db-secrets
+real-secrets*
+secrets*
