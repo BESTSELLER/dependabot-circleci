@@ -1,0 +1,49 @@
+version: "2"
+
+services:
+  worker:
+    environment:
+      - DEPENDABOT_LOGLEVEL=0
+      - DEPENDABOT_CONFIG=/opt/dependabot-circleci/config.json
+      - DEPENDABOT_DBCONFIG=/opt/dependabot-circleci/dbconfig.json
+    command: -worker
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    volumes:
+      - ./real-secrets2:/opt/dependabot-circleci/config.json:ro
+      - ./db-secrets:/opt/dependabot-circleci/dbconfig.json:ro
+    depends_on:
+      - postgres
+    ports:
+      - "3001:3000"
+  controller:
+    environment:
+      - DEPENDABOT_LOGLEVEL=0
+      - DEPENDABOT_CONFIG=/opt/dependabot-circleci/config.json
+      - DEPENDABOT_DBCONFIG=/opt/dependabot-circleci/dbconfig.json
+      - DEPENDABOT_WORKERURL=http://dependabot-circleci-worker-1:3000
+    command: -controller -webhook
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - postgres
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./real-secrets2:/opt/dependabot-circleci/config.json:ro
+      - ./db-secrets:/opt/dependabot-circleci/dbconfig.json:ro
+  postgres:
+    image: postgres:12
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: repos
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init-local.sql:/docker-entrypoint-initdb.d/init.sql:ro
