@@ -24,6 +24,9 @@ type RepoData struct {
 // client to be returned instead of creating a new one repeatedly
 var client *bun.DB
 
+// According to documentation, it's rarely necessary to close a DB connection.
+// The returned DB is safe for concurrent use by multiple goroutines
+// and maintains its own pool of idle connections. Thus, the OpenDB function should be called just once.
 func DBClient() *bun.DB {
 	if client != nil {
 		return client
