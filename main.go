@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 
@@ -16,7 +17,11 @@ import (
 
 func init() {
 	err := config.LoadEnvConfig()
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to read env config")
+	}
 	logger.Init()
+	fmt.Printf("Logging level: %d\n", *config.EnvVars.LogLevel)
 
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to read env config")
@@ -26,6 +31,7 @@ func init() {
 	var dbsecret []byte
 
 	if config.EnvVars.Config == "" {
+		fmt.Println("No config file specified, fetching secrets from vault")
 		vaultAddr := os.Getenv("VAULT_ADDR")
 		if vaultAddr == "" {
 			log.Fatal().Msg("VAULT_ADDR must be set")
@@ -45,6 +51,8 @@ func init() {
 			log.Fatal().Msg("DB_SECRET must be set")
 		}
 
+		fmt.Printf("VAULT_ADDR: %s\nVAULT_ROLE: %s\nAPP_SECRET: %s\nDB_SECRET: %s\n", vaultAddr, vaultRole, appSecret, dbSecret)
+
 		// fetch app secrets
 		secretData, err := gcpss.FetchVaultSecret(vaultAddr, appSecret, vaultRole)
 		if err != nil {
@@ -60,12 +68,19 @@ func init() {
 		dbsecret = []byte(secretData)
 
 	} else {
+		fmt.Println("Using config file: ", config.EnvVars.Config)
 		bytes, err := ioutil.ReadFile(config.EnvVars.Config)
 		if err != nil {
 			log.Fatal().Err(err).Msgf("Unable to read file %s", config.EnvVars.Config)
 		}
-
 		appsecret = bytes
+
+		fmt.Println("Using db config file: ", config.EnvVars.DBConfig)
+		bytes, err = ioutil.ReadFile(config.EnvVars.DBConfig)
+		if err != nil {
+			log.Fatal().Err(err).Msgf("Unable to read file %s", config.EnvVars.DBConfig)
+		}
+		dbsecret = bytes
 	}
 
 	err = config.ReadAppConfig([]byte(appsecret))

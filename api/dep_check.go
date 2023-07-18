@@ -25,17 +25,19 @@ func dependencyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println("Creating client with id: ", config.AppConfig.Github.App.IntegrationID)
+
 	// create client
 	cc, err := gh.CreateGHClient(config.AppConfig.Github)
 	if err != nil {
 		http.Error(w, "failed to register organization client", http.StatusInternalServerError)
-		log.Fatal().Err(err).Msg("failed to register organization client")
+		log.Fatal().Err(err).Msg("failed to register organization client (gh.CreateGHClient)")
 	}
 
 	client, err := gh.GetSingleOrganizationClient(cc, workerPayload.Org)
 	if err != nil {
 		http.Error(w, "failed to register organization client", http.StatusInternalServerError)
-		log.Fatal().Err(err).Msg("failed to register organization client")
+		log.Fatal().Err(err).Msg("failed to register organization client (gh.GetSingleOrganizationClient)")
 	}
 
 	// do our magic
