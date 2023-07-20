@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"sync"
@@ -122,7 +122,7 @@ func PostJSON(url string, payload []byte) error {
 
 	// check response code
 	if r.StatusCode != http.StatusOK {
-		bodyBytes, _ := ioutil.ReadAll(r.Body)
+		bodyBytes, _ := io.ReadAll(r.Body)
 		bodyString := string(bodyBytes)
 		return fmt.Errorf("Request failed, expected status: %d got: %d, error message: %s", http.StatusOK, r.StatusCode, bodyString)
 	}
