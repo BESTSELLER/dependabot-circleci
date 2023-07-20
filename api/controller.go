@@ -79,16 +79,9 @@ func shouldRun(schedule string) bool {
 	t := time.Now()
 	schedule = strings.ToLower(schedule)
 	if schedule == "monthly" {
-		if t.Day() == 1 {
-			return true
-		}
-		return false
+		return (t.Day() == 1)
 	} else if schedule == "weekly" {
-		if t.Weekday() == 1 {
-			return true
-		}
-		return false
-
+		return (t.Weekday() == 1)
 	} else if schedule == "daily" || schedule == "" {
 		return true
 	}
