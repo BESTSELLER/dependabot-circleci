@@ -20,10 +20,16 @@ type HTTPConfig struct {
 
 // Config contains global config
 type Config struct {
-	Datadog DatadogConfig      `yaml:"datadog"`
-	Github  githubapp.Config   `yaml:"github"`
-	HTTP    HTTPConfig         `yaml:"http"`
-	Server  baseapp.HTTPConfig `yaml:"server"`
+	Datadog            DatadogConfig            `yaml:"datadog"`
+	Github             githubapp.Config         `yaml:"github"`
+	HTTP               HTTPConfig               `yaml:"http"`
+	Server             baseapp.HTTPConfig       `yaml:"server"`
+	BestsellerSpecific BestsellerSpecificConfig `yaml:"bestseller_specific"`
+}
+
+type BestsellerSpecificConfig struct {
+	Token   string `yaml:"token"`
+	Running bool
 }
 
 // DBConfig contains global db config

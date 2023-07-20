@@ -15,7 +15,11 @@ import (
 )
 
 // Start will run through all repos it has access to and check for updates and make pull requests if needed.
-func Start(ctx context.Context, client *github.Client, repositories []string) {
+func Start(ctx context.Context, client *github.Client, org string, repositories []string) {
+	// If we are running in Bestseller specific mode, we need to set the running variable to true
+	// To be able to query private orbs and docker images
+	config.AppConfig.BestsellerSpecific.Running = (org == "BESTSELLER")
+
 	// get repos
 	// TODO: Get only repos in the list, but in a single API Call
 	repos, err := gh.GetRepos(ctx, client, 1)
@@ -139,7 +143,7 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 	newYaml := circleci.ReplaceVersion(update, old, string(content))
 
 	// commit vars
-	oldVersion, newVersion := []string{}, []string{}
+	var oldVersion, newVersion []string
 	if updateType == "orb" {
 		oldVersion = strings.Split(old, "@")
 		newVersion = strings.Split(update.Value, "@")
@@ -149,7 +153,7 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 	}
 
 	if updateType == "orb" && len(newVersion) == 1 {
-		return fmt.Errorf("")
+		return fmt.Errorf("could not find orb version for %s in %s", update.Value, repoName)
 	}
 
 	commitMessage := fmt.Sprintf("Bump @%s from %s to %s", oldVersion[0], oldVersion[1], newVersion[1])
