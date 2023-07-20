@@ -25,8 +25,6 @@ func dependencyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("Creating client with id: ", config.AppConfig.Github.App.IntegrationID)
-
 	// create client
 	cc, err := gh.CreateGHClient(config.AppConfig.Github)
 	if err != nil {

@@ -29,9 +29,8 @@ type WorkerPayload struct {
 var wg sync.WaitGroup
 
 func controllerHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("controllerHandler called")
 	log.Debug().Msg("controllerHandler called")
-	log.Debug().Msg("Getting repos from big query")
+
 	orgs, err := pullRepos()
 	if err != nil {
 		log.Error().Err(err).Msgf("pull repos from big query failed: %s", err)
