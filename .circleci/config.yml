@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  secret-injector: bestsellerit/secret-injector@2.3.0
+  secret-injector: bestsellerit/secret-injector@2.4.0
   cci-common: bestsellerit/cci-common@1.12.2
 
 jobs:
