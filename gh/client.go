@@ -46,6 +46,10 @@ func GetOrganizationClients(config githubapp.Config) ([]*github.Client, error) {
 		}
 
 		client, err := cc.NewInstallationClient(install.ID)
+		if err != nil {
+			return nil, err
+		}
+
 		clients = append(clients, client)
 	}
 
