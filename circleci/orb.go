@@ -45,7 +45,7 @@ func findNewestOrbVersion(orb string) string {
 		CCIApiToken = config.AppConfig.BestsellerSpecific.Token
 	}
 
-	client = graphql.NewClient(http.DefaultClient, "https://circleci.com/", "graphql-unstable", CCIApiToken, false)
+	client := graphql.NewClient(http.DefaultClient, "https://circleci.com/", "graphql-unstable", CCIApiToken, false)
 
 	// if requests fails, return current version
 	orbInfo, err := api.OrbInfo(client, orbSplitString[0])
