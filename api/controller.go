@@ -103,13 +103,13 @@ func PostJSON(url string, payload []byte) error {
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	if err != nil {
-		return fmt.Errorf("Unable to create request: %s", err)
+		return fmt.Errorf("unable to create request: %s", err)
 	}
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", config.AppConfig.HTTP.Token))
 	r, err := myClient.Do(req)
 	if err != nil {
-		return fmt.Errorf("Unable to do request: %s", err)
+		return fmt.Errorf("unable to do request: %s", err)
 	}
 	defer r.Body.Close()
 
@@ -117,7 +117,7 @@ func PostJSON(url string, payload []byte) error {
 	if r.StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(r.Body)
 		bodyString := string(bodyBytes)
-		return fmt.Errorf("Request failed, expected status: %d got: %d, error message: %s", http.StatusOK, r.StatusCode, bodyString)
+		return fmt.Errorf("request failed, expected status: %d got: %d, error message: %s", http.StatusOK, r.StatusCode, bodyString)
 	}
 	return nil
 }
