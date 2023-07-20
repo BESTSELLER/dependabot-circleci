@@ -12,7 +12,7 @@ services:
       dockerfile: Dockerfile
     restart: always
     volumes:
-      - ./real-secrets2:/opt/dependabot-circleci/config.json:ro
+      - ./app-secrets:/opt/dependabot-circleci/config.json:ro
       - ./db-secrets:/opt/dependabot-circleci/dbconfig.json:ro
     depends_on:
       - postgres
@@ -34,7 +34,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./real-secrets2:/opt/dependabot-circleci/config.json:ro
+      - ./app-secrets:/opt/dependabot-circleci/config.json:ro
       - ./db-secrets:/opt/dependabot-circleci/dbconfig.json:ro
   postgres:
     image: postgres:12
