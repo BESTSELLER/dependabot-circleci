@@ -1,7 +1,6 @@
 package main
 
 import (
-	"io/ioutil"
 	"os"
 
 	"github.com/rs/zerolog/log"
@@ -66,14 +65,14 @@ func init() {
 
 	} else {
 		log.Debug().Msgf("Using config file: %s", config.EnvVars.Config)
-		bytes, err := ioutil.ReadFile(config.EnvVars.Config)
+		bytes, err := os.ReadFile(config.EnvVars.Config)
 		if err != nil {
 			log.Fatal().Err(err).Msgf("Unable to read file %s", config.EnvVars.Config)
 		}
 		appsecret = bytes
 
 		log.Debug().Msgf("Using db config file: %s", config.EnvVars.DBConfig)
-		bytes, err = ioutil.ReadFile(config.EnvVars.DBConfig)
+		bytes, err = os.ReadFile(config.EnvVars.DBConfig)
 		if err != nil {
 			log.Fatal().Err(err).Msgf("Unable to read file %s", config.EnvVars.DBConfig)
 		}
