@@ -40,7 +40,7 @@ func controllerHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Debug().Msg("Sending metric to datadog")
 	// send stats to dd
-	go datadog.Gauge("organizations", float64(len(orgs)), nil)
+	go datadog.IncrementCount("organizations", int64(len(orgs)), nil)
 
 	log.Debug().Msg("Triggering workers")
 	// should be in parallel
@@ -50,7 +50,7 @@ func controllerHandler(w http.ResponseWriter, r *http.Request) {
 			defer wg.Done()
 			var triggeredRepos []string
 
-			go datadog.Gauge("enabled_repos", float64(len(repos)), []string{fmt.Sprintf("organization:%s", org)})
+			go datadog.IncrementCount("enabled_repos", int64(len(repos)), []string{fmt.Sprintf("organization:%s", org)})
 
 			for _, repo := range repos {
 				if shouldRun(repo.Schedule) {
