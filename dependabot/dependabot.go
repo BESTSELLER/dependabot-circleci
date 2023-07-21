@@ -71,7 +71,7 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 		return
 	}
 
-	go datadog.IncrementCount("analysed_repos", repoOwner)
+	go datadog.IncrementCount("analysed_repos", 1, []string{fmt.Sprintf("organization:%s", repoOwner)})
 
 	// get content of circleci config file
 	content, SHA, err := gh.GetRepoContent(ctx, client, repoOwner, repoName, repoConfig.Directory+"/.circleci/config.yml", targetBranch)
@@ -93,7 +93,7 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 		// wg.Add(1)
 		err = handleUpdate(ctx, client, update, "orb", old, content, repoOwner, repoName, targetBranch, SHA, repoConfig)
 		if err != nil {
-			go datadog.IncrementCount("failed_repos", repoOwner)
+			go datadog.IncrementCount("failed_repos", 1, []string{fmt.Sprintf("organization:%s", repoOwner)})
 			return
 		}
 	}
@@ -101,7 +101,7 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 		// wg.Add(1)
 		err = handleUpdate(ctx, client, update, "docker", old, content, repoOwner, repoName, targetBranch, SHA, repoConfig)
 		if err != nil {
-			go datadog.IncrementCount("failed_repos", repoOwner)
+			go datadog.IncrementCount("failed_repos", 1, []string{fmt.Sprintf("organization:%s", repoOwner)})
 			return
 		}
 	}
@@ -206,14 +206,14 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 	}
 
 	go func() {
-		datadog.IncrementCount("pull_requests", repoOwner)
+		datadog.IncrementCount("pull_requests", 1, []string{fmt.Sprintf("organization:%s", repoOwner)})
 	}()
 
 	if oldPRs != nil || len(oldPRs) > 0 {
 		gh.CleanUpOldBranch(ctx, client, repoOwner, repoName, oldPRs, newPR.GetNumber())
 
 		go func() {
-			datadog.IncrementCount("superseeded_updates", repoOwner)
+			datadog.IncrementCount("superseeded_updates", 1, []string{fmt.Sprintf("organization:%s", repoOwner)})
 		}()
 	}
 	return nil

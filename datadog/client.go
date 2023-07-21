@@ -28,9 +28,9 @@ type Series struct {
 var metricPrefix = "dependabot_circleci"
 
 // IncrementCount incrementes a counter based on the input
-func IncrementCount(metricName string, org string) {
+func IncrementCount(metricName string, value int64, tags []string) {
 	metric := metricPrefix + "." + metricName
-	err := postDataDogMetric(metric, 1, "count", []string{"organistation:" + org})
+	err := postDataDogMetric(metric, value, "count", tags)
 	if err != nil {
 		log.Debug().Err(err).Msgf("could not increment datadog counter %s", metricName)
 	}
