@@ -38,11 +38,13 @@ func dependencyHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal().Err(err).Msg("failed to register organization client (gh.GetSingleOrganizationClient)")
 	}
 
+	fmt.Fprintln(w, "Depedency check has started, please check github for incomming pull requests!")
+
 	// do our magic
 	dependabot.Start(context.Background(), client, workerPayload.Org, workerPayload.Repos)
 
 	// send stats to DD
 	defer datadog.TimeTrackAndGauge("dependency_check_duration", []string{fmt.Sprintf("organization:%s", workerPayload.Org)}, start)
 
-	fmt.Fprintln(w, "Yaaay all done, please check github for pull requests!")
+	log.Debug().Msgf("Dependency check has completed for organization: %s", workerPayload.Org)
 }
