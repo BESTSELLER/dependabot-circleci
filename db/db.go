@@ -21,8 +21,22 @@ type RepoData struct {
 	LastRun  bun.NullTime `bun:"lastrun"`
 }
 
+// client to be returned instead of creating a new one repeatedly
+var client *bun.DB
+
+// According to documentation, it's rarely necessary to close a DB connection.
+// The returned DB is safe for concurrent use by multiple goroutines
+// and maintains its own pool of idle connections. Thus, the OpenDB function should be called just once.
 func DBClient() *bun.DB {
+	if client != nil {
+		return client
+	}
+
 	dsn := fmt.Sprintf("unix:///cloudsql/%s/.s.PGSQL.5432?sslmode=disable", config.DBConfig.ConnectionName)
+	if config.DBConfig.ConnectionString != "" {
+		dsn = config.DBConfig.ConnectionString
+	}
+
 	sqldb := sql.OpenDB(pgdriver.NewConnector(
 		pgdriver.WithDatabase(config.DBConfig.DBName),
 		pgdriver.WithUser(config.DBConfig.Username),
@@ -31,7 +45,8 @@ func DBClient() *bun.DB {
 		pgdriver.WithDSN(dsn),
 	))
 
-	return bun.NewDB(sqldb, pgdialect.New())
+	client = bun.NewDB(sqldb, pgdialect.New())
+	return client
 
 }
 

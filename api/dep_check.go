@@ -29,17 +29,17 @@ func dependencyHandler(w http.ResponseWriter, r *http.Request) {
 	cc, err := gh.CreateGHClient(config.AppConfig.Github)
 	if err != nil {
 		http.Error(w, "failed to register organization client", http.StatusInternalServerError)
-		log.Fatal().Err(err).Msg("failed to register organization client")
+		log.Fatal().Err(err).Msg("failed to register organization client (gh.CreateGHClient)")
 	}
 
 	client, err := gh.GetSingleOrganizationClient(cc, workerPayload.Org)
 	if err != nil {
 		http.Error(w, "failed to register organization client", http.StatusInternalServerError)
-		log.Fatal().Err(err).Msg("failed to register organization client")
+		log.Fatal().Err(err).Msg("failed to register organization client (gh.GetSingleOrganizationClient)")
 	}
 
 	// do our magic
-	dependabot.Start(context.Background(), client, workerPayload.Repos)
+	dependabot.Start(context.Background(), client, workerPayload.Org, workerPayload.Repos)
 
 	// send stats to DD
 	defer datadog.TimeTrackAndGauge("dependency_check_duration", []string{fmt.Sprintf("organization:%s", workerPayload.Org)}, start)

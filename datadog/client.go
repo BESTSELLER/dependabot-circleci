@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 
@@ -102,11 +102,11 @@ func postStructAsJSON(url string, payload interface{}, target interface{}) (stri
 	defer r.Body.Close()
 
 	// check status code
-	bodyBytes, _ := ioutil.ReadAll(r.Body)
+	bodyBytes, _ := io.ReadAll(r.Body)
 	bodyString := string(bodyBytes)
 
 	if r.StatusCode < 200 || r.StatusCode > 299 {
-		return "", fmt.Errorf("Request failed, expected status: 2xx got: %d, error message: %s", r.StatusCode, bodyString)
+		return "", fmt.Errorf("request failed, expected status: 2xx got: %d, error message: %s", r.StatusCode, bodyString)
 	}
 	decode := json.NewDecoder(r.Body)
 	err = decode.Decode(&target)

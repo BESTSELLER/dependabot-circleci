@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"sync"
@@ -29,16 +29,21 @@ type WorkerPayload struct {
 var wg sync.WaitGroup
 
 func controllerHandler(w http.ResponseWriter, r *http.Request) {
+	log.Debug().Msg("controllerHandler called")
+
 	orgs, err := pullRepos()
 	if err != nil {
 		log.Error().Err(err).Msgf("pull repos from big query failed: %s", err)
 		http.Error(w, "", http.StatusInternalServerError)
 	}
+	log.Debug().Msgf("Found %d organizations", len(orgs))
 
+	log.Debug().Msg("Sending metric to datadog")
 	// send stats to dd
 	go datadog.Gauge("organizations", float64(len(orgs)), nil)
 
-	// should be in parralel
+	log.Debug().Msg("Triggering workers")
+	// should be in parallel
 	for organization, repositories := range orgs {
 		wg.Add(1)
 		go func(org string, repos []db.RepoData) {
@@ -67,22 +72,16 @@ func controllerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	wg.Wait()
+	log.Debug().Msg("All workers finished")
 }
 func shouldRun(schedule string) bool {
 	// check if an update should be run
 	t := time.Now()
 	schedule = strings.ToLower(schedule)
 	if schedule == "monthly" {
-		if t.Day() == 1 {
-			return true
-		}
-		return false
+		return (t.Day() == 1)
 	} else if schedule == "weekly" {
-		if t.Weekday() == 1 {
-			return true
-		}
-		return false
-
+		return (t.Weekday() == 1)
 	} else if schedule == "daily" || schedule == "" {
 		return true
 	}
@@ -92,30 +91,33 @@ func shouldRun(schedule string) bool {
 // PostJSON posts the structs as json to the specified url
 func PostJSON(url string, payload []byte) error {
 
+	var myClient *http.Client
 	clientWithAuth, err := idtoken.NewClient(context.Background(), url)
 	if err != nil {
-		return fmt.Errorf("idtoken.NewClient: %v", err)
+		log.Warn().Err(err).Msg("Issues getting token from GCP metadata server, trying to continue without auth.")
+		myClient = &http.Client{}
+		// return fmt.Errorf("idtoken.NewClient: %v", err)
+	} else {
+		myClient = httptrace.WrapClient(clientWithAuth)
 	}
-
-	var myClient = httptrace.WrapClient(clientWithAuth)
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	if err != nil {
-		return fmt.Errorf("Unable to create request: %s", err)
+		return fmt.Errorf("unable to create request: %s", err)
 	}
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", config.AppConfig.HTTP.Token))
 	r, err := myClient.Do(req)
 	if err != nil {
-		return fmt.Errorf("Unable to do request: %s", err)
+		return fmt.Errorf("unable to do request: %s", err)
 	}
 	defer r.Body.Close()
 
 	// check response code
 	if r.StatusCode != http.StatusOK {
-		bodyBytes, _ := ioutil.ReadAll(r.Body)
+		bodyBytes, _ := io.ReadAll(r.Body)
 		bodyString := string(bodyBytes)
-		return fmt.Errorf("Request failed, expected status: %d got: %d, error message: %s", http.StatusOK, r.StatusCode, bodyString)
+		return fmt.Errorf("request failed, expected status: %d got: %d, error message: %s", http.StatusOK, r.StatusCode, bodyString)
 	}
 	return nil
 }

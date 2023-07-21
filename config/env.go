@@ -7,6 +7,7 @@ import (
 // EnvConfig defines the structure of the global configuration parameters
 type EnvConfig struct {
 	Config    string `required:"false"`
+	DBConfig  string `required:"false"`
 	LogLevel  *int   `required:"false"`
 	DDAddress string `required:"false"`
 	Schedule  string `required:"false"`
@@ -22,5 +23,12 @@ func LoadEnvConfig() error {
 	if err != nil {
 		return err
 	}
+
+	// If no log level is set, default to info
+	if EnvVars.LogLevel == nil {
+		logLevel := 1
+		EnvVars.LogLevel = &logLevel
+	}
+
 	return nil
 }

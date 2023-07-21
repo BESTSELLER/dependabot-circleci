@@ -97,7 +97,7 @@ workflows:
   test:
     jobs:
       - secret-injector/dump-secrets-yaml:
-          secret-file: ci-secrets.yaml
+          secret-file: secrets-ci.yaml
           <<: [*prod_context, *no_deploy_filter]
       - cci-common/go_test_unit:
           <<: [*prod_context, *no_deploy_filter]
@@ -127,7 +127,7 @@ workflows:
   deploy:
     jobs:
       - secret-injector/dump-secrets-yaml:
-          secret-file: ci-secrets.yaml
+          secret-file: secrets-ci.yaml
           <<: [*prod_context, *deploy_filter]
       - cci-common/build_n_push_docker:
           tag: ${CIRCLE_TAG}

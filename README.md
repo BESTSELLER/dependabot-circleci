@@ -8,15 +8,15 @@
 
 <br/>
 
-`dependabot-circleci` is, as its name suggests, a small dependabot for circleci orbs and images.
-We have created this as at the time of creation it was nearly impossible getting changes into the official [dependabot](https://github.com/dependabot/dependabot-core).
+`dependabot-circleci` is, as its name suggests, a small dependabot for CircleCI orbs and container images.
+We have created this as at the time of creation it was nearly impossible to get changes into the official [dependabot](https://github.com/dependabot/dependabot-core).
 
 ---
 <br/>
 
 ## Getting Started
-1. Install the `dependabot-circleci` [github app](https://github.com/apps/dependabot-circleci) in your organization.
-2. You enable `dependabot-circleci` on specific repositories creating dependabot-circleci.yml configuration file in to your repository's .github directory. `dependabot-circleci` then raises pull requests to keep the dependencies you configure up-to-date.
+1. Install the `dependabot-circleci` [GitHub App](https://github.com/apps/dependabot-circleci) in your organization.
+2. You enable `dependabot-circleci` on specific repositories by creating a `dependabot-circleci.yml` configuration file in your repository's `.github` directory. `dependabot-circleci` then raise pull requests to keep the dependencies you configure up-to-date.
 
 <br/>
 
@@ -64,3 +64,46 @@ You must store this file in the .github directory of your repository.
 
 ## Contributing
 We are open for issues, pull requests etc.
+
+## Running locally
+1. Clone the repository
+2. Make sure to have your secrets file in place  
+    2.1 BESTSELLER folks can use Harpocrates to get them from Vault.
+      ```bash
+      harpocrates -f secrets-local.yaml --vault-token $(vault token create -format=json | jq -r '.auth.client_token')
+      ```  
+    2.2 Others will have to fill out this template in any other way.  
+      ```json
+      {
+        "datadog": {
+          "api_key": ""
+        },
+        "github": {
+          "app": {
+            "integration_id": ,
+            "private_key": "",
+            "webhook_secret": ""
+          },
+          "oauth": {
+            "client_id": "",
+            "client_secret": ""
+          },
+          "v3_api_url": "https://api.github.com/"
+        },
+        "http": {
+          "token": ""
+        },
+        "server": {
+          "port": 3000,
+          "public_url": ""
+        },
+        "bestseller_specific": {
+          "token": ""
+        }
+      }
+      ```
+3. Run `dependabot-circleci` by using Docker compose
+    > `--build` will ensure that the latest version of the code is used
+    ```bash
+    docker-compose up --build
+    ```

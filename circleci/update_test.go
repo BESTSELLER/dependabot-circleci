@@ -2,7 +2,7 @@ package circleci
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -13,7 +13,7 @@ import (
 
 func getTestCases() map[string]*yaml.Node {
 	path := "../.test_cases"
-	files, err := ioutil.ReadDir(path)
+	files, err := os.ReadDir(path)
 	if err != nil {
 		log.Fatal().Err(err)
 	}
@@ -27,7 +27,7 @@ func getTestCases() map[string]*yaml.Node {
 		filePath := filepath.Join(path, fileName)
 		fmt.Println(f.Name())
 
-		content, _ := ioutil.ReadFile(filePath)
+		content, _ := os.ReadFile(filePath)
 		var cciconfig yaml.Node
 		err = yaml.Unmarshal(content, &cciconfig)
 		if err != nil {

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"io/ioutil"
 	"os"
 
 	"github.com/rs/zerolog/log"
@@ -16,7 +15,11 @@ import (
 
 func init() {
 	err := config.LoadEnvConfig()
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to read env config")
+	}
 	logger.Init()
+	log.Debug().Msgf("Logging level: %d", *config.EnvVars.LogLevel)
 
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to read env config")
@@ -26,6 +29,7 @@ func init() {
 	var dbsecret []byte
 
 	if config.EnvVars.Config == "" {
+		log.Debug().Msg("No config file specified, fetching secrets from vault")
 		vaultAddr := os.Getenv("VAULT_ADDR")
 		if vaultAddr == "" {
 			log.Fatal().Msg("VAULT_ADDR must be set")
@@ -52,7 +56,7 @@ func init() {
 		}
 		appsecret = []byte(secretData)
 
-		// fectch db secrets
+		// fetch db secrets
 		secretData, err = gcpss.FetchVaultSecret(vaultAddr, dbSecret, vaultRole)
 		if err != nil {
 			log.Fatal().Err(err).Msgf("Unable to fetch secrets from vault. error %v", err)
@@ -60,12 +64,19 @@ func init() {
 		dbsecret = []byte(secretData)
 
 	} else {
-		bytes, err := ioutil.ReadFile(config.EnvVars.Config)
+		log.Debug().Msgf("Using config file: %s", config.EnvVars.Config)
+		bytes, err := os.ReadFile(config.EnvVars.Config)
 		if err != nil {
 			log.Fatal().Err(err).Msgf("Unable to read file %s", config.EnvVars.Config)
 		}
-
 		appsecret = bytes
+
+		log.Debug().Msgf("Using db config file: %s", config.EnvVars.DBConfig)
+		bytes, err = os.ReadFile(config.EnvVars.DBConfig)
+		if err != nil {
+			log.Fatal().Err(err).Msgf("Unable to read file %s", config.EnvVars.DBConfig)
+		}
+		dbsecret = bytes
 	}
 
 	err = config.ReadAppConfig([]byte(appsecret))

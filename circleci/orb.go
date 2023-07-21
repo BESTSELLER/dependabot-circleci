@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/BESTSELLER/dependabot-circleci/config"
 	"github.com/CircleCI-Public/circleci-cli/api"
 	"github.com/CircleCI-Public/circleci-cli/api/graphql"
 	"github.com/rs/zerolog/log"
@@ -38,7 +39,13 @@ func findNewestOrbVersion(orb string) string {
 		return orbSplitString[1]
 	}
 
-	client := graphql.NewClient(http.DefaultClient, "https://circleci.com/", "graphql-unstable", "", false)
+	CCIApiToken := ""
+	if config.AppConfig.BestsellerSpecific.Running {
+		log.Debug().Msg("Using Bestseller specific token to handle private orbs")
+		CCIApiToken = config.AppConfig.BestsellerSpecific.Token
+	}
+
+	client := graphql.NewClient(http.DefaultClient, "https://circleci.com/", "graphql-unstable", CCIApiToken, false)
 
 	// if requests fails, return current version
 	orbInfo, err := api.OrbInfo(client, orbSplitString[0])
