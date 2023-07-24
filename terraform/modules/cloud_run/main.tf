@@ -102,10 +102,6 @@ resource "google_cloud_run_v2_service" "main" {
         name  = "LOG_LEVEL"
         value = "warn"
       }
-      ports {
-        name           = "http1"
-        container_port = 8080
-      }
       volume_mounts {
         name       = "secrets"
         mount_path = "/secrets"
