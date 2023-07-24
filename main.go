@@ -18,7 +18,7 @@ func init() {
 		log.Fatal().Err(err).Msg("failed to read env config")
 	}
 	logger.Init()
-	log.Debug().Msgf("Logging level: %d", *config.EnvVars.LogLevel)
+	log.Debug().Msgf("Logging level: %s", logger.LogLevel.String())
 
 	var appsecret []byte
 	var dbsecret []byte

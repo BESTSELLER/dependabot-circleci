@@ -1,8 +1,9 @@
 resource "google_cloud_run_v2_service" "main" {
-  provider = google-beta
-  name     = var.name
-  location = var.location
-  project  = var.project_id
+  provider     = google-beta
+  name         = var.name
+  location     = var.location
+  project      = var.project_id
+  launch_stage = "BETA"
   labels = {
     env     = var.env
     service = var.service
@@ -101,10 +102,6 @@ resource "google_cloud_run_v2_service" "main" {
       env {
         name  = "LOG_LEVEL"
         value = "warn"
-      }
-      ports {
-        name           = "http1"
-        container_port = 8080
       }
       volume_mounts {
         name       = "secrets"
