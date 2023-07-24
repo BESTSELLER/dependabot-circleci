@@ -38,6 +38,8 @@ func dependencyHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal().Err(err).Msg("failed to register organization client (gh.GetSingleOrganizationClient)")
 	}
 
+	// Release client and do magic in the background
+	w.WriteHeader(http.StatusOK)
 	fmt.Fprintln(w, "Depedency check has started, please check github for incomming pull requests!")
 
 	// do our magic
