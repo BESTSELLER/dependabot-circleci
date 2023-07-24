@@ -17,7 +17,7 @@ func Init() {
 	}
 
 	// env is prioritized over config, as this has less dependencies
-	if *config.EnvVars.LogLevel <= int(zerolog.Disabled) {
+	if config.EnvVars.LogLevel != nil && *config.EnvVars.LogLevel <= int(zerolog.Disabled) {
 		zerolog.SetGlobalLevel(zerolog.Level(*config.EnvVars.LogLevel))
 		return
 	}
