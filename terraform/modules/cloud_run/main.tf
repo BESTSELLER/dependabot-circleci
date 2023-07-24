@@ -13,17 +13,15 @@ resource "google_cloud_run_v2_service" "main" {
     service_account                  = "${var.service}-v3@${var.project_id}.iam.gserviceaccount.com"
     timeout                          = "1800s"
     max_instance_request_concurrency = var.container_concurrency
+    scaling {
+      min_instance_count = var.scaling["min"]
+      max_instance_count = var.scaling["max"]
+    }
     labels = {
       env     = var.env
       service = var.service
       team    = var.team
       version = replace(var.tag, ".", "_")
-    }
-    annotations = {
-      "autoscaling.knative.dev/maxScale"      = var.scaling["max"]
-      "autoscaling.knative.dev/minScale"      = var.scaling["min"]
-      "run.googleapis.com/cloudsql-instances" = var.db_instance
-
     }
     containers {
       name       = var.name
@@ -49,6 +47,10 @@ resource "google_cloud_run_v2_service" "main" {
       volume_mounts {
         name       = "secrets"
         mount_path = "/secrets"
+      }
+      volume_mounts {
+        name       = "cloudsql"
+        mount_path = "/cloudsql"
       }
     }
     containers {
@@ -119,6 +121,12 @@ resource "google_cloud_run_v2_service" "main" {
     volumes {
       name = "secrets"
       empty_dir {}
+    }
+    volumes {
+      name = "cloudsql"
+      cloud_sql_instance {
+        instances = [var.db_instance]
+      }
     }
   }
 
