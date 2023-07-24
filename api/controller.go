@@ -33,7 +33,7 @@ func controllerHandler(w http.ResponseWriter, r *http.Request) {
 
 	orgs, err := pullRepos()
 	if err != nil {
-		log.Error().Err(err).Msgf("pull repos from big query failed: %s", err)
+		log.Error().Err(err).Msgf("pull repos from the db failed: %s", err)
 		http.Error(w, "", http.StatusInternalServerError)
 	}
 	log.Debug().Msgf("Found %d organizations", len(orgs))
@@ -67,6 +67,8 @@ func controllerHandler(w http.ResponseWriter, r *http.Request) {
 			err = PostJSON(fmt.Sprintf("%s/start", config.EnvVars.WorkerURL), payloadBytes)
 			if err != nil {
 				log.Error().Err(err).Msgf("error triggering worker for org %s", org)
+			} else {
+				log.Debug().Msgf("Dependency check has started for org: %s", org)
 			}
 		}(organization, repositories)
 	}
