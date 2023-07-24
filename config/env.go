@@ -24,11 +24,5 @@ func LoadEnvConfig() error {
 		return err
 	}
 
-	// If no log level is set, default to info
-	if EnvVars.LogLevel == nil {
-		logLevel := 1
-		EnvVars.LogLevel = &logLevel
-	}
-
 	return nil
 }
