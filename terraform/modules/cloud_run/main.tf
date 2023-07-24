@@ -130,7 +130,7 @@ resource "google_cloud_run_v2_service" "main" {
   }
 }
 
-resource "google_cloud_run_service_iam_member" "allow_unauthenticated" {
+resource "google_cloud_run_v2_service" "allow_unauthenticated" {
   count    = var.allow_unauthenticated ? 1 : 0
   location = google_cloud_run_service.main.location
   project  = google_cloud_run_service.main.project
