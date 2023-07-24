@@ -15,19 +15,17 @@ resource "google_cloud_run_v2_service" "main" {
     service_account_name  = "${var.service}-v3@${var.project_id}.iam.gserviceaccount.com"
     timeout_seconds       = 1800
     container_concurrency = var.container_concurrency
-    metadata {
-      labels = {
-        env     = var.env
-        service = var.service
-        team    = var.team
-        version = replace(var.tag, ".", "_")
-      }
-      annotations = {
-        "autoscaling.knative.dev/maxScale"      = var.scaling["max"]
-        "autoscaling.knative.dev/minScale"      = var.scaling["min"]
-        "run.googleapis.com/cloudsql-instances" = var.db_instance
+    labels = {
+      env     = var.env
+      service = var.service
+      team    = var.team
+      version = replace(var.tag, ".", "_")
+    }
+    annotations = {
+      "autoscaling.knative.dev/maxScale"      = var.scaling["max"]
+      "autoscaling.knative.dev/minScale"      = var.scaling["min"]
+      "run.googleapis.com/cloudsql-instances" = var.db_instance
 
-      }
     }
     containers {
       name       = var.name
