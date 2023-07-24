@@ -1,4 +1,5 @@
 resource "google_cloud_run_v2_service" "main" {
+  provider = google-beta
   name     = var.name
   location = var.location
   project  = var.project_id
@@ -57,7 +58,7 @@ resource "google_cloud_run_v2_service" "main" {
     containers {
       name  = "secret-dumper"
       image = "europe-docker.pkg.dev/artifacts-pub-prod-b57f/public-docker/harpocrates:2.4.0"
-      args = jsondecode({
+      args = jsonencode({
         "format" : "json",
         "output" : "/secrets",
         "secrets" : [
