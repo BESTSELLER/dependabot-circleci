@@ -54,22 +54,24 @@ resource "google_cloud_run_v2_service" "main" {
     containers {
       name  = "secret-dumper"
       image = "europe-docker.pkg.dev/artifacts-pub-prod-b57f/public-docker/harpocrates:2.4.0"
-      args = jsonencode({
-        "format" : "json",
-        "output" : "/secrets",
-        "secrets" : [
-          {
-            "ES/data/${var.service}/prod" : {
-              "filename" : "app-secrets"
+      args = [
+        jsonencode({
+          "format" : "json",
+          "output" : "/secrets",
+          "secrets" : [
+            {
+              "ES/data/${var.service}/prod" : {
+                "filename" : "app-secrets"
+              }
+            },
+            {
+              "ES/data/${var.service}/db" : {
+                "filename" : "db-secrets"
+              }
             }
-          },
-          {
-            "ES/data/${var.service}/db" : {
-              "filename" : "db-secrets"
-            }
-          }
-        ]
-      })
+          ]
+        })
+      ]
       env {
         name  = "VAULT_ADDR"
         value = "https://vault.bestsellerit.com"
