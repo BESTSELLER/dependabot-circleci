@@ -1,4 +1,4 @@
-resource "google_cloud_run_service" "main" {
+resource "google_cloud_run_v2_service" "main" {
   name     = var.name
   location = var.location
   project  = var.project_id
@@ -11,6 +11,9 @@ resource "google_cloud_run_service" "main" {
     }
   }
   template {
+    service_account_name  = "${var.service}-v3@${var.project_id}.iam.gserviceaccount.com"
+    timeout_seconds       = 1800
+    container_concurrency = var.container_concurrency
     metadata {
       labels = {
         env     = var.env
@@ -25,38 +28,98 @@ resource "google_cloud_run_service" "main" {
 
       }
     }
-    spec {
-      containers {
-        image = "europe-docker.pkg.dev/artifacts-pub-prod-b57f/public-docker/${var.service}:${var.tag}"
-        args  = var.args
-        env {
-          name  = "DEPENDABOT_WORKERURL"
-          value = var.worker_url
-        }
-        env {
-          name  = "VAULT_ADDR"
-          value = "https://vault.bestsellerit.com"
-        }
-        env {
-          name  = "VAULT_ROLE"
-          value = "dependabot-circleci-v3"
-        }
-        env {
-          name  = "APP_SECRET"
-          value = "ES/data/${var.service}/prod"
-        }
-        env {
-          name  = "DB_SECRET"
-          value = "ES/data/${var.service}/db"
-        }
-        ports {
-          name           = "http1"
-          container_port = 3000
-        }
+    containers {
+      name       = var.name
+      image      = "europe-docker.pkg.dev/artifacts-pub-prod-b57f/public-docker/${var.service}:${var.tag}"
+      args       = var.args
+      depends_on = ["secret-dumper"]
+      env {
+        name  = "DEPENDABOT_WORKERURL"
+        value = var.worker_url
       }
-      service_account_name  = "${var.service}-v3@${var.project_id}.iam.gserviceaccount.com"
-      timeout_seconds       = 1800
-      container_concurrency = var.container_concurrency
+      env {
+        name  = "DEPENDABOT_CONFIG"
+        value = "/secrets/app-secrets"
+      }
+      env {
+        name  = "DEPENDABOT_DBCONFIG"
+        value = "/secrets/db-secrets"
+      }
+      ports {
+        name           = "http1"
+        container_port = 3000
+      }
+      volume_mounts {
+        name       = "secrets"
+        mount_path = "/secrets"
+      }
+    }
+    containers {
+      name  = "secret-dumper"
+      image = "europe-docker.pkg.dev/artifacts-pub-prod-b57f/public-docker/harpocrates:2.4.0"
+      args = jsondecode({
+        "format" : "json",
+        "output" : "/secrets",
+        "secrets" : [
+          {
+            "ES/data/${var.service}/prod" : {
+              "filename" : "app-secrets"
+            }
+          },
+          {
+            "ES/data/${var.service}/db" : {
+              "filename" : "db-secrets"
+            }
+          }
+        ]
+      })
+      env {
+        name  = "VAULT_ADDR"
+        value = "https://vault.bestsellerit.com"
+      }
+      env {
+        name  = "AUTH_NAME"
+        value = "dependabot-circleci-v3"
+      }
+      env {
+        name  = "ROLE_NAME"
+        value = "dependabot-circleci-v3"
+      }
+      env {
+        name  = "GCP_WORKLOAD_ID"
+        value = "true"
+      }
+      env {
+        name  = "CONTINUOUS"
+        value = "true"
+      }
+      env {
+        name  = "INTERVAL"
+        value = "60s"
+      }
+      env {
+        name  = "LOG_LEVEL"
+        value = "warn"
+      }
+      ports {
+        name           = "http1"
+        container_port = 8080
+      }
+      volume_mounts {
+        name       = "secrets"
+        mount_path = "/secrets"
+      }
+      startup_probe {
+        http_get {
+          path = "/status"
+          port = 8000
+        }
+        initial_delay_seconds = "2s"
+      }
+    }
+    volumes {
+      name = "secrets"
+      empty_dir {}
     }
   }
 

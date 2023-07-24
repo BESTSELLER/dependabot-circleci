@@ -25,6 +25,7 @@ type Config struct {
 	HTTP               HTTPConfig               `yaml:"http"`
 	Server             baseapp.HTTPConfig       `yaml:"server"`
 	BestsellerSpecific BestsellerSpecificConfig `yaml:"bestseller_specific"`
+	LogLevel           *int                     `yaml:"log_level,omitempty"`
 }
 
 type BestsellerSpecificConfig struct {
