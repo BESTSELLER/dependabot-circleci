@@ -22,6 +22,11 @@ module "controller" {
   team        = var.team
   tag         = var.tag
   db_instance = module.db.db_instance
+
+  providers = {
+    google      = google
+    google-beta = google-beta
+  }
 }
 
 module "worker" {
@@ -37,6 +42,11 @@ module "worker" {
   tag                   = var.tag
   db_instance           = module.db.db_instance
   container_concurrency = 1
+
+  providers = {
+    google      = google
+    google-beta = google-beta
+  }
 }
 
 module "webhook" {
@@ -53,6 +63,11 @@ module "webhook" {
   allow_unauthenticated = true
   db_instance           = module.db.db_instance
   container_concurrency = 300
+
+  providers = {
+    google      = google
+    google-beta = google-beta
+  }
 }
 
 
