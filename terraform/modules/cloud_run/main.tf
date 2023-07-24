@@ -3,18 +3,16 @@ resource "google_cloud_run_v2_service" "main" {
   name     = var.name
   location = var.location
   project  = var.project_id
-  metadata {
-    labels = {
-      env     = var.env
-      service = var.service
-      team    = var.team
-      version = replace(var.tag, ".", "_")
-    }
+  labels = {
+    env     = var.env
+    service = var.service
+    team    = var.team
+    version = replace(var.tag, ".", "_")
   }
   template {
-    service_account_name  = "${var.service}-v3@${var.project_id}.iam.gserviceaccount.com"
-    timeout_seconds       = 1800
-    container_concurrency = var.container_concurrency
+    service_account                  = "${var.service}-v3@${var.project_id}.iam.gserviceaccount.com"
+    timeout                          = "1800s"
+    max_instance_request_concurrency = var.container_concurrency
     labels = {
       env     = var.env
       service = var.service
@@ -113,7 +111,7 @@ resource "google_cloud_run_v2_service" "main" {
           path = "/status"
           port = 8000
         }
-        initial_delay_seconds = "2s"
+        initial_delay_seconds = 2
       }
     }
     volumes {
@@ -123,8 +121,7 @@ resource "google_cloud_run_v2_service" "main" {
   }
 
   traffic {
-    percent         = 100
-    latest_revision = true
+    percent = 100
   }
 }
 
