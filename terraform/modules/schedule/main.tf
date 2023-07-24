@@ -11,8 +11,9 @@ resource "google_cloud_scheduler_job" "job" {
   region     = "us-central1"
   depends_on = [google_project_service.cloudscheduler]
 
-  schedule  = "0 05 * * *"
-  time_zone = "Europe/Copenhagen"
+  schedule         = "0 05 * * *"
+  time_zone        = "Europe/Copenhagen"
+  attempt_deadline = "600s"
 
   http_target {
     http_method = "POST"
