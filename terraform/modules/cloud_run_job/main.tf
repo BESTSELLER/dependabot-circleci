@@ -11,15 +11,17 @@ resource "google_cloud_run_v2_job" "main" {
     version = replace(var.tag, ".", "_")
   }
   template {
+    labels = {
+      env     = var.env
+      service = var.service
+      team    = var.team
+      version = replace(var.tag, ".", "_")
+    }
+    parallelism = 1
     template {
       service_account = "${var.service}-v3@${var.project_id}.iam.gserviceaccount.com"
       timeout         = "3600s"
-      labels = {
-        env     = var.env
-        service = var.service
-        team    = var.team
-        version = replace(var.tag, ".", "_")
-      }
+      max_retries     = 0
       containers {
         name       = var.name
         image      = "europe-docker.pkg.dev/artifacts-pub-prod-b57f/public-docker/${var.service}:${var.tag}"
