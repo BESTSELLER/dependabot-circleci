@@ -1,4 +1,4 @@
-package api
+package cmd
 
 import (
 	"bytes"
@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/BESTSELLER/dependabot-circleci/api"
 	"github.com/BESTSELLER/dependabot-circleci/config"
 	"github.com/BESTSELLER/dependabot-circleci/db"
 	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
@@ -21,20 +22,14 @@ import (
 	"google.golang.org/api/idtoken"
 )
 
-type WorkerPayload struct {
-	Org   string
-	Repos []string
-}
-
 var wg sync.WaitGroup
 
-func controllerHandler(w http.ResponseWriter, r *http.Request) {
-	log.Debug().Msg("controllerHandler called")
+func ControllerStart() {
+	log.Debug().Msg("Controller is starting")
 
 	orgs, err := pullRepos()
 	if err != nil {
-		log.Error().Err(err).Msgf("pull repos from the db failed: %s", err)
-		http.Error(w, "", http.StatusInternalServerError)
+		log.Fatal().Err(err).Msgf("pull repos from the db failed: %s", err)
 	}
 	log.Debug().Msgf("Found %d organizations", len(orgs))
 
@@ -57,14 +52,14 @@ func controllerHandler(w http.ResponseWriter, r *http.Request) {
 					triggeredRepos = append(triggeredRepos, repo.Repo)
 				}
 			}
-			payloadObj := WorkerPayload{Org: org, Repos: triggeredRepos}
+			payloadObj := api.WorkerPayload{Org: org, Repos: triggeredRepos}
 			payloadBytes, err := json.Marshal(payloadObj)
 			if err != nil {
 				log.Error().Err(err).Msg("error marshaling payload")
 				return
 			}
 
-			err = PostJSON(fmt.Sprintf("%s/start", config.EnvVars.WorkerURL), payloadBytes)
+			err = postJSON(fmt.Sprintf("%s/start", config.EnvVars.WorkerURL), payloadBytes)
 			if err != nil {
 				log.Error().Err(err).Msgf("error triggering worker for org %s", org)
 			} else {
@@ -76,6 +71,7 @@ func controllerHandler(w http.ResponseWriter, r *http.Request) {
 	wg.Wait()
 	log.Debug().Msg("All workers finished")
 }
+
 func shouldRun(schedule string) bool {
 	// check if an update should be run
 	t := time.Now()
@@ -90,8 +86,8 @@ func shouldRun(schedule string) bool {
 	return false
 }
 
-// PostJSON posts the structs as json to the specified url
-func PostJSON(url string, payload []byte) error {
+// postJSON posts the structs as json to the specified url
+func postJSON(url string, payload []byte) error {
 
 	var myClient *http.Client
 	clientWithAuth, err := idtoken.NewClient(context.Background(), url)

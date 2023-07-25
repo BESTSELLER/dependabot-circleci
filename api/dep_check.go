@@ -14,6 +14,11 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+type WorkerPayload struct {
+	Org   string
+	Repos []string
+}
+
 func dependencyHandler(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 

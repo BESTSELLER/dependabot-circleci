@@ -6,24 +6,6 @@ module "db" {
   team       = var.team
 }
 
-module "controller" {
-  name       = "controller"
-  source     = "./modules/cloud_run"
-  args       = ["-controller"]
-  worker_url = module.worker.url
-  scaling = {
-    max = "1"
-    min = "0"
-  }
-  project_id  = var.project_id
-  location    = "europe-west4"
-  service     = var.service
-  env         = var.env
-  team        = var.team
-  tag         = var.tag
-  db_instance = module.db.db_instance
-}
-
 module "worker" {
   name   = "worker"
   source = "./modules/cloud_run"
@@ -55,13 +37,18 @@ module "webhook" {
   container_concurrency = 300
 }
 
-
-module "schedule" {
-  source     = "./modules/schedule"
-  project_id = var.project_id
-  url        = module.controller.url
-  location   = "europe-west4"
-  service    = var.service
+module "controller" {
+  name        = "controller"
+  source      = "./modules/cloud_run_job"
+  args        = ["-controller"]
+  worker_url  = module.worker.url
+  project_id  = var.project_id
+  location    = "europe-west4"
+  service     = var.service
+  env         = var.env
+  team        = var.team
+  tag         = var.tag
+  db_instance = module.db.db_instance
 }
 
 module "logs" {
