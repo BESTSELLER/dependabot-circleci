@@ -13,7 +13,7 @@ resource "google_cloud_scheduler_job" "job" {
 
   schedule         = "0 05 * * *"
   time_zone        = "Europe/Copenhagen"
-  attempt_deadline = "600s"
+  attempt_deadline = "1800s"
 
   http_target {
     http_method = "POST"
