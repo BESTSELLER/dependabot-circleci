@@ -50,15 +50,30 @@ func DBClient() *bun.DB {
 
 }
 
+// UpdateRepo will update the repo in the db. Using transactions to ensure data consistency
 func UpdateRepo(repo RepoData, ctx context.Context) error {
 	db := DBClient()
-	_, err := db.NewInsert().
+
+	tx, err := db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.NewInsert().
 		Model(&repo).
 		On("CONFLICT (id) DO UPDATE").
 		Exec(ctx)
 	if err != nil {
+		tx.Rollback()
 		return err
 	}
+
+	err = tx.Commit()
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
 	return nil
 }
 
