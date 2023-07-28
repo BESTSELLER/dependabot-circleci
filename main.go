@@ -13,12 +13,13 @@ import (
 )
 
 func init() {
+	// set initial loglevel
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+
 	err := config.LoadEnvConfig()
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to read env config")
 	}
-	logger.Init()
-	log.Debug().Msgf("Logging level: %s", logger.LogLevel.String())
 
 	var appsecret []byte
 	var dbsecret []byte
@@ -47,6 +48,9 @@ func init() {
 		log.Fatal().Err(err).Msg("failed to read db config:")
 	}
 
+	// init logger with proper loglevel from config
+	logger.Init()
+	log.Debug().Msgf("Logging level: %s", logger.LogLevel.String())
 }
 
 func main() {
