@@ -32,7 +32,7 @@ func IncrementCount(metricName string, value int64, tags []string) {
 	metric := metricPrefix + "." + metricName
 	err := postDataDogMetric(metric, value, "count", tags)
 	if err != nil {
-		log.Debug().Err(err).Msgf("could not increment datadog counter %s", metricName)
+		log.Debug().Err(err).Msgf("Could not increment datadog, metric: %s, value: %d, tags: %s", metricName, value, tags)
 	}
 }
 
@@ -41,7 +41,7 @@ func Gauge(metricName string, value float64, tags []string) {
 	metric := metricPrefix + "." + metricName
 	err := postDataDogMetric(metric, int64(value), "gauge", tags)
 	if err != nil {
-		log.Debug().Err(err).Msgf("could not send gauge to datadog %s", metricName)
+		log.Debug().Err(err).Msgf("could not send gauge to datadog, metric: %s, value: %d, tags: %s", metricName, int64(value), tags)
 	}
 }
 
@@ -50,7 +50,7 @@ func Distribution(metricName string, value float64, tags []string) {
 	metric := metricPrefix + "." + metricName
 	err := postDataDogMetric(metric, int64(value), "distribution", tags)
 	if err != nil {
-		log.Debug().Err(err).Msgf("could not send distribution to datadog %s", metricName)
+		log.Debug().Err(err).Msgf("could not send distribution to datadog, metric: %s, value: %d, tags: %s", metricName, int64(value), tags)
 	}
 
 }
@@ -75,7 +75,6 @@ func postDataDogMetric(metric string, value int64, metricType string, tags []str
 
 	_, err := postStructAsJSON(url, payload, nil)
 	if err != nil {
-		log.Debug().Err(err).Msg("could send metric to datadog")
 		return err
 	}
 
@@ -108,10 +107,14 @@ func postStructAsJSON(url string, payload interface{}, target interface{}) (stri
 	if r.StatusCode < 200 || r.StatusCode > 299 {
 		return "", fmt.Errorf("request failed, expected status: 2xx got: %d, error message: %s", r.StatusCode, bodyString)
 	}
-	decode := json.NewDecoder(r.Body)
-	err = decode.Decode(&target)
-	if err != nil {
-		return "", err
+
+	// only decode if target is not nil
+	if target != nil {
+		decode := json.NewDecoder(r.Body)
+		err = decode.Decode(&target)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	return bodyString, nil

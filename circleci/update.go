@@ -11,6 +11,12 @@ func getDockerUpdates(node *yaml.Node) map[string]*yaml.Node {
 
 	for i, nextHole := range node.Content {
 		if nextHole.Value == "executors" || nextHole.Value == "jobs" {
+
+			// check if there is a docker image
+			if i+1 >= len(node.Content) {
+				return updates
+			}
+
 			dockers := node.Content[i+1]
 			updates := extractImages(dockers.Content)
 			for k, v := range updates {
