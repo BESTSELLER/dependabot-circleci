@@ -3,7 +3,6 @@ module github.com/BESTSELLER/dependabot-circleci
 go 1.20
 
 require (
-	github.com/BESTSELLER/go-vault v0.1.3
 	github.com/CircleCI-Public/circleci-cli v0.1.27054
 	github.com/google/go-containerregistry v0.15.2
 	github.com/google/go-github/v53 v53.2.0
