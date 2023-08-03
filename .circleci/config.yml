@@ -114,7 +114,7 @@ workflows:
             - secret-injector/dump-secrets-yaml
           <<: [*prod_context, *no_deploy_filter]
       - cci-common/terraform_plan:
-          post-steps:
+          pre-steps:
             - gcloud-token-auth
           path: ./terraform
           args: '-var tag="$CIRCLE_SHA1" -var env="prod" -var team="engineering-services" -var service="$CIRCLE_PROJECT_REPONAME"'
