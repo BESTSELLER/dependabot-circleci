@@ -20,9 +20,6 @@ jobs:
       instance:
         description: The Cloud SQL instance to connect to
         type: string
-      credential-file:
-        description: Location of credential-file
-        type: string
       project:
         description: Project name
         type: string
@@ -63,7 +60,7 @@ jobs:
           command: |
             source /tmp/secrets
             HOST=$(gcloud sql instances describe "<< parameters.instance >>" --format="value(connectionName)" --project="<< parameters.project >>")
-            cloud_sql_proxy -instances="$HOST"=tcp:5432 -credential_file="<< parameters.credential-file >>"
+            cloud_sql_proxy -instances="$HOST"=tcp:5432
           background: true
       - run:
           name: Replace vars
@@ -150,12 +147,13 @@ workflows:
             - cci-common/terraform_plan
           <<: [*prod_context, *deploy_filter]
       - init-db:
+          pre-steps:
+            - gcloud-token-auth
           instance: $instance
           db_name: $db_name
           project: dependabot-pub-prod-586e
           username: $username
           password: $password
-          credential-file: /tmp/cloudrun-admin.json
           init-file: ./init.sql
           requires:
             - cci-common/terraform_apply
