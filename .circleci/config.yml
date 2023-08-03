@@ -3,7 +3,14 @@ version: 2.1
 orbs:
   secret-injector: bestsellerit/secret-injector@2.4.0
   cci-common: bestsellerit/cci-common@1.13.1
-
+commands:
+  gcloud-token-auth:
+    steps:
+      - run:
+          name: gcloud access token
+          command: |
+            echo 'export GOOGLE_OAUTH_ACCESS_TOKEN=$(cat /tmp/cloudrun_admin | jq -r .token | sed "s/\.*$//" | tr -d "\n")' >> $BASH_ENV
+            echo 'export CLOUDSDK_AUTH_ACCESS_TOKEN=$GOOGLE_OAUTH_ACCESS_TOKEN
 jobs:
   init-db:
     description: |
@@ -39,10 +46,7 @@ jobs:
           name: install jq and gettext
           command: |
             apk add --no-cache jq gettext
-      - run:
-          name: gcloud access token
-          command: |
-            echo 'export GOOGLE_OAUTH_ACCESS_TOKEN=$(cat /tmp/cloudrun_admin | jq -r .token | sed "s/\.*$//" | tr -d "\n")' >> $BASH_ENV
+      - gcloud-token-auth
       - run:
           name: Install Cloud SQL Proxy
           command: |
@@ -97,6 +101,8 @@ workflows:
     jobs:
       - secret-injector/dump-secrets-yaml:
           secret-file: secrets-ci.yaml
+          post-steps:
+            - gcloud-token-auth
           <<: [*prod_context, *no_deploy_filter]
       - cci-common/go_test_unit:
           <<: [*prod_context, *no_deploy_filter]
@@ -116,17 +122,13 @@ workflows:
           requires:
             - secret-injector/dump-secrets-yaml
           <<: [*prod_context, *no_deploy_filter]
-          pre-steps:
-            - attach_workspace:
-                at: /tmp
-            - run:
-                command: |
-                  cat /tmp/cloudrun_admin | jq -r .private_key_data | base64 -d > /tmp/cloudrun-admin.json
 
   deploy:
     jobs:
       - secret-injector/dump-secrets-yaml:
           secret-file: secrets-ci.yaml
+          post-steps:
+            - gcloud-token-auth
           <<: [*prod_context, *deploy_filter]
       - cci-common/build_n_push_docker:
           tag: ${CIRCLE_TAG}
