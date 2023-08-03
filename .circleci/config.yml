@@ -10,7 +10,7 @@ commands:
           name: gcloud access token
           command: |
             echo 'export GOOGLE_OAUTH_ACCESS_TOKEN=$(cat /tmp/cloudrun_admin | jq -r .token | sed "s/\.*$//" | tr -d "\n")' >> $BASH_ENV
-            echo 'export CLOUDSDK_AUTH_ACCESS_TOKEN=$GOOGLE_OAUTH_ACCESS_TOKEN
+            echo 'export CLOUDSDK_AUTH_ACCESS_TOKEN=$GOOGLE_OAUTH_ACCESS_TOKEN' >> $BASH_ENV
 jobs:
   init-db:
     description: |
