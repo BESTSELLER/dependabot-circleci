@@ -40,10 +40,9 @@ jobs:
           command: |
             apk add --no-cache jq gettext
       - run:
-          name: gcloud login
+          name: gcloud access token
           command: |
-            cat /tmp/cloudrun_admin | jq -r .private_key_data | base64 -d > cloudrun-admin.json
-            gcloud auth activate-service-account --key-file=./cloudrun-admin.json
+            echo 'export GOOGLE_OAUTH_ACCESS_TOKEN=$(cat /tmp/cloudrun_admin | jq -r .token | sed "s/\.*$//" | tr -d "\n")' >> $BASH_ENV
       - run:
           name: Install Cloud SQL Proxy
           command: |
