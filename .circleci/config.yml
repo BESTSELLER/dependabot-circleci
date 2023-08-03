@@ -147,8 +147,6 @@ workflows:
             - cci-common/terraform_plan
           <<: [*prod_context, *deploy_filter]
       - init-db:
-          pre-steps:
-            - gcloud-token-auth
           instance: $instance
           db_name: $db_name
           project: dependabot-pub-prod-586e
