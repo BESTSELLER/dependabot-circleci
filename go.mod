@@ -18,7 +18,7 @@ require (
 	github.com/uptrace/bun/dialect/pgdialect v1.1.14
 	github.com/uptrace/bun/driver/pgdriver v1.1.14
 	goji.io v2.0.2+incompatible
-	google.golang.org/api v0.129.0
+	google.golang.org/api v0.134.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.53.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
