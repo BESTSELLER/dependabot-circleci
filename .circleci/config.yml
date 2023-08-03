@@ -3,7 +3,14 @@ version: 2.1
 orbs:
   secret-injector: bestsellerit/secret-injector@2.4.0
   cci-common: bestsellerit/cci-common@1.13.1
-
+commands:
+  gcloud-token-auth:
+    steps:
+      - run:
+          name: gcloud access token
+          command: |
+            echo 'export GOOGLE_OAUTH_ACCESS_TOKEN=$(cat /tmp/cloudrun_token | jq -r .token | sed "s/\.*$//" | tr -d "\n")' >> $BASH_ENV
+            echo 'export CLOUDSDK_AUTH_ACCESS_TOKEN=$GOOGLE_OAUTH_ACCESS_TOKEN' >> $BASH_ENV
 jobs:
   init-db:
     description: |
@@ -39,11 +46,7 @@ jobs:
           name: install jq and gettext
           command: |
             apk add --no-cache jq gettext
-      - run:
-          name: gcloud login
-          command: |
-            cat /tmp/cloudrun_admin | jq -r .private_key_data | base64 -d > cloudrun-admin.json
-            gcloud auth activate-service-account --key-file=./cloudrun-admin.json
+      - gcloud-token-auth
       - run:
           name: Install Cloud SQL Proxy
           command: |
@@ -111,18 +114,14 @@ workflows:
             - secret-injector/dump-secrets-yaml
           <<: [*prod_context, *no_deploy_filter]
       - cci-common/terraform_plan:
+          pre-steps:
+            - gcloud-token-auth
           path: ./terraform
           args: '-var tag="$CIRCLE_SHA1" -var env="prod" -var team="engineering-services" -var service="$CIRCLE_PROJECT_REPONAME"'
           lock: false
           requires:
             - secret-injector/dump-secrets-yaml
           <<: [*prod_context, *no_deploy_filter]
-          pre-steps:
-            - attach_workspace:
-                at: /tmp
-            - run:
-                command: |
-                  cat /tmp/cloudrun_admin | jq -r .private_key_data | base64 -d > /tmp/cloudrun-admin.json
 
   deploy:
     jobs:
@@ -136,22 +135,16 @@ workflows:
             - secret-injector/dump-secrets-yaml
           <<: [*prod_context, *deploy_filter]
       - cci-common/terraform_plan:
+          pre-steps:
+            - gcloud-token-auth
           path: ./terraform
           args: '-var tag="$CIRCLE_TAG" -var env="prod" -var team="engineering-services" -var service="$CIRCLE_PROJECT_REPONAME"'
           requires:
             - cci-common/build_n_push_docker
           <<: [*prod_context, *deploy_filter]
-          pre-steps:
-            - attach_workspace:
-                at: /tmp
-            - run:
-                command: |
-                  cat /tmp/cloudrun_admin | jq -r .private_key_data | base64 -d > /tmp/cloudrun-admin.json
-            - persist_to_workspace:
-                root: /tmp
-                paths:
-                  - cloudrun-admin.json
       - cci-common/terraform_apply:
+          pre-steps:
+            - gcloud-token-auth
           path: ./terraform
           requires:
             - cci-common/terraform_plan
