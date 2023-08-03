@@ -127,8 +127,6 @@ workflows:
     jobs:
       - secret-injector/dump-secrets-yaml:
           secret-file: secrets-ci.yaml
-          post-steps:
-            - gcloud-token-auth
           <<: [*prod_context, *deploy_filter]
       - cci-common/build_n_push_docker:
           tag: ${CIRCLE_TAG}
