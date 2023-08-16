@@ -98,6 +98,7 @@ workflows:
     jobs:
       - secret-injector/dump-secrets-yaml:
           secret-file: secrets-ci.yaml
+          vault-oidc: true
           <<: [*prod_context, *no_deploy_filter]
       - cci-common/go_test_unit:
           <<: [*prod_context, *no_deploy_filter]
@@ -116,6 +117,7 @@ workflows:
           path: ./terraform
           args: '-var tag="$CIRCLE_SHA1" -var env="prod" -var team="engineering-services" -var service="$CIRCLE_PROJECT_REPONAME"'
           lock: false
+          vault_oidc: true
           requires:
             - secret-injector/dump-secrets-yaml
           <<: [*prod_context, *no_deploy_filter]
@@ -124,6 +126,7 @@ workflows:
     jobs:
       - secret-injector/dump-secrets-yaml:
           secret-file: secrets-ci.yaml
+          vault-oidc: true
           <<: [*prod_context, *deploy_filter]
       - cci-common/build_n_push_docker:
           tag: ${CIRCLE_TAG}
@@ -136,10 +139,12 @@ workflows:
             - gcloud-token-auth
           path: ./terraform
           args: '-var tag="$CIRCLE_TAG" -var env="prod" -var team="engineering-services" -var service="$CIRCLE_PROJECT_REPONAME"'
+          vault_oidc: true
           requires:
             - cci-common/build_n_push_docker
           <<: [*prod_context, *deploy_filter]
       - cci-common/terraform_apply:
+          vault_oidc: true
           pre-steps:
             - gcloud-token-auth
           path: ./terraform
