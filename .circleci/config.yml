@@ -75,7 +75,6 @@ jobs:
             export PGPASSWORD="<< parameters.password >>"
             psql -f "<< parameters.init-file >>" -U "<< parameters.username >>" -d "<< parameters.db_name >>" -h 127.0.0.1
 
-
 deploy_filter: &deploy_filter
   filters:
     branches:
@@ -101,8 +100,10 @@ workflows:
           vault-oidc: true
           <<: [*prod_context, *no_deploy_filter]
       - cci-common/go_test_unit:
+          go_version: "1.21.1"
           <<: [*prod_context, *no_deploy_filter]
       - cci-common/go_test_sonar:
+          go_version: "1.21.1"
           requires:
             - secret-injector/dump-secrets-yaml
           <<: [*prod_context, *no_deploy_filter]
