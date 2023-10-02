@@ -103,6 +103,7 @@ workflows:
           go_version: "1.21.1"
           <<: [*prod_context, *no_deploy_filter]
       - cci-common/go_test_sonar:
+          go_version: "1.21.1"
           requires:
             - secret-injector/dump-secrets-yaml
           <<: [*prod_context, *no_deploy_filter]
