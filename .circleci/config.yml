@@ -2,7 +2,7 @@ version: 2.1
 
 orbs:
   secret-injector: bestsellerit/secret-injector@2.5.1
-  cci-common: bestsellerit/cci-common@1.13.3
+  cci-common: bestsellerit/cci-common@1.13.4
 commands:
   gcloud-token-auth:
     steps:
