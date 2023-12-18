@@ -12,13 +12,9 @@ terraform {
     }
   }
 
-  backend "remote" {
-    hostname     = "app.terraform.io"
-    organization = "BESTSELLER"
-
-    workspaces {
-      name = "dependabot-circleci"
-    }
+  backend "gcs" {
+    bucket = "bs-tfstate-es"
+    prefix = "dependabot-circleci"
   }
 }
 
