@@ -10,7 +10,7 @@ import (
 	"github.com/BESTSELLER/dependabot-circleci/datadog"
 	"github.com/BESTSELLER/dependabot-circleci/db"
 	"github.com/BESTSELLER/dependabot-circleci/gh"
-	"github.com/google/go-github/v56/github"
+	"github.com/google/go-github/v58/github"
 	"github.com/palantir/go-githubapp/githubapp"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
