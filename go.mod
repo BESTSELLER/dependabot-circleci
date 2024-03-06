@@ -5,12 +5,12 @@ go 1.21
 require (
 	github.com/CircleCI-Public/circleci-cli v0.1.30401
 	github.com/google/go-containerregistry v0.19.0
-	github.com/google/go-github/v58 v58.0.0
+	github.com/google/go-github/v59 v59.0.0
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
 	github.com/hashicorp/go-version v1.6.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/palantir/go-baseapp v0.5.2
-	github.com/palantir/go-githubapp v0.22.0
+	github.com/palantir/go-githubapp v0.23.0
 	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.32.0
 	github.com/stretchr/testify v1.9.0
@@ -78,7 +78,7 @@ require (
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/rs/xid v1.5.0 // indirect
 	github.com/secure-systems-lab/go-securesystemslib v0.7.0 // indirect
-	github.com/shurcooL/githubv4 v0.0.0-20231126234147-1cffa1f02456 // indirect
+	github.com/shurcooL/githubv4 v0.0.0-20240120211514-18a1ae0e79dc // indirect
 	github.com/shurcooL/graphql v0.0.0-20181231061246-d48a9a75455f // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
@@ -93,7 +93,7 @@ require (
 	go.opentelemetry.io/otel/metric v1.23.0 // indirect
 	go.opentelemetry.io/otel/trace v1.23.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
-	golang.org/x/crypto v0.19.0 // indirect
+	golang.org/x/crypto v0.20.0 // indirect
 	golang.org/x/mod v0.14.0 // indirect
 	golang.org/x/net v0.21.0 // indirect
 	golang.org/x/oauth2 v0.17.0 // indirect
