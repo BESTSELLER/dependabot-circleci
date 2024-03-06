@@ -27,3 +27,4 @@ cloudrun_admin*
 db-secrets
 real-secrets*
 secrets*
+app-secrets
