@@ -119,7 +119,18 @@ func getTags(circleciTag string) ([]string, error) {
 		return nil, err
 	}
 
-	return tags, nil
+	// https://github.com/dependabot/dependabot-core/blob/v0.211.0/docker/lib/dependabot/docker/update_checker.rb#L191
+	// Some people suffix their versions with commit SHAs.
+	commitSHA := regexp.MustCompile(`(^|\-g?)[0-9a-f]{7,}$`)
+	var filteredTags []string
+	for _, tag := range tags {
+		if commitSHA.MatchString(tag) {
+			continue
+		}
+		filteredTags = append(filteredTags, tag)
+	}
+
+	return filteredTags, nil
 }
 
 func splitVersion(version string) map[string]string {
