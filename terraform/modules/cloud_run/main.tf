@@ -53,6 +53,13 @@ resource "google_cloud_run_v2_service" "main" {
         name       = "cloudsql"
         mount_path = "/cloudsql"
       }
+      startup_probe {
+        http_get {
+          path = "/healthz"
+          port = 3000
+        }
+        initial_delay_seconds = 2
+      }
     }
     containers {
       name  = "secret-dumper"

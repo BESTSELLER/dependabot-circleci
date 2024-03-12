@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"time"
 
@@ -46,6 +47,10 @@ func SetupRouter(webhookEnabled bool, workerEnabled bool, controllerEnabled bool
 		))
 		server.Mux().Handle(pat.Post("/"), webhookHandler)
 	}
+
+	server.Mux().HandleFunc(pat.Get("/healthz"), func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
 
 	if workerEnabled {
 		server.Mux().HandleFunc(pat.Post("/start"), dependencyHandler)
