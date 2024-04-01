@@ -4,7 +4,7 @@ go 1.22.0
 
 require (
 	github.com/CircleCI-Public/circleci-cli v0.1.30401
-	github.com/google/go-containerregistry v0.19.0
+	github.com/google/go-containerregistry v0.19.1
 	github.com/google/go-github/v59 v59.0.0
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
 	github.com/hashicorp/go-version v1.6.0
