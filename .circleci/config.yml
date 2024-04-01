@@ -3,6 +3,7 @@ version: 2.1
 orbs:
   secret-injector: bestsellerit/secret-injector@2.8.0
   cci-common: bestsellerit/cci-common@3.0.0
+
 commands:
   gcloud-token-auth:
     steps:
@@ -11,6 +12,7 @@ commands:
           command: |
             echo 'export GOOGLE_OAUTH_ACCESS_TOKEN=$(cat /tmp/cloudrun_token | jq -r .token | sed "s/\.*$//" | tr -d "\n")' >> $BASH_ENV
             echo 'export CLOUDSDK_AUTH_ACCESS_TOKEN=$GOOGLE_OAUTH_ACCESS_TOKEN' >> $BASH_ENV
+
 jobs:
   init-db:
     description: |
@@ -100,10 +102,10 @@ workflows:
           vault-oidc: true
           <<: [*prod_context, *no_deploy_filter]
       - cci-common/go_test_unit:
-          go_version: "1.21.3"
+          go_version: "1.22.1"
           <<: [*prod_context, *no_deploy_filter]
       - cci-common/go_test_sonar:
-          go_version: "1.21.3"
+          go_version: "1.22.1"
           requires:
             - secret-injector/dump-secrets-yaml
           <<: [*prod_context, *no_deploy_filter]
