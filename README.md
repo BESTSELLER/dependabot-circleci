@@ -80,7 +80,7 @@ We are open for issues, pull requests etc.
         },
         "github": {
           "app": {
-            "integration_id": ,
+            "integration_id": "" ,
             "private_key": "",
             "webhook_secret": ""
           },
