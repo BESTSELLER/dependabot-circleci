@@ -37,7 +37,7 @@ reviewers:
   - github_username # for a single user
   - org/team_name # for a whole team (nested teams is the same syntax org/team_name)
 target-branch: main
-directory: "/template" # Used if .github directory is nested inside another directory
+directory: "/.circleci" # Folder where the circleci config files are located
 schedule: "monthly" # Options are (daily, weekly, monthly)
 
 ```
@@ -49,14 +49,14 @@ schedule: "monthly" # Options are (daily, weekly, monthly)
 The `dependabot-circleci` configuration file, dependabot-circleci.yml, uses YAML syntax. 
 You must store this file in the .github directory of your repository.
 
-| Option                            | Required | Description                            | Default                    |
-| :-------------------------------- | :------: | :------------------------------------- | -------------------------- |
-| [`assignees`](#assignees)         |          | Assignees to set on pull requests      | n/a                        |
-| [`labels`](#labels)               |          | Labels to set on pull requests         | n/a                        |
-| [`reviewers`](#reviewers)         |          | Reviewers to set on pull requests      | n/a                        |
-| [`target-branch`](#target-branch) |          | Branch to create pull requests against | Default branch in the repo |
-| [`directory`](#directory)         |          | Location of .github directory          | Root of repo               |
-| [`schedule`](#schedule)           |          | When to look for updates               | daily                      |
+| Option                            | Required | Description                                        | Default                    |
+|:----------------------------------|:--------:|:---------------------------------------------------|----------------------------|
+| [`assignees`](#assignees)         |          | Assignees to set on pull requests                  | n/a                        |
+| [`labels`](#labels)               |          | Labels to set on pull requests                     | n/a                        |
+| [`reviewers`](#reviewers)         |          | Reviewers to set on pull requests                  | n/a                        |
+| [`target-branch`](#target-branch) |          | Branch to create pull requests against             | Default branch in the repo |
+| [`directory`](#directory)         |          | Folder where the circleci config files are located | `/.circleci`               |
+| [`schedule`](#schedule)           |          | When to look for updates                           | daily                      |
 
 
 ---

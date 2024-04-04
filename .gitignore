@@ -28,3 +28,5 @@ db-secrets
 real-secrets*
 secrets*
 app-secrets
+
+/.idea

@@ -74,7 +74,7 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 	go datadog.IncrementCount("analysed_repos", 1, []string{fmt.Sprintf("organization:%s", repoOwner)})
 
 	// get content of circleci config file
-	content, SHA, err := gh.GetRepoContent(ctx, client, repoOwner, repoName, repoConfig.Directory+"/.circleci/config.yml", targetBranch)
+	content, SHA, err := gh.GetRepoContent(ctx, client, repoOwner, repoName, repoConfig.Directory+"/config.yml", targetBranch)
 	if err != nil {
 		return
 	}
@@ -181,7 +181,7 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 	}
 
 	// commit file
-	err = gh.UpdateFile(ctx, client, repoOwner, repoName, repoConfig.Directory+"/.circleci/config.yml", &github.RepositoryContentFileOptions{
+	err = gh.UpdateFile(ctx, client, repoOwner, repoName, repoConfig.Directory+"/config.yml", &github.RepositoryContentFileOptions{
 		Message: github.String(commitMessage),
 		Content: []byte(newYaml),
 		Branch:  github.String(commitBranch),
