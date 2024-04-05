@@ -18,7 +18,7 @@ import (
 func Start(ctx context.Context, client *github.Client, org string, repositories []string) {
 	// If we are running in Bestseller specific mode, we need to set the running variable to true
 	// To be able to query private orbs and docker images
-	config.AppConfig.BestsellerSpecific.Running = (org == "BESTSELLER")
+	config.AppConfig.BestsellerSpecific.Running = org == "BESTSELLER"
 
 	// get repos
 	// TODO: Get only repos in the list, but in a single API Call
@@ -72,18 +72,40 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 	}
 
 	go datadog.IncrementCount("analysed_repos", 1, []string{fmt.Sprintf("organization:%s", repoOwner)})
+	/*
+		1. Get directory contents
+		3. Check if file is .yml/.yaml - if not, skip - if yes, process
+		4. If directory, go to 1
+	*/
+	parseRepoContent(ctx, client, repoConfig, repoOwner, repoName, targetBranch, repoConfig.Directory)
+}
 
-	// get content of circleci config file
-	content, SHA, err := gh.GetRepoContent(ctx, client, repoOwner, repoName, repoConfig.Directory+"/config.yml", targetBranch)
+func parseRepoContent(ctx context.Context, client *github.Client, repoConfig *config.RepoConfig, owner, repo, branch, pathInRepo string) {
+	// 1. Get directory contents
+	options := &github.RepositoryContentGetOptions{Ref: branch}
+	fileContent, _, _, err := client.Repositories.GetContents(context.Background(), owner, repo, pathInRepo, options)
 	if err != nil {
+		log.Error().Err(err).Msgf("could not parseRepoContent %s", repo)
 		return
 	}
-
+	if fileContent == nil {
+		//	2. Loop through files
+		return
+	}
+	// 3. Check if file is .yml/.yaml - if not, skip - if yes, process
+	if filename := fileContent.GetName(); !strings.HasSuffix(filename, ".yml") && !strings.HasSuffix(filename, ".yaml") {
+		log.Info().Msgf("Skipping %s, not yml/yaml", filename)
+		return
+	}
+	content, err := fileContent.GetContent()
+	if err != nil {
+		log.Error().Err(err).Msgf("could not fileContent.GetContent() %s", repo)
+	}
 	// unmarshal
 	var cciconfig yaml.Node
-	err = yaml.Unmarshal(content, &cciconfig)
+	err = yaml.Unmarshal([]byte(content), &cciconfig)
 	if err != nil {
-		log.Error().Err(err).Msgf("could not unmarshal yaml in %s", repoName)
+		log.Error().Err(err).Msgf("could not unmarshal yaml in %s", repo)
 		return
 	}
 
@@ -91,17 +113,17 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 	orbUpdates, dockerUpdates := circleci.GetUpdates(&cciconfig)
 	for old, update := range orbUpdates {
 		// wg.Add(1)
-		err = handleUpdate(ctx, client, update, "orb", old, content, repoOwner, repoName, targetBranch, SHA, repoConfig)
+		err = handleUpdate(ctx, client, update, "orb", old, content, owner, repo, branch, pathInRepo, fileContent.SHA, repoConfig)
 		if err != nil {
-			go datadog.IncrementCount("failed_repos", 1, []string{fmt.Sprintf("organization:%s", repoOwner)})
+			go datadog.IncrementCount("failed_repos", 1, []string{fmt.Sprintf("organization:%s", owner)})
 			return
 		}
 	}
 	for old, update := range dockerUpdates {
 		// wg.Add(1)
-		err = handleUpdate(ctx, client, update, "docker", old, content, repoOwner, repoName, targetBranch, SHA, repoConfig)
+		err = handleUpdate(ctx, client, update, "docker", old, content, owner, repo, branch, pathInRepo, fileContent.SHA, repoConfig)
 		if err != nil {
-			go datadog.IncrementCount("failed_repos", 1, []string{fmt.Sprintf("organization:%s", repoOwner)})
+			go datadog.IncrementCount("failed_repos", 1, []string{fmt.Sprintf("organization:%s", owner)})
 			return
 		}
 	}
@@ -109,7 +131,7 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 
 func getRepoConfig(ctx context.Context, client *github.Client, repo *github.Repository) *config.RepoConfig {
 	// check if a bot config exists
-	repoConfigContent, _, err := gh.GetRepoContent(ctx, client, repo.GetOwner().GetLogin(), repo.GetName(), ".github/dependabot-circleci.yml", "")
+	repoConfigContent, _, err := gh.GetRepoFileBytes(ctx, client, repo.GetOwner().GetLogin(), repo.GetName(), ".github/dependabot-circleci.yml", "")
 	if err != nil {
 		log.Debug().Err(err).Msgf("could not load dependabot-circleci.yml in repo: %s", repo.GetName())
 		return nil
@@ -136,7 +158,7 @@ func getTargetBranch(ctx context.Context, client *github.Client, repoOwner strin
 	return targetBranch
 }
 
-func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node, updateType string, old string, content []byte, repoOwner string, repoName string, targetBranch string, SHA *string, repoConfig *config.RepoConfig) error {
+func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node, updateType, old, content, repoOwner, repoName, targetBranch, pathInRepo string, SHA *string, repoConfig *config.RepoConfig) error {
 	// defer wg.Done()
 
 	log.Debug().Msgf("repo: %s, old: %s, update: %s", repoName, old, update.Value)
@@ -181,7 +203,7 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 	}
 
 	// commit file
-	err = gh.UpdateFile(ctx, client, repoOwner, repoName, repoConfig.Directory+"/config.yml", &github.RepositoryContentFileOptions{
+	err = gh.UpdateFile(ctx, client, repoOwner, repoName, pathInRepo, &github.RepositoryContentFileOptions{
 		Message: github.String(commitMessage),
 		Content: []byte(newYaml),
 		Branch:  github.String(commitBranch),

@@ -59,7 +59,7 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 	}
 
 	// get content
-	content, _, err := gh.GetRepoContent(ctx, client, Githubinfo.Owner, Githubinfo.RepoName, ".github/dependabot-circleci.yml", commitSHA)
+	content, _, err := gh.GetRepoFileBytes(ctx, client, Githubinfo.Owner, Githubinfo.RepoName, ".github/dependabot-circleci.yml", commitSHA)
 	if err != nil {
 		log.Debug().Err(err).Msg("could not read content of repository")
 		return nil // we dont care
