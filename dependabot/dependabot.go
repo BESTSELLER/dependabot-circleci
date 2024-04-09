@@ -3,6 +3,7 @@ package dependabot
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/BESTSELLER/dependabot-circleci/circleci"
@@ -72,24 +73,25 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 	}
 
 	go datadog.IncrementCount("analysed_repos", 1, []string{fmt.Sprintf("organization:%s", repoOwner)})
-	/*
-		1. Get directory contents
-		3. Check if file is .yml/.yaml - if not, skip - if yes, process
-		4. If directory, go to 1
-	*/
-	parseRepoContent(ctx, client, repoConfig, repoOwner, repoName, targetBranch, repoConfig.Directory)
+	parseRepoContent(ctx, client, repoConfig, repoOwner, repoName, targetBranch, repoConfig.ConfigPath)
 }
 
 func parseRepoContent(ctx context.Context, client *github.Client, repoConfig *config.RepoConfig, owner, repo, branch, pathInRepo string) {
+	log.Info().Msgf("Processing: %s", pathInRepo)
 	// 1. Get directory contents
 	options := &github.RepositoryContentGetOptions{Ref: branch}
-	fileContent, _, _, err := client.Repositories.GetContents(context.Background(), owner, repo, pathInRepo, options)
+	fileContent, directoryContent, _, err := client.Repositories.GetContents(context.Background(), owner, repo, pathInRepo, options)
 	if err != nil {
 		log.Error().Err(err).Msgf("could not parseRepoContent %s", repo)
 		return
 	}
 	if fileContent == nil {
-		//	2. Loop through files
+		for _, dir := range directoryContent {
+			if getRelativeDirDepth(repoConfig.ConfigPath, dir.GetPath()) > repoConfig.ScanDepth {
+				return
+			}
+			go parseRepoContent(ctx, client, repoConfig, owner, repo, branch, dir.GetPath())
+		}
 		return
 	}
 	// 3. Check if file is .yml/.yaml - if not, skip - if yes, process
@@ -162,7 +164,7 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 	// defer wg.Done()
 
 	log.Debug().Msgf("repo: %s, old: %s, update: %s", repoName, old, update.Value)
-	newYaml := circleci.ReplaceVersion(update, old, string(content))
+	newYaml := circleci.ReplaceVersion(update, old, content)
 
 	// commit vars
 	var oldVersion, newVersion []string
@@ -239,4 +241,8 @@ func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node,
 		}()
 	}
 	return nil
+}
+
+func getRelativeDirDepth(root, current string) int {
+	return strings.Count(root, string(os.PathSeparator)) - strings.Count(current, string(os.PathSeparator))
 }
