@@ -122,3 +122,11 @@ We are open for issues, pull requests etc.
    --header 'Content-Type: application/json' \
    --data '{"Org":"BESTSELLER","Repos": ["dependabot-circleci"]}'
    ```
+5. If you want to debug the worker without docker: 
+   1. Start the db and controller by running the command below.
+       ```bash
+       docker-compose up --build postgres controller
+       ```
+   2. Update the `app-secrets` value `/server/port` to change the port to `3001`
+   3. Add the env vars from the docker-compose file to your local environment to match the worker
+   4. Run/Debug in your IDE
