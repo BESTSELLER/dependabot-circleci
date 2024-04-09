@@ -39,12 +39,12 @@ func init() {
 	}
 	dbsecret = bytes
 
-	err = config.ReadAppConfig([]byte(appsecret))
+	err = config.ReadAppConfig(appsecret)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to read github app config:")
 	}
 
-	err = config.ReadDBConfig([]byte(dbsecret))
+	err = config.ReadDBConfig(dbsecret)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to read db config:")
 	}
