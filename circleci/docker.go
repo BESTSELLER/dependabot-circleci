@@ -62,7 +62,10 @@ func findNewestDockerVersion(currentVersion string) string {
 	if len(versionParts) == 0 {
 		return currentVersion
 	}
-
+	if newVersion, hit := cache[currentVersion]; hit {
+		log.Debug().Msgf("Using cached version for image: %s", currentVersion)
+		return newVersion
+	}
 	var newTagsList []string
 	for _, tag := range tags {
 		aa := splitVersion(tag)
@@ -95,10 +98,12 @@ func findNewestDockerVersion(currentVersion string) string {
 
 	currentv, _ := version.NewVersion(versionParts["version"])
 	if currentv.GreaterThan(newest) {
+		cache[currentVersion] = currentVersion
 		return currentVersion
 	}
-
-	return fmt.Sprintf("%s:%s", current[0], newest.Original())
+	newVersion := fmt.Sprintf("%s:%s", current[0], newest.Original())
+	cache[currentVersion] = newVersion
+	return newVersion
 }
 
 func getTags(circleciTag string) ([]string, error) {
@@ -152,9 +157,9 @@ func splitVersion(version string) map[string]string {
 	}
 
 	matches := myExp.SubexpNames()
-	for i, name := range matches {
-		if i != 0 && name != "" && match[i] != "" {
-			result[name] = match[i]
+	for i, imgName := range matches {
+		if i != 0 && imgName != "" && match[i] != "" {
+			result[imgName] = match[i]
 		}
 	}
 

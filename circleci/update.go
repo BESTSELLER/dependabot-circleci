@@ -6,6 +6,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+var cache = map[string]string{}
+
 func getDockerUpdates(node *yaml.Node) map[string]*yaml.Node {
 	updates := map[string]*yaml.Node{}
 

@@ -31,14 +31,16 @@ func extractOrbs(orbs []*yaml.Node) map[string]*yaml.Node {
 }
 
 func findNewestOrbVersion(orb string) string {
-
 	orbSplitString := strings.Split(orb, "@")
-
 	// check if orb is always updated
 	if orbSplitString[1] == "volatile" || strings.HasPrefix(orbSplitString[1], "dev:") {
-		return orbSplitString[1]
+		return orb
 	}
 
+	if newVersion, hit := cache[orb]; hit {
+		log.Debug().Msgf("Using cached version for orb: %s", orb)
+		return newVersion
+	}
 	CCIApiToken := ""
 	if config.AppConfig.BestsellerSpecific.Running {
 		log.Debug().Msg("Using Bestseller specific token to handle private orbs")
@@ -53,6 +55,7 @@ func findNewestOrbVersion(orb string) string {
 		log.Error().Err(err).Msgf("error finding latests orb version failed for orb: %s", orbSplitString[0])
 		return fmt.Sprintf("%s@%s", orbSplitString[0], orbSplitString[1])
 	}
-
-	return fmt.Sprintf("%s@%s", orbSplitString[0], orbInfo.Orb.HighestVersion)
+	newVersion := fmt.Sprintf("%s@%s", orbSplitString[0], orbInfo.Orb.HighestVersion)
+	cache[orb] = newVersion
+	return newVersion
 }
