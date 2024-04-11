@@ -1,7 +1,6 @@
 package config
 
 import (
-	"os"
 	"strings"
 
 	"github.com/palantir/go-baseapp/baseapp"
@@ -50,8 +49,7 @@ type RepoConfig struct {
 	Reviewers    []string `yaml:"reviewers,omitempty"`
 	Assignees    []string `yaml:"assignees,omitempty"`
 	Labels       []string `yaml:"labels,omitempty"`
-	ConfigPath   string   `yaml:"config-path,omitempty"`
-	ScanDepth    int      `yaml:"scan-depth,omitempty"`
+	Directory    string   `yaml:"directory,omitempty"`
 	Schedule     string   `yaml:"schedule,omitempty"`
 }
 
@@ -86,7 +84,7 @@ func ReadDBConfig(secrets []byte) error {
 // ReadRepoConfig reads a yaml file
 func ReadRepoConfig(content []byte) (*RepoConfig, error) {
 	// default values setup here
-	repoConfig := RepoConfig{ConfigPath: ".circleci/config.yml", ScanDepth: 1, Schedule: "daily"}
+	repoConfig := RepoConfig{Directory: ".circleci/config.yml", Schedule: "daily"}
 
 	if err := yaml.UnmarshalStrict(content, &repoConfig); err != nil {
 		return nil, errors.Wrap(err, "failed parsing repository configuration file")
@@ -111,13 +109,4 @@ func (rc RepoConfig) IsValid() error {
 		return errors.Errorf(strings.Join(errMsg, ", "))
 	}
 	return nil
-}
-
-// IsWithinScanDepth returns true if the given directory is within the scan depth
-func (rc RepoConfig) IsWithinScanDepth(directory string) bool {
-	if !strings.Contains(directory, rc.ConfigPath) {
-		return false
-	}
-	// Fast beginning and trailing slash remover :)
-	return strings.Count(directory[1:len(directory)-1], string(os.PathSeparator))-strings.Count(rc.ConfigPath[1:len(rc.ConfigPath)-1], string(os.PathSeparator)) <= rc.ScanDepth
 }

@@ -77,7 +77,7 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 	updates := map[string]Update{}
 	var wg sync.WaitGroup
 	wg.Add(1)
-	go gatherUpdates(&wg, ctx, client, repoInfo, repoInfo.repoConfig.ConfigPath, &updates)
+	go gatherUpdates(&wg, ctx, client, repoInfo, repoInfo.repoConfig.Directory, &updates)
 	wg.Wait()
 
 	for newVerName, updateInfo := range updates {
@@ -194,9 +194,6 @@ func gatherUpdates(wg *sync.WaitGroup, ctx context.Context, client *github.Clien
 	}
 	if fileContent == nil {
 		for _, dir := range directoryContent {
-			if !repoInfo.repoConfig.IsWithinScanDepth(dir.GetPath()) {
-				return
-			}
 			wg.Add(1)
 			go gatherUpdates(wg, ctx, client, repoInfo, dir.GetPath(), updates)
 		}
