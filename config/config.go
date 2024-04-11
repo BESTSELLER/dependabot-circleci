@@ -86,7 +86,7 @@ func ReadDBConfig(secrets []byte) error {
 // ReadRepoConfig reads a yaml file
 func ReadRepoConfig(content []byte) (*RepoConfig, error) {
 	// default values setup here
-	repoConfig := RepoConfig{ConfigPath: ".circleci", ScanDepth: 2, Schedule: "daily"}
+	repoConfig := RepoConfig{ConfigPath: ".circleci/config.yml", ScanDepth: 1, Schedule: "daily"}
 
 	if err := yaml.UnmarshalStrict(content, &repoConfig); err != nil {
 		return nil, errors.Wrap(err, "failed parsing repository configuration file")
