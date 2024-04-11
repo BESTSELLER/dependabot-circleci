@@ -114,28 +114,7 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 
 }
 
-func handlePR(ctx context.Context, client *github.Client, info *RepoInfo, branchName, prTitle string) (int, error) {
-	// create pull req
-	newPR, err := gh.CreatePR(ctx, client, info.repoOwner, info.repoName, info.repoConfig.Reviewers, info.repoConfig.Assignees, info.repoConfig.Labels, &github.NewPullRequest{
-		Title:               github.String(prTitle),
-		Head:                github.String(branchName),
-		Base:                github.String(info.targetBranch),
-		Body:                github.String(branchName),
-		MaintainerCanModify: github.Bool(true),
-	})
-	if err != nil {
-		log.Info().Err(err).Msgf("could not create pr in %s", info.repoName)
-		return -1, err
-	}
-
-	go func() {
-		datadog.IncrementCount("pull_requests", 1, []string{fmt.Sprintf("organization:%s", info.repoOwner)})
-	}()
-	return newPR.GetNumber(), nil
-}
-
 func getRepoInfo(ctx context.Context, client *github.Client, repo *github.Repository) (*RepoInfo, error) {
-	// defer wg.Done()
 	repoName := repo.GetName()
 
 	log.Debug().Msg(fmt.Sprintf("Checking repo: %s", repoName))
@@ -164,6 +143,26 @@ func getRepoInfo(ctx context.Context, client *github.Client, repo *github.Reposi
 		targetBranch:      targetBranch,
 		repoName:          repoName,
 	}, nil
+}
+
+func handlePR(ctx context.Context, client *github.Client, info *RepoInfo, branchName, prTitle string) (int, error) {
+	// create pull req
+	newPR, err := gh.CreatePR(ctx, client, info.repoOwner, info.repoName, info.repoConfig.Reviewers, info.repoConfig.Assignees, info.repoConfig.Labels, &github.NewPullRequest{
+		Title:               github.String(prTitle),
+		Head:                github.String(branchName),
+		Base:                github.String(info.targetBranch),
+		Body:                github.String(branchName),
+		MaintainerCanModify: github.Bool(true),
+	})
+	if err != nil {
+		log.Info().Err(err).Msgf("could not create pr in %s", info.repoName)
+		return -1, err
+	}
+
+	go func() {
+		datadog.IncrementCount("pull_requests", 1, []string{fmt.Sprintf("organization:%s", info.repoOwner)})
+	}()
+	return newPR.GetNumber(), nil
 }
 
 func handleBranch(ctx context.Context, client *github.Client, repoInfo *RepoInfo, newName string, updateInfo Update) (existed bool, branchName string, err error) {
