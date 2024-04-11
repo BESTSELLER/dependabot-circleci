@@ -48,5 +48,5 @@ func dependencyHandler(w http.ResponseWriter, r *http.Request) {
 	// send stats to DD
 	defer datadog.TimeTrackAndGauge("dependency_check_duration", []string{fmt.Sprintf("organization:%s", workerPayload.Org)}, start)
 
-	log.Debug().Msgf("Dependency check has completed for organization: %s", workerPayload.Org)
+	log.Debug().Msgf("CurrentName check has completed for organization: %s", workerPayload.Org)
 }

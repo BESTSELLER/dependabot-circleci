@@ -55,6 +55,12 @@ func findNewestOrbVersion(orb string) string {
 		log.Error().Err(err).Msgf("error finding latests orb version failed for orb: %s", orbSplitString[0])
 		return fmt.Sprintf("%s@%s", orbSplitString[0], orbSplitString[1])
 	}
+
+	if len(orbInfo.Orb.HighestVersion) == 0 {
+		cache[orb] = orb
+		return orb
+	}
+
 	newVersion := fmt.Sprintf("%s@%s", orbSplitString[0], orbInfo.Orb.HighestVersion)
 	cache[orb] = newVersion
 	return newVersion
