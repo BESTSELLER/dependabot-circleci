@@ -193,14 +193,15 @@ func gatherUpdates(wg *sync.WaitGroup, ctx context.Context, client *github.Clien
 	}
 	if fileContent == nil {
 		for _, dir := range directoryContent {
-			wg.Add(1)
-			go gatherUpdates(wg, ctx, client, repoInfo, dir.GetPath(), updates)
+			if dir.GetType() == "dir" || isYaml(dir.GetName()) {
+				wg.Add(1)
+				go gatherUpdates(wg, ctx, client, repoInfo, dir.GetPath(), updates)
+			}
 		}
 		return
 	}
-	// 3. Check if file is .yml/.yaml - if not, skip - if yes, process
-	if filename := fileContent.GetName(); !strings.HasSuffix(filename, ".yml") && !strings.HasSuffix(filename, ".yaml") {
-		log.Info().Msgf("Skipping %s, not yml/yaml", filename)
+	if !isYaml(fileContent.GetName()) {
+		log.Debug().Msgf("Skipping %s, not yml/yaml", fileContent.GetName())
 		return
 	}
 	content, err := fileContent.GetContent()
@@ -325,4 +326,8 @@ func generatePRTitle(update Update, newName string) string {
 	newVersion = strings.Split(newName, separator)
 
 	return fmt.Sprintf("Bump @%s from %s to %s", oldVersion[0], oldVersion[1], newVersion[1])
+}
+
+func isYaml(fileName string) bool {
+	return strings.HasSuffix(fileName, ".yml") || strings.HasSuffix(fileName, ".yaml")
 }
