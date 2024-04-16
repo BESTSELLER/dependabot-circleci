@@ -281,8 +281,20 @@ func generatePRTitle(update circleci.Update, newName string) string {
 	}
 	oldVersion = strings.Split(update.CurrentName, separator)
 	newVersion = strings.Split(newName, separator)
-
-	return fmt.Sprintf("Bump @%s from %s to %s", oldVersion[0], oldVersion[1], newVersion[1])
+	param := circleci.ExtractParameterName(oldVersion[1])
+	oldVersionNumber := oldVersion[1]
+	if len(param) > 0 {
+		// Try getting version from first changed file
+		for _, v := range update.FileUpdates {
+			if oldParamValue, found := (*v.Parameters)[param]; found {
+				oldVersionNumber = oldParamValue
+			} else {
+				oldVersionNumber = param
+			}
+			break
+		}
+	}
+	return fmt.Sprintf("Bump @%s from %s to %s", oldVersion[0], oldVersionNumber, newVersion[1])
 }
 
 func isYaml(fileName string) bool {

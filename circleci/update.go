@@ -156,10 +156,10 @@ func ReplaceVersion(orb *yaml.Node, oldVersion string, content string) string {
 	return output
 }
 
-func extractParameterName(param string) string {
+func ExtractParameterName(param string) string {
 	r := regexp.MustCompile(`<<\s*parameters\.(\w+)\s*>>`)
 	match := r.FindStringSubmatch(param)
-	if len(match) == 2 {
+	if len(match) > 1 {
 		return match[1]
 	}
 	return ""

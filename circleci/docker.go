@@ -53,7 +53,7 @@ func findNewestDockerVersion(currentVersion string, parameters *map[string]strin
 	imageName := current[0]
 	imageTag := current[1]
 
-	if param := extractParameterName(currentVersion); len(param) > 0 {
+	if param := ExtractParameterName(currentVersion); len(param) > 0 {
 		paramDefault, found := (*parameters)[param]
 		if !found {
 			log.Debug().Msgf("Parameter %s not found in parameters", param)
