@@ -13,19 +13,7 @@ import (
 	"github.com/BESTSELLER/dependabot-circleci/gh"
 	"github.com/google/go-github/v60/github"
 	"github.com/rs/zerolog/log"
-	"gopkg.in/yaml.v3"
 )
-
-type FileUpdate struct {
-	SHA     *string
-	Content *string
-	Node    *yaml.Node
-}
-type Update struct {
-	Type        string
-	CurrentName string
-	FileUpdates map[string]FileUpdate
-}
 
 type RepoInfo struct {
 	repoConfig        *config.RepoConfig
@@ -74,7 +62,7 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 	}
 
 	go datadog.IncrementCount("analysed_repos", 1, []string{fmt.Sprintf("organization:%s", repoInfo.repoOwner)})
-	updates := map[string]Update{}
+	updates := map[string]circleci.Update{}
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go gatherUpdates(&wg, ctx, client, repoInfo, repoInfo.repoConfig.Directory, &updates)
@@ -95,7 +83,7 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 			return
 		}
 
-		err = handleUpdate(ctx, client, repoInfo, prBranch, &updateInfo)
+		err = handleUpdates(ctx, client, repoInfo, prBranch, &updateInfo)
 		if err != nil {
 			go datadog.IncrementCount("failed_repos", 1, []string{fmt.Sprintf("organization:%s", repoInfo.repoOwner)})
 			return
@@ -165,7 +153,7 @@ func handlePR(ctx context.Context, client *github.Client, info *RepoInfo, branch
 	return newPR.GetNumber(), nil
 }
 
-func handleBranch(ctx context.Context, client *github.Client, repoInfo *RepoInfo, newName string, updateInfo Update) (existed bool, branchName string, err error) {
+func handleBranch(ctx context.Context, client *github.Client, repoInfo *RepoInfo, newName string, updateInfo circleci.Update) (existed bool, branchName string, err error) {
 	commitBranch := fmt.Sprintf("dependabot-circleci/%s/%s", updateInfo.Type, strings.ReplaceAll(newName, ":", "@"))
 	notExists := gh.CheckBranch(ctx, client, repoInfo.repoOwner, repoInfo.repoName, github.String(commitBranch))
 	if notExists {
@@ -181,7 +169,7 @@ func handleBranch(ctx context.Context, client *github.Client, repoInfo *RepoInfo
 	return false, commitBranch, nil
 }
 
-func gatherUpdates(wg *sync.WaitGroup, ctx context.Context, client *github.Client, repoInfo *RepoInfo, pathInRepo string, updates *map[string]Update) {
+func gatherUpdates(wg *sync.WaitGroup, ctx context.Context, client *github.Client, repoInfo *RepoInfo, pathInRepo string, updates *map[string]circleci.Update) {
 	defer wg.Done()
 	log.Info().Msgf("Processing: %s", pathInRepo)
 	// 1. Get directory contents
@@ -208,44 +196,13 @@ func gatherUpdates(wg *sync.WaitGroup, ctx context.Context, client *github.Clien
 	if err != nil {
 		log.Error().Err(err).Msgf("could not fileContent.GetContent() %s", repoInfo.repoName)
 	}
-	// unmarshal
-	var cciconfig yaml.Node
-	err = yaml.Unmarshal([]byte(content), &cciconfig)
+	// check for updates
+	err = circleci.ScanFileUpdates(updates, &content, &pathInRepo, fileContent.SHA)
 	if err != nil {
-		log.Error().Err(err).Msgf("could not unmarshal yaml in %s", repoInfo.repoName)
+		log.Warn().Err(err).Msgf("could not scan file updates in repo: %s, file:%s", repoInfo.repoName, pathInRepo)
 		return
 	}
-
-	// check for updates
-	orbUpdates, dockerUpdates := circleci.GetUpdates(&cciconfig)
-	for old, update := range orbUpdates {
-		if _, contains := (*updates)[update.Value]; !contains {
-			(*updates)[update.Value] = Update{
-				Type:        "orb",
-				CurrentName: old,
-				FileUpdates: make(map[string]FileUpdate),
-			}
-		}
-		(*updates)[update.Value].FileUpdates[fileContent.GetPath()] = FileUpdate{
-			SHA:     fileContent.SHA,
-			Node:    update,
-			Content: &content,
-		}
-	}
-	for old, update := range dockerUpdates {
-		if _, contains := (*updates)[update.Value]; !contains {
-			(*updates)[update.Value] = Update{
-				Type:        "docker",
-				CurrentName: old,
-				FileUpdates: make(map[string]FileUpdate),
-			}
-		}
-		(*updates)[update.Value].FileUpdates[fileContent.GetPath()] = FileUpdate{
-			SHA:     fileContent.SHA,
-			Node:    update,
-			Content: &content,
-		}
-	}
+	println("xxx")
 }
 
 func getRepoConfig(ctx context.Context, client *github.Client, repo *github.Repository) *config.RepoConfig {
@@ -277,7 +234,7 @@ func getTargetBranch(ctx context.Context, client *github.Client, repoOwner strin
 	return targetBranch
 }
 
-func handleUpdate(ctx context.Context, client *github.Client, info *RepoInfo, prBranch string, updates *Update) error {
+func handleUpdates(ctx context.Context, client *github.Client, info *RepoInfo, prBranch string, updates *circleci.Update) error {
 	for path, update := range updates.FileUpdates {
 		log.Debug().Msgf("repo: %s, file%s, old: %s, update: %s", info.repoName, path, updates.CurrentName, update.Node.Value)
 		newYaml := circleci.ReplaceVersion(update.Node, updates.CurrentName, *update.Content)
@@ -314,7 +271,7 @@ func handleUpdate(ctx context.Context, client *github.Client, info *RepoInfo, pr
 	return nil
 }
 
-func generatePRTitle(update Update, newName string) string {
+func generatePRTitle(update circleci.Update, newName string) string {
 	var oldVersion, newVersion []string
 	var separator string
 	if update.Type == "orb" {

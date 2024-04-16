@@ -1,33 +1,48 @@
 package circleci
 
 import (
+	"regexp"
 	"strings"
 
 	"gopkg.in/yaml.v3"
 )
 
+type Update struct {
+	Type        string
+	CurrentName string
+	FileUpdates map[string]FileUpdate
+}
+
+type FileUpdate struct {
+	SHA        *string
+	Content    *string
+	Parameters *map[string]string
+	Node       *yaml.Node
+}
+
 var cache = map[string]string{}
 
-func getDockerUpdates(node *yaml.Node) map[string]*yaml.Node {
+func getDockerUpdates(node *yaml.Node, parameters *map[string]string) map[string]*yaml.Node {
 	updates := map[string]*yaml.Node{}
 
 	for i, nextHole := range node.Content {
-		if nextHole.Value == "executors" || nextHole.Value == "jobs" {
-
+		switch nextHole.Value {
+		case "executors":
+		case "jobs":
+		case "docker":
 			// check if there is a docker image
 			if i+1 >= len(node.Content) {
 				return updates
 			}
-
 			dockers := node.Content[i+1]
-			updates := extractImages(dockers.Content)
+			updates := extractImages(dockers.Content, parameters)
 			for k, v := range updates {
 				updates[k] = v
 			}
 			return updates
 		}
 
-		next := getDockerUpdates(nextHole)
+		next := getDockerUpdates(nextHole, parameters)
 		for k, v := range next {
 			updates[k] = v
 		}
@@ -35,7 +50,34 @@ func getDockerUpdates(node *yaml.Node) map[string]*yaml.Node {
 
 	return updates
 }
-func getOrbUpdates(node *yaml.Node) map[string]*yaml.Node {
+
+// Recurse until we find a block called parameters then we extract a map with the default values
+func extractParameters(yamlNode []*yaml.Node) map[string]string {
+	for a, nextHole := range yamlNode {
+		if nextHole.Value == "parameters" {
+			if parametersBlock := yamlNode[a+1].Content; len(parametersBlock) > 0 {
+				results := map[string]string{}
+				for pi, param := range parametersBlock {
+					if len(param.Value) > 0 {
+						for c, k := range parametersBlock[pi+1].Content {
+							if k.Value == "default" {
+								results[param.Value] = parametersBlock[pi+1].Content[c+1].Value
+							}
+						}
+					}
+				}
+				return results
+			}
+		} else if len(nextHole.Content) > 0 {
+			if results := extractParameters(nextHole.Content); results != nil {
+				return results
+			}
+		}
+	}
+	return nil
+}
+
+func getOrbUpdates(node *yaml.Node, parameters *map[string]string) map[string]*yaml.Node {
 	updates := map[string]*yaml.Node{}
 
 	for i, nextHole := range node.Content {
@@ -48,7 +90,7 @@ func getOrbUpdates(node *yaml.Node) map[string]*yaml.Node {
 			return updates
 		}
 
-		next := getOrbUpdates(nextHole)
+		next := getOrbUpdates(nextHole, parameters)
 		for k, v := range next {
 			updates[k] = v
 		}
@@ -57,9 +99,48 @@ func getOrbUpdates(node *yaml.Node) map[string]*yaml.Node {
 	return updates
 }
 
-// GetUpdates returns a list of updated yaml nodes
-func GetUpdates(node *yaml.Node) (map[string]*yaml.Node, map[string]*yaml.Node) {
-	return getOrbUpdates(node), getDockerUpdates(node)
+// ScanFileUpdates returns a map of updates found in a file, the key is the original version
+func ScanFileUpdates(updates *map[string]Update, content, path, SHA *string) error {
+	// unmarshal
+	var nodeContent yaml.Node
+	err := yaml.Unmarshal([]byte(*content), &nodeContent)
+	if err != nil {
+		return err
+	}
+
+	parameters := extractParameters(nodeContent.Content)
+	for k, orbUpdate := range getOrbUpdates(&nodeContent, &parameters) {
+		if _, contains := (*updates)[orbUpdate.Value]; !contains {
+			(*updates)[orbUpdate.Value] = Update{
+				Type:        "orb",
+				CurrentName: k,
+				FileUpdates: make(map[string]FileUpdate),
+			}
+		}
+		(*updates)[orbUpdate.Value].FileUpdates[*path] = FileUpdate{
+			SHA:        SHA,
+			Node:       orbUpdate,
+			Content:    content,
+			Parameters: &parameters,
+		}
+	}
+
+	for k, dockerUpdate := range getDockerUpdates(&nodeContent, &parameters) {
+		if _, contains := (*updates)[dockerUpdate.Value]; !contains {
+			(*updates)[dockerUpdate.Value] = Update{
+				Type:        "docker",
+				CurrentName: k,
+				FileUpdates: make(map[string]FileUpdate),
+			}
+		}
+		(*updates)[dockerUpdate.Value].FileUpdates[*path] = FileUpdate{
+			SHA:        SHA,
+			Node:       dockerUpdate,
+			Content:    content,
+			Parameters: &parameters,
+		}
+	}
+	return nil
 }
 
 // ReplaceVersion replaces a specific line in the yaml
@@ -73,4 +154,13 @@ func ReplaceVersion(orb *yaml.Node, oldVersion string, content string) string {
 	output := strings.Join(lines, "\n")
 
 	return output
+}
+
+func extractParameterName(param string) string {
+	r := regexp.MustCompile(`<<\s*parameters\.(\w+)\s*>>`)
+	match := r.FindStringSubmatch(param)
+	if len(match) == 2 {
+		return match[1]
+	}
+	return ""
 }

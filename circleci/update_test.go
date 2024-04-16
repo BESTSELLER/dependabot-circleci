@@ -8,16 +8,15 @@ import (
 	"testing"
 
 	"github.com/rs/zerolog/log"
-	"gopkg.in/yaml.v3"
 )
 
-func getTestCases() map[string]*yaml.Node {
+func getTestCases() map[string]*string {
 	path := "../.test_cases"
 	files, err := os.ReadDir(path)
 	if err != nil {
 		log.Fatal().Err(err)
 	}
-	result := make(map[string]*yaml.Node, len(files))
+	result := make(map[string]*string, len(files))
 	for _, f := range files {
 		fileName := f.Name()
 		ext := strings.ToLower(filepath.Ext(fileName))
@@ -28,24 +27,22 @@ func getTestCases() map[string]*yaml.Node {
 		fmt.Println(f.Name())
 
 		content, _ := os.ReadFile(filePath)
-		var cciconfig yaml.Node
-		err = yaml.Unmarshal(content, &cciconfig)
-		if err != nil {
-			continue
-		}
-		result[fileName] = &cciconfig
+		contentString := string(content)
+		result[fileName] = &contentString
 	}
 
 	return result
 }
 func TestGetUpdates(t *testing.T) {
 	tests := getTestCases()
+	SHA := "ABC"
+	updates := map[string]Update{}
 
 	for k, v := range tests {
 		t.Run(k, func(t *testing.T) {
-			GetUpdates(v)
-			// if got := GetUpdates(v); !reflect.DeepEqual(got, tt.want) {
-			// 	t.Errorf("GetUpdates() = %v, want %v", got, tt.want)
+			ScanFileUpdates(&updates, v, &k, &SHA)
+			// if got := ScanFileUpdates(v); !reflect.DeepEqual(got, tt.want) {
+			// 	t.Errorf("ScanFileUpdates() = %v, want %v", got, tt.want)
 			// }
 		})
 	}
