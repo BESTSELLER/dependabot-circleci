@@ -13,16 +13,28 @@ type Update struct {
 	FileUpdates map[string]FileUpdate
 }
 
+func (update Update) SplitCurrentVersion() []string {
+	var oldVersion []string
+	var separator string
+	if update.Type == "orb" {
+		separator = "@"
+	} else {
+		separator = ":"
+	}
+	oldVersion = strings.Split(update.CurrentName, separator)
+	return oldVersion
+}
+
 type FileUpdate struct {
 	SHA        *string
 	Content    *string
-	Parameters *map[string]string
+	Parameters *map[string]*yaml.Node
 	Node       *yaml.Node
 }
 
 var cache = map[string]string{}
 
-func getDockerUpdates(node *yaml.Node, parameters *map[string]string) map[string]*yaml.Node {
+func getDockerUpdates(node *yaml.Node, parameters *map[string]*yaml.Node) map[string]*yaml.Node {
 	updates := map[string]*yaml.Node{}
 
 	for i, nextHole := range node.Content {
@@ -52,16 +64,16 @@ func getDockerUpdates(node *yaml.Node, parameters *map[string]string) map[string
 }
 
 // Recurse until we find a block called parameters then we extract a map with the default values
-func extractParameters(yamlNode []*yaml.Node) map[string]string {
+func extractParameters(yamlNode []*yaml.Node) map[string]*yaml.Node {
 	for a, nextHole := range yamlNode {
 		if nextHole.Value == "parameters" {
 			if parametersBlock := yamlNode[a+1].Content; len(parametersBlock) > 0 {
-				results := map[string]string{}
+				results := map[string]*yaml.Node{}
 				for pi, param := range parametersBlock {
 					if len(param.Value) > 0 {
 						for c, k := range parametersBlock[pi+1].Content {
 							if k.Value == "default" {
-								results[param.Value] = parametersBlock[pi+1].Content[c+1].Value
+								results[param.Value] = parametersBlock[pi+1].Content[c+1]
 							}
 						}
 					}
@@ -77,7 +89,7 @@ func extractParameters(yamlNode []*yaml.Node) map[string]string {
 	return nil
 }
 
-func getOrbUpdates(node *yaml.Node, parameters *map[string]string) map[string]*yaml.Node {
+func getOrbUpdates(node *yaml.Node, parameters *map[string]*yaml.Node) map[string]*yaml.Node {
 	updates := map[string]*yaml.Node{}
 
 	for i, nextHole := range node.Content {
@@ -144,15 +156,11 @@ func ScanFileUpdates(updates *map[string]Update, content, path, SHA *string) err
 }
 
 // ReplaceVersion replaces a specific line in the yaml
-func ReplaceVersion(orb *yaml.Node, oldVersion string, content string) string {
-
+func ReplaceVersion(lineNumber int, oldVersion, newVersion, content string) string {
 	lines := strings.Split(content, "\n")
-	lineNumber := orb.Line + -1
 	theLine := lines[lineNumber]
-	lines[lineNumber] = strings.ReplaceAll(theLine, oldVersion, orb.Value)
-
+	lines[lineNumber] = strings.ReplaceAll(theLine, oldVersion, newVersion)
 	output := strings.Join(lines, "\n")
-
 	return output
 }
 

@@ -154,7 +154,8 @@ func handlePR(ctx context.Context, client *github.Client, info *RepoInfo, branch
 }
 
 func handleBranch(ctx context.Context, client *github.Client, repoInfo *RepoInfo, newName string, updateInfo circleci.Update) (existed bool, branchName string, err error) {
-	commitBranch := fmt.Sprintf("dependabot-circleci/%s/%s", updateInfo.Type, strings.ReplaceAll(newName, ":", "@"))
+	oldVersion := updateInfo.SplitCurrentVersion()
+	commitBranch := fmt.Sprintf("dependabot-circleci/%s/%s@%s", updateInfo.Type, oldVersion[0], newName)
 	notExists := gh.CheckBranch(ctx, client, repoInfo.repoOwner, repoInfo.repoName, github.String(commitBranch))
 	if notExists {
 		err = gh.CreateBranch(ctx, client, repoInfo.repoOwner, repoInfo.repoName, repoInfo.targetBranch, github.String(commitBranch))
@@ -202,7 +203,6 @@ func gatherUpdates(wg *sync.WaitGroup, ctx context.Context, client *github.Clien
 		log.Warn().Err(err).Msgf("could not scan file updates in repo: %s, file:%s", repoInfo.repoName, pathInRepo)
 		return
 	}
-	println("xxx")
 }
 
 func getRepoConfig(ctx context.Context, client *github.Client, repo *github.Repository) *config.RepoConfig {
@@ -237,23 +237,16 @@ func getTargetBranch(ctx context.Context, client *github.Client, repoOwner strin
 func handleUpdates(ctx context.Context, client *github.Client, info *RepoInfo, prBranch string, updates *circleci.Update) error {
 	for path, update := range updates.FileUpdates {
 		log.Debug().Msgf("repo: %s, file%s, old: %s, update: %s", info.repoName, path, updates.CurrentName, update.Node.Value)
-		newYaml := circleci.ReplaceVersion(update.Node, updates.CurrentName, *update.Content)
-
 		// commit vars
-		var oldVersion, newVersion []string
-		var separator string
-		if updates.Type == "orb" {
-			separator = "@"
+		oldVersion := updates.SplitCurrentVersion()
+		newVersion := update.Node.Value
+		param := circleci.ExtractParameterName(oldVersion[1])
+		var newYaml string
+		if len(param) > 0 {
+			newYaml = circleci.ReplaceVersion((*update.Parameters)[param].Line-1, (*update.Parameters)[param].Value, newVersion, *update.Content)
 		} else {
-			separator = ":"
+			newYaml = circleci.ReplaceVersion(update.Node.Line-1, updates.CurrentName, newVersion, *update.Content)
 		}
-		oldVersion = strings.Split(updates.CurrentName, separator)
-		newVersion = strings.Split(update.Node.Value, separator)
-
-		if updates.Type == "orb" && len(newVersion) == 1 {
-			return fmt.Errorf("could not find orb version for %s in %s", update.Node.Value, info.repoName)
-		}
-
 		commitMessage := fmt.Sprintf("Update %s, @%s from %s to %s", path, oldVersion[0], oldVersion[1], newVersion[1])
 
 		// commit file
@@ -271,30 +264,22 @@ func handleUpdates(ctx context.Context, client *github.Client, info *RepoInfo, p
 	return nil
 }
 
-func generatePRTitle(update circleci.Update, newName string) string {
-	var oldVersion, newVersion []string
-	var separator string
-	if update.Type == "orb" {
-		separator = "@"
-	} else {
-		separator = ":"
-	}
-	oldVersion = strings.Split(update.CurrentName, separator)
-	newVersion = strings.Split(newName, separator)
+func generatePRTitle(update circleci.Update, newVersion string) string {
+	oldVersion := update.SplitCurrentVersion()
 	param := circleci.ExtractParameterName(oldVersion[1])
 	oldVersionNumber := oldVersion[1]
 	if len(param) > 0 {
 		// Try getting version from first changed file
 		for _, v := range update.FileUpdates {
 			if oldParamValue, found := (*v.Parameters)[param]; found {
-				oldVersionNumber = oldParamValue
+				oldVersionNumber = oldParamValue.Value
 			} else {
 				oldVersionNumber = param
 			}
 			break
 		}
 	}
-	return fmt.Sprintf("Bump @%s from %s to %s", oldVersion[0], oldVersionNumber, newVersion[1])
+	return fmt.Sprintf("Bump @%s from %s to %s", oldVersion[0], oldVersionNumber, newVersion)
 }
 
 func isYaml(fileName string) bool {

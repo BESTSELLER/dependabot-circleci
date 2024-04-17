@@ -13,7 +13,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func extractImages(images []*yaml.Node, parameters *map[string]string) map[string]*yaml.Node {
+func extractImages(images []*yaml.Node, parameters *map[string]*yaml.Node) map[string]*yaml.Node {
 	updates := map[string]*yaml.Node{}
 	for i := 0; i < len(images); i++ {
 		image := images[i]
@@ -38,7 +38,7 @@ func extractImages(images []*yaml.Node, parameters *map[string]string) map[strin
 	return updates
 }
 
-func findNewestDockerVersion(currentVersion string, parameters *map[string]string) string {
+func findNewestDockerVersion(currentVersion string, parameters *map[string]*yaml.Node) string {
 	current := strings.Split(currentVersion, ":")
 
 	// check if image has no version tag
@@ -57,21 +57,21 @@ func findNewestDockerVersion(currentVersion string, parameters *map[string]strin
 		paramDefault, found := (*parameters)[param]
 		if !found {
 			log.Debug().Msgf("Parameter %s not found in parameters", param)
-			return currentVersion
+			return imageTag
 		}
-		imageTag = paramDefault
+		imageTag = paramDefault.Value
 	}
 
 	// fix this shit
 	tags, err := getTags(imageName)
 	if err != nil {
 		log.Debug().Err(err)
-		return currentVersion
+		return imageTag
 	}
 
 	versionParts := splitVersion(imageTag)
 	if len(versionParts) == 0 {
-		return currentVersion
+		return imageTag
 	}
 	if newVersion, hit := cache[currentVersion]; hit {
 		log.Debug().Msgf("Using cached version for image: %s", currentVersion)
@@ -109,10 +109,10 @@ func findNewestDockerVersion(currentVersion string, parameters *map[string]strin
 
 	currentv, _ := version.NewVersion(versionParts["version"])
 	if currentv.GreaterThan(newest) {
-		cache[currentVersion] = currentVersion
-		return currentVersion
+		cache[currentVersion] = imageTag
+		return imageTag
 	}
-	newVersion := fmt.Sprintf("%s:%s", imageName, newest.Original())
+	newVersion := newest.Original()
 	cache[currentVersion] = newVersion
 	return newVersion
 }
