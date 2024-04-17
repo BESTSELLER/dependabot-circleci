@@ -245,9 +245,9 @@ func handleUpdates(ctx context.Context, client *github.Client, info *RepoInfo, p
 		if len(param) > 0 {
 			newYaml = circleci.ReplaceVersion((*update.Parameters)[param].Line-1, (*update.Parameters)[param].Value, newVersion, *update.Content)
 		} else {
-			newYaml = circleci.ReplaceVersion(update.Node.Line-1, updates.CurrentName, newVersion, *update.Content)
+			newYaml = circleci.ReplaceVersion(update.Node.Line-1, oldVersion[1], newVersion, *update.Content)
 		}
-		commitMessage := fmt.Sprintf("Update %s, @%s from %s to %s", path, oldVersion[0], oldVersion[1], newVersion)
+		commitMessage := fmt.Sprintf("Update %s, @%s to %s", path, oldVersion[0], newVersion)
 
 		// commit file
 		err := gh.UpdateFile(ctx, client, info.repoOwner, info.repoName, path, &github.RepositoryContentFileOptions{
