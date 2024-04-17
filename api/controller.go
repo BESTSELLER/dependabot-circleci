@@ -68,7 +68,7 @@ func controllerHandler(w http.ResponseWriter, _ *http.Request) {
 			if err != nil {
 				log.Error().Err(err).Msgf("error triggering worker for org %s", org)
 			} else {
-				log.Debug().Msgf("CurrentName check has started for org: %s", org)
+				log.Debug().Msgf("Dependency check has started for org: %s", org)
 			}
 		}(organization, repositories)
 	}
