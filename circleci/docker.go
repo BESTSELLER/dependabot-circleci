@@ -21,12 +21,12 @@ func extractImages(images []*yaml.Node, parameters *map[string]*yaml.Node) map[s
 			image = images[i+1]
 
 			log.Debug().Msg(fmt.Sprintf("current image version: %s", image.Value))
-			imageVersion := findNewestDockerVersion(image.Value, parameters)
-			log.Debug().Msg(fmt.Sprintf("new image version: %s", imageVersion))
+			imageName, currentTag, newestTag := findNewestDockerVersion(image.Value, parameters)
+			log.Debug().Msg(fmt.Sprintf("new image version: %s:%s", imageName, newestTag))
 
-			if image.Value != imageVersion {
+			if currentTag != newestTag {
 				oldVersion := image.Value
-				image.Value = imageVersion
+				image.Value = newestTag
 				updates[oldVersion] = image
 			}
 		}
@@ -38,44 +38,45 @@ func extractImages(images []*yaml.Node, parameters *map[string]*yaml.Node) map[s
 	return updates
 }
 
-func findNewestDockerVersion(currentVersion string, parameters *map[string]*yaml.Node) string {
+func findNewestDockerVersion(currentVersion string, parameters *map[string]*yaml.Node) (imageName, currentTag, newestTag string) {
 	current := strings.Split(currentVersion, ":")
 
 	// check if image has no version tag
 	if len(current) == 1 {
-		return currentVersion
+		return currentVersion, "", ""
 	}
 
 	// check if tag is latest
 	if strings.ToLower(current[1]) == "latest" {
-		return currentVersion
+		return current[0], current[1], current[1]
 	}
-	imageName := current[0]
-	imageTag := current[1]
+	imageName = current[0]
+	currentTag = current[1]
+
+	if newVersion, hit := cache[currentVersion]; hit {
+		log.Debug().Msgf("Using cached version for image: %s", currentVersion)
+		return imageName, currentTag, newVersion
+	}
 
 	if param := ExtractParameterName(currentVersion); len(param) > 0 {
 		paramDefault, found := (*parameters)[param]
 		if !found {
 			log.Debug().Msgf("Parameter %s not found in parameters", param)
-			return imageTag
+			return imageName, currentTag, currentTag
 		}
-		imageTag = paramDefault.Value
+		currentTag = paramDefault.Value
 	}
 
 	// fix this shit
 	tags, err := getTags(imageName)
 	if err != nil {
 		log.Debug().Err(err)
-		return imageTag
+		return imageName, currentTag, currentTag
 	}
 
-	versionParts := splitVersion(imageTag)
+	versionParts := splitVersion(currentTag)
 	if len(versionParts) == 0 {
-		return imageTag
-	}
-	if newVersion, hit := cache[currentVersion]; hit {
-		log.Debug().Msgf("Using cached version for image: %s", currentVersion)
-		return newVersion
+		return imageName, currentTag, currentTag
 	}
 	var newTagsList []string
 	for _, tag := range tags {
@@ -109,12 +110,12 @@ func findNewestDockerVersion(currentVersion string, parameters *map[string]*yaml
 
 	currentv, _ := version.NewVersion(versionParts["version"])
 	if currentv.GreaterThan(newest) {
-		cache[currentVersion] = imageTag
-		return imageTag
+		cache[currentVersion] = currentTag
+		return imageName, currentTag, currentTag
 	}
 	newVersion := newest.Original()
 	cache[currentVersion] = newVersion
-	return newVersion
+	return imageName, currentTag, newVersion
 }
 
 func getTags(circleciTag string) ([]string, error) {

@@ -95,7 +95,7 @@ func getOrbUpdates(node *yaml.Node, parameters *map[string]*yaml.Node) map[strin
 	for i, nextHole := range node.Content {
 		if nextHole.Value == "orbs" {
 			orbs := node.Content[i+1]
-			updates := extractOrbs(orbs.Content)
+			updates := extractOrbs(orbs.Content, parameters)
 			for k, v := range updates {
 				updates[k] = v
 			}
