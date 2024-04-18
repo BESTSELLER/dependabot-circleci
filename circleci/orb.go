@@ -18,12 +18,12 @@ func extractOrbs(orbs []*yaml.Node, parameters *map[string]*yaml.Node) map[strin
 		orb := orbs[i+1]
 
 		log.Debug().Msg(fmt.Sprintf("current orb version: %s", orb.Value))
-		orbRoot, currentVer, newestBer := findNewestOrbVersion(orb.Value, parameters)
-		log.Debug().Msg(fmt.Sprintf("new orb version: %s@%s", orbRoot, newestBer))
+		orbRoot, currentVer, newestVer := findNewestOrbVersion(orb.Value, parameters)
+		log.Debug().Msg(fmt.Sprintf("new orb version: %s@%s", orbRoot, newestVer))
 
-		if currentVer != newestBer {
+		if currentVer != newestVer {
 			oldVersion := orb.Value
-			orb.Value = newestBer
+			orb.Value = newestVer
 			updates[oldVersion] = orb
 		}
 	}

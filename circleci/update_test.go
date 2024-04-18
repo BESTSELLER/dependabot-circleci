@@ -41,9 +41,6 @@ func TestGetUpdates(t *testing.T) {
 	for k, v := range tests {
 		t.Run(k, func(t *testing.T) {
 			ScanFileUpdates(&updates, v, &k, &SHA)
-			// if got := ScanFileUpdates(v); !reflect.DeepEqual(got, tt.want) {
-			// 	t.Errorf("ScanFileUpdates() = %v, want %v", got, tt.want)
-			// }
 		})
 	}
 }
