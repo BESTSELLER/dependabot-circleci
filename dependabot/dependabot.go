@@ -49,15 +49,16 @@ func Start(ctx context.Context, client *github.Client, org string, repositories 
 }
 
 func checkRepo(ctx context.Context, client *github.Client, repo *github.Repository) {
+	repoName := repo.GetName()
 	// should we then remove the repo from our db ?
 	if repo.GetArchived() {
-		log.Debug().Msg(fmt.Sprintf("Repo '%s' is archived", repo.GetName()))
+		log.Debug().Msg(fmt.Sprintf("Repo '%s' is archived", repoName))
 		return
 	}
 
 	repoInfo, err := getRepoInfo(ctx, client, repo)
 	if err != nil {
-		log.Debug().Err(err).Msgf("could not get repo info for repo %s", repo.GetName())
+		log.Debug().Err(err).Msgf("could not get repo info for repo %s", repoName)
 		return
 	}
 
@@ -104,7 +105,6 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 
 func getRepoInfo(ctx context.Context, client *github.Client, repo *github.Repository) (*RepoInfo, error) {
 	repoName := repo.GetName()
-
 	log.Debug().Msg(fmt.Sprintf("Checking repo: %s", repoName))
 
 	// Use this to test the application against a single repo

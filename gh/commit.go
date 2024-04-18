@@ -22,7 +22,7 @@ func CheckPR(ctx context.Context, client *github.Client, repoOwner string, repoN
 		title := pr.GetTitle()
 		// exists ?
 		if title == expectedTitle {
-			log.Info().Str("repo_name", repoName).Str("pr_title", title).Msg("PR already exists")
+			log.Debug().Str("repo_name", repoName).Str("pr_title", title).Msg("PR already exists")
 			return true, nil, nil
 		}
 
