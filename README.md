@@ -38,10 +38,12 @@ reviewers:
   - github_username # for a single user
   - org/team_name # for a whole team (nested teams is the same syntax org/team_name)
 target-branch: main
-directory: "/.circleci" # Folder where the circleci config files are located
+directory: "/.circleci/config.yml" # Folder where the circleci config files are located
 schedule: "monthly" # Options are (daily, weekly, monthly)
 
 ```
+
+dependabot-circleci will recursively scan all the files and folders in the directory specified in the `directory` field for CircleCI config files. If it finds any outdated dependencies, it will raise pull requests against the target branch specified in the `target-branch` field. dependabot-circleci will scan a maximum of 100 entities(folders or yaml/yml files).
 
 ---
 <br/>
