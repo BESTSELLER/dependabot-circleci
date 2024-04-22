@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"github.com/BESTSELLER/dependabot-circleci/circleci"
 	"github.com/BESTSELLER/dependabot-circleci/config"
@@ -55,6 +56,7 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 		log.Debug().Msg(fmt.Sprintf("Repo '%s' is archived", repoName))
 		return
 	}
+	var entityCount atomic.Int32
 
 	repoInfo, err := getRepoInfo(ctx, client, repo)
 	if err != nil {
@@ -66,7 +68,7 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 	updates := map[string]circleci.Update{}
 	var wg sync.WaitGroup
 	wg.Add(1)
-	go gatherUpdates(&wg, ctx, client, repoInfo, repoInfo.repoConfig.Directory, &updates)
+	go gatherUpdates(&wg, &entityCount, ctx, client, repoInfo, repoInfo.repoConfig.Directory, &updates)
 	wg.Wait()
 
 	for newVerName, updateInfo := range updates {
@@ -170,7 +172,7 @@ func handleBranch(ctx context.Context, client *github.Client, repoInfo *RepoInfo
 	return false, commitBranch, nil
 }
 
-func gatherUpdates(wg *sync.WaitGroup, ctx context.Context, client *github.Client, repoInfo *RepoInfo, pathInRepo string, updates *map[string]circleci.Update) {
+func gatherUpdates(wg *sync.WaitGroup, entityCount *atomic.Int32, ctx context.Context, client *github.Client, repoInfo *RepoInfo, pathInRepo string, updates *map[string]circleci.Update) {
 	defer wg.Done()
 	log.Info().Msgf("Processing: %s", pathInRepo)
 	// 1. Get directory contents
@@ -183,8 +185,13 @@ func gatherUpdates(wg *sync.WaitGroup, ctx context.Context, client *github.Clien
 	if fileContent == nil {
 		for _, dir := range directoryContent {
 			if dir.GetType() == "dir" || isYaml(dir.GetName()) {
+				if entityCount.Load() > 100 {
+					log.Warn().Msgf("Repo with too many files: %s - %s", repoInfo.repoOwner, repoInfo.repoName)
+					return
+				}
+				entityCount.Add(1)
 				wg.Add(1)
-				go gatherUpdates(wg, ctx, client, repoInfo, dir.GetPath(), updates)
+				go gatherUpdates(wg, entityCount, ctx, client, repoInfo, dir.GetPath(), updates)
 			}
 		}
 		return
