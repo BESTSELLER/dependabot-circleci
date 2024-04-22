@@ -11,19 +11,18 @@ import (
 )
 
 // CheckPR .
-func CheckPR(ctx context.Context, client *github.Client, repoOwner string, repoName string, baseBranch string, commitBranch string, commitMessage string, component string) (bool, []*github.PullRequest, error) {
-	PRsToBeClosed := []*github.PullRequest{}
-	pullreqs, _, _ := client.PullRequests.List(ctx, repoOwner, repoName, nil)
-	for _, pr := range pullreqs {
-
+func CheckPR(ctx context.Context, client *github.Client, repoOwner string, repoName string, expectedTitle string, component string) (bool, []*github.PullRequest, error) {
+	var PRsToBeClosed []*github.PullRequest
+	pullReqs, _, _ := client.PullRequests.List(ctx, repoOwner, repoName, nil)
+	for _, pr := range pullReqs {
 		if pr.GetUser().GetLogin() != "dependabot-circleci[bot]" {
 			continue
 		}
 
 		title := pr.GetTitle()
-
 		// exists ?
-		if title == commitMessage {
+		if title == expectedTitle {
+			log.Debug().Str("repo_name", repoName).Str("pr_title", title).Msg("PR already exists")
 			return true, nil, nil
 		}
 
@@ -31,12 +30,10 @@ func CheckPR(ctx context.Context, client *github.Client, repoOwner string, repoN
 		if strings.Contains(title, fmt.Sprintf("@%s", component)) {
 			PRsToBeClosed = append(PRsToBeClosed, pr)
 		}
-
 	}
 	if len(PRsToBeClosed) > 0 {
 		return false, PRsToBeClosed, nil
 	}
-
 	return false, nil, nil
 }
 

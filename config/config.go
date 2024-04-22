@@ -33,7 +33,7 @@ type BestsellerSpecificConfig struct {
 	Running bool
 }
 
-// DBConfig contains global db config
+// DBConfigSpec contains global db config
 type DBConfigSpec struct {
 	ConnectionName   string `yaml:"connection_name"`
 	ConnectionString string `yaml:"connection_string"`
@@ -43,7 +43,7 @@ type DBConfigSpec struct {
 	Username         string `yaml:"username"`
 }
 
-// RepoConfig contains specific config for each repos
+// RepoConfig contains specific config for each repo
 type RepoConfig struct {
 	TargetBranch string   `yaml:"target-branch,omitempty"`
 	Reviewers    []string `yaml:"reviewers,omitempty"`
@@ -83,8 +83,8 @@ func ReadDBConfig(secrets []byte) error {
 
 // ReadRepoConfig reads a yaml file
 func ReadRepoConfig(content []byte) (*RepoConfig, error) {
-
-	var repoConfig RepoConfig
+	// default values setup here
+	repoConfig := RepoConfig{Directory: ".circleci/config.yml", Schedule: "daily"}
 
 	if err := yaml.UnmarshalStrict(content, &repoConfig); err != nil {
 		return nil, errors.Wrap(err, "failed parsing repository configuration file")
@@ -94,11 +94,11 @@ func ReadRepoConfig(content []byte) (*RepoConfig, error) {
 }
 
 // IsValid checks if Repoconfig is valid
-func (r RepoConfig) IsValid() error {
+func (rc RepoConfig) IsValid() error {
 	var errMsg []string
 
 	// check schedule
-	switch strings.ToLower(r.Schedule) {
+	switch strings.ToLower(rc.Schedule) {
 	case "daily", "weekly", "monthly", "":
 
 	default:

@@ -2,8 +2,11 @@ package dependabot
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
+	"sync"
+	"sync/atomic"
 
 	"github.com/BESTSELLER/dependabot-circleci/circleci"
 	"github.com/BESTSELLER/dependabot-circleci/config"
@@ -11,14 +14,21 @@ import (
 	"github.com/BESTSELLER/dependabot-circleci/gh"
 	"github.com/google/go-github/v60/github"
 	"github.com/rs/zerolog/log"
-	"gopkg.in/yaml.v3"
 )
+
+type RepoInfo struct {
+	repoConfig        *config.RepoConfig
+	repoOwner         string
+	repoDefaultBranch string
+	targetBranch      string
+	repoName          string
+}
 
 // Start will run through all repos it has access to and check for updates and make pull requests if needed.
 func Start(ctx context.Context, client *github.Client, org string, repositories []string) {
 	// If we are running in Bestseller specific mode, we need to set the running variable to true
 	// To be able to query private orbs and docker images
-	config.AppConfig.BestsellerSpecific.Running = (org == "BESTSELLER")
+	config.AppConfig.BestsellerSpecific.Running = org == "BESTSELLER"
 
 	// get repos
 	// TODO: Get only repos in the list, but in a single API Call
@@ -40,17 +50,64 @@ func Start(ctx context.Context, client *github.Client, org string, repositories 
 }
 
 func checkRepo(ctx context.Context, client *github.Client, repo *github.Repository) {
-	// defer wg.Done()
-
 	repoName := repo.GetName()
-
-	log.Debug().Msg(fmt.Sprintf("Checking repo: %s", repoName))
-
 	// should we then remove the repo from our db ?
 	if repo.GetArchived() {
 		log.Debug().Msg(fmt.Sprintf("Repo '%s' is archived", repoName))
 		return
 	}
+	var entityCount atomic.Int32
+
+	repoInfo, err := getRepoInfo(ctx, client, repo)
+	if err != nil {
+		log.Debug().Err(err).Msgf("could not get repo info for repo %s", repoName)
+		return
+	}
+
+	go datadog.IncrementCount("analysed_repos", 1, []string{fmt.Sprintf("organization:%s", repoInfo.repoOwner)})
+	updates := map[string]circleci.Update{}
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go gatherUpdates(&wg, &entityCount, ctx, client, repoInfo, repoInfo.repoConfig.Directory, &updates)
+	wg.Wait()
+
+	for newVerName, updateInfo := range updates {
+		oldBranch, prBranch, err := handleBranch(ctx, client, repoInfo, newVerName, updateInfo)
+		if err != nil || oldBranch {
+			return
+		}
+		prTitle := generatePRTitle(updateInfo, newVerName)
+		exists, oldPRs, err := gh.CheckPR(ctx, client, repoInfo.repoOwner, repoInfo.repoName, prTitle, updateInfo.CurrentName)
+		if err != nil {
+			log.Error().Err(err).Msgf("could not get old branch in %s", repoInfo.repoName)
+			return
+		}
+		if exists {
+			return
+		}
+
+		err = handleUpdates(ctx, client, repoInfo, prBranch, &updateInfo)
+		if err != nil {
+			go datadog.IncrementCount("failed_repos", 1, []string{fmt.Sprintf("organization:%s", repoInfo.repoOwner)})
+			return
+		}
+		prNumber, err := handlePR(ctx, client, repoInfo, prBranch, prTitle)
+		if err != nil {
+			return
+		}
+		if oldPRs != nil || len(oldPRs) > 0 {
+			gh.CleanUpOldBranch(ctx, client, repoInfo.repoOwner, repoInfo.repoName, oldPRs, prNumber)
+			go func() {
+				datadog.IncrementCount("superseeded_updates", 1, []string{fmt.Sprintf("organization:%s", repoInfo.repoOwner)})
+			}()
+		}
+	}
+
+}
+
+func getRepoInfo(ctx context.Context, client *github.Client, repo *github.Repository) (*RepoInfo, error) {
+	repoName := repo.GetName()
+	log.Debug().Msg(fmt.Sprintf("Checking repo: %s", repoName))
 
 	// Use this to test the application against a single repo
 	// if repoName != "bestone-bi4-sales-core-salesorderservice" {
@@ -59,57 +116,105 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 
 	repoConfig := getRepoConfig(ctx, client, repo)
 	if repoConfig == nil {
-		return
+		return nil, errors.New(fmt.Sprintf("could not get repo config for repo %s", repoName))
 	}
 
 	// determine repo details
 	repoOwner := repo.GetOwner().GetLogin()
 	repoDefaultBranch := repo.GetDefaultBranch()
-
 	targetBranch := getTargetBranch(ctx, client, repoOwner, repoName, repoDefaultBranch, repoConfig)
 	if targetBranch == "" {
-		return
+		return nil, errors.New(fmt.Sprintf("could not get targetBranch for repo %s", repoName))
 	}
+	return &RepoInfo{
+		repoConfig:        repoConfig,
+		repoOwner:         repoOwner,
+		repoDefaultBranch: repoDefaultBranch,
+		targetBranch:      targetBranch,
+		repoName:          repoName,
+	}, nil
+}
 
-	go datadog.IncrementCount("analysed_repos", 1, []string{fmt.Sprintf("organization:%s", repoOwner)})
-
-	// get content of circleci config file
-	content, SHA, err := gh.GetRepoContent(ctx, client, repoOwner, repoName, repoConfig.Directory+"/.circleci/config.yml", targetBranch)
+func handlePR(ctx context.Context, client *github.Client, info *RepoInfo, branchName, prTitle string) (int, error) {
+	// create pull req
+	newPR, err := gh.CreatePR(ctx, client, info.repoOwner, info.repoName, info.repoConfig.Reviewers, info.repoConfig.Assignees, info.repoConfig.Labels, &github.NewPullRequest{
+		Title:               github.String(prTitle),
+		Head:                github.String(branchName),
+		Base:                github.String(info.targetBranch),
+		Body:                github.String(branchName),
+		MaintainerCanModify: github.Bool(true),
+	})
 	if err != nil {
-		return
+		log.Info().Err(err).Msgf("could not create pr in %s", info.repoName)
+		return -1, err
 	}
 
-	// unmarshal
-	var cciconfig yaml.Node
-	err = yaml.Unmarshal(content, &cciconfig)
+	go func() {
+		datadog.IncrementCount("pull_requests", 1, []string{fmt.Sprintf("organization:%s", info.repoOwner)})
+	}()
+	return newPR.GetNumber(), nil
+}
+
+func handleBranch(ctx context.Context, client *github.Client, repoInfo *RepoInfo, newName string, updateInfo circleci.Update) (existed bool, branchName string, err error) {
+	oldVersion := updateInfo.SplitCurrentVersion()
+	commitBranch := fmt.Sprintf("dependabot-circleci/%s/%s@%s", updateInfo.Type, oldVersion[0], newName)
+	notExists := gh.CheckBranch(ctx, client, repoInfo.repoOwner, repoInfo.repoName, github.String(commitBranch))
+	if notExists {
+		err = gh.CreateBranch(ctx, client, repoInfo.repoOwner, repoInfo.repoName, repoInfo.targetBranch, github.String(commitBranch))
+		if err != nil {
+			log.Error().Err(err).Msgf("could not create branch %s in %s", commitBranch, repoInfo.repoName)
+			return false, "", err
+		}
+	} else {
+		log.Debug().Msgf("branch %s already exists, skipping creation of branch", commitBranch)
+		return true, commitBranch, nil
+	}
+	return false, commitBranch, nil
+}
+
+func gatherUpdates(wg *sync.WaitGroup, entityCount *atomic.Int32, ctx context.Context, client *github.Client, repoInfo *RepoInfo, pathInRepo string, updates *map[string]circleci.Update) {
+	defer wg.Done()
+	log.Info().Msgf("Processing: %s", pathInRepo)
+	// 1. Get directory contents
+	options := &github.RepositoryContentGetOptions{Ref: repoInfo.targetBranch}
+	fileContent, directoryContent, _, err := client.Repositories.GetContents(context.Background(), repoInfo.repoOwner, repoInfo.repoName, pathInRepo, options)
 	if err != nil {
-		log.Error().Err(err).Msgf("could not unmarshal yaml in %s", repoName)
+		log.Error().Err(err).Msgf("could not parseRepoContent %s", repoInfo.repoName)
 		return
 	}
-
+	if fileContent == nil {
+		for _, dir := range directoryContent {
+			if dir.GetType() == "dir" || isYaml(dir.GetName()) {
+				if entityCount.Load() > 100 {
+					log.Warn().Msgf("Repo with too many files: %s - %s", repoInfo.repoOwner, repoInfo.repoName)
+					return
+				}
+				entityCount.Add(1)
+				wg.Add(1)
+				go gatherUpdates(wg, entityCount, ctx, client, repoInfo, dir.GetPath(), updates)
+			}
+		}
+		return
+	}
+	if !isYaml(fileContent.GetName()) {
+		log.Debug().Msgf("Skipping %s, not yml/yaml", fileContent.GetName())
+		return
+	}
+	content, err := fileContent.GetContent()
+	if err != nil {
+		log.Error().Err(err).Msgf("could not fileContent.GetContent() %s", repoInfo.repoName)
+	}
 	// check for updates
-	orbUpdates, dockerUpdates := circleci.GetUpdates(&cciconfig)
-	for old, update := range orbUpdates {
-		// wg.Add(1)
-		err = handleUpdate(ctx, client, update, "orb", old, content, repoOwner, repoName, targetBranch, SHA, repoConfig)
-		if err != nil {
-			go datadog.IncrementCount("failed_repos", 1, []string{fmt.Sprintf("organization:%s", repoOwner)})
-			return
-		}
-	}
-	for old, update := range dockerUpdates {
-		// wg.Add(1)
-		err = handleUpdate(ctx, client, update, "docker", old, content, repoOwner, repoName, targetBranch, SHA, repoConfig)
-		if err != nil {
-			go datadog.IncrementCount("failed_repos", 1, []string{fmt.Sprintf("organization:%s", repoOwner)})
-			return
-		}
+	err = circleci.ScanFileUpdates(updates, &content, &pathInRepo, fileContent.SHA)
+	if err != nil {
+		log.Warn().Err(err).Msgf("could not scan file updates in repo: %s, file:%s", repoInfo.repoName, pathInRepo)
+		return
 	}
 }
 
 func getRepoConfig(ctx context.Context, client *github.Client, repo *github.Repository) *config.RepoConfig {
 	// check if a bot config exists
-	repoConfigContent, _, err := gh.GetRepoContent(ctx, client, repo.GetOwner().GetLogin(), repo.GetName(), ".github/dependabot-circleci.yml", "")
+	repoConfigContent, _, err := gh.GetRepoFileBytes(ctx, client, repo.GetOwner().GetLogin(), repo.GetName(), ".github/dependabot-circleci.yml", "")
 	if err != nil {
 		log.Debug().Err(err).Msgf("could not load dependabot-circleci.yml in repo: %s", repo.GetName())
 		return nil
@@ -136,85 +241,54 @@ func getTargetBranch(ctx context.Context, client *github.Client, repoOwner strin
 	return targetBranch
 }
 
-func handleUpdate(ctx context.Context, client *github.Client, update *yaml.Node, updateType string, old string, content []byte, repoOwner string, repoName string, targetBranch string, SHA *string, repoConfig *config.RepoConfig) error {
-	// defer wg.Done()
+func handleUpdates(ctx context.Context, client *github.Client, info *RepoInfo, prBranch string, updates *circleci.Update) error {
+	for path, update := range updates.FileUpdates {
+		log.Debug().Msgf("repo: %s, file%s, old: %s, update: %s", info.repoName, path, updates.CurrentName, update.Node.Value)
+		// commit vars
+		oldVersion := updates.SplitCurrentVersion()
+		newVersion := update.Node.Value
+		param := circleci.ExtractParameterName(oldVersion[1])
+		var newYaml string
+		if len(param) > 0 {
+			newYaml = circleci.ReplaceVersion((*update.Parameters)[param].Line-1, (*update.Parameters)[param].Value, newVersion, *update.Content)
+		} else {
+			newYaml = circleci.ReplaceVersion(update.Node.Line-1, oldVersion[1], newVersion, *update.Content)
+		}
+		commitMessage := fmt.Sprintf("Update %s, @%s to %s", path, oldVersion[0], newVersion)
 
-	log.Debug().Msgf("repo: %s, old: %s, update: %s", repoName, old, update.Value)
-	newYaml := circleci.ReplaceVersion(update, old, string(content))
-
-	// commit vars
-	var oldVersion, newVersion []string
-	if updateType == "orb" {
-		oldVersion = strings.Split(old, "@")
-		newVersion = strings.Split(update.Value, "@")
-	} else {
-		oldVersion = strings.Split(old, ":")
-		newVersion = strings.Split(update.Value, ":")
-	}
-
-	if updateType == "orb" && len(newVersion) == 1 {
-		return fmt.Errorf("could not find orb version for %s in %s", update.Value, repoName)
-	}
-
-	commitMessage := fmt.Sprintf("Bump @%s from %s to %s", oldVersion[0], oldVersion[1], newVersion[1])
-	commitBranch := fmt.Sprintf("dependabot-circleci/%s/%s", updateType, strings.ReplaceAll(update.Value, ":", "@"))
-
-	// err := check and create branch
-	exists, oldPRs, err := gh.CheckPR(ctx, client, repoOwner, repoName, targetBranch, commitBranch, commitMessage, oldVersion[0])
-	if err != nil {
-		log.Error().Err(err).Msgf("could not get old branch in %s", repoName)
-		return err
-	}
-	if exists {
-		return err
-	}
-
-	notExists := gh.CheckBranch(ctx, client, repoOwner, repoName, github.String(commitBranch))
-	if notExists {
-		err = gh.CreateBranch(ctx, client, repoOwner, repoName, targetBranch, github.String(commitBranch))
+		// commit file
+		err := gh.UpdateFile(ctx, client, info.repoOwner, info.repoName, path, &github.RepositoryContentFileOptions{
+			Message: github.String(commitMessage),
+			Content: []byte(newYaml),
+			Branch:  github.String(prBranch),
+			SHA:     update.SHA,
+		})
 		if err != nil {
-			log.Error().Err(err).Msgf("could not create branch %s in %s", commitBranch, repoName)
+			log.Error().Err(err).Msgf("could not update file in %s", info.repoName)
 			return err
 		}
-	} else {
-		log.Debug().Msgf("branch %s already exists, skipping creation of branch", commitBranch)
-	}
-
-	// commit file
-	err = gh.UpdateFile(ctx, client, repoOwner, repoName, repoConfig.Directory+"/.circleci/config.yml", &github.RepositoryContentFileOptions{
-		Message: github.String(commitMessage),
-		Content: []byte(newYaml),
-		Branch:  github.String(commitBranch),
-		SHA:     SHA,
-	})
-	if err != nil {
-		log.Error().Err(err).Msgf("could not update file in %s", repoName)
-		return err
-	}
-
-	// create pull req
-	newPR, err := gh.CreatePR(ctx, client, repoOwner, repoName, repoConfig.Reviewers, repoConfig.Assignees, repoConfig.Labels, &github.NewPullRequest{
-		Title:               github.String(commitMessage),
-		Head:                github.String(commitBranch),
-		Base:                github.String(targetBranch),
-		Body:                github.String(commitMessage),
-		MaintainerCanModify: github.Bool(true),
-	})
-	if err != nil {
-		log.Info().Err(err).Msgf("could not create pr in %s", repoName)
-		return err
-	}
-
-	go func() {
-		datadog.IncrementCount("pull_requests", 1, []string{fmt.Sprintf("organization:%s", repoOwner)})
-	}()
-
-	if oldPRs != nil || len(oldPRs) > 0 {
-		gh.CleanUpOldBranch(ctx, client, repoOwner, repoName, oldPRs, newPR.GetNumber())
-
-		go func() {
-			datadog.IncrementCount("superseeded_updates", 1, []string{fmt.Sprintf("organization:%s", repoOwner)})
-		}()
 	}
 	return nil
+}
+
+func generatePRTitle(update circleci.Update, newVersion string) string {
+	oldVersion := update.SplitCurrentVersion()
+	param := circleci.ExtractParameterName(oldVersion[1])
+	oldVersionNumber := oldVersion[1]
+	if len(param) > 0 {
+		// Try getting version from first changed file
+		for _, v := range update.FileUpdates {
+			if oldParamValue, found := (*v.Parameters)[param]; found {
+				oldVersionNumber = oldParamValue.Value
+			} else {
+				oldVersionNumber = param
+			}
+			break
+		}
+	}
+	return fmt.Sprintf("Bump @%s from %s to %s", oldVersion[0], oldVersionNumber, newVersion)
+}
+
+func isYaml(fileName string) bool {
+	return strings.HasSuffix(fileName, ".yml") || strings.HasSuffix(fileName, ".yaml")
 }

@@ -24,14 +24,13 @@ func GetRepos(ctx context.Context, client *github.Client, page int) ([]*github.R
 	return repos, nil
 }
 
-// GetRepoContent returns the circleci config as a byte array
-func GetRepoContent(ctx context.Context, client *github.Client, owner string, repo string, file string, branch string) ([]byte, *string, error) {
+// GetRepoFileBytes returns the circleci config as a byte array
+func GetRepoFileBytes(ctx context.Context, client *github.Client, owner string, repo string, file string, branch string) ([]byte, *string, error) {
 	options := &github.RepositoryContentGetOptions{Ref: branch}
 	fileContent, _, _, err := client.Repositories.GetContents(context.Background(), owner, repo, file, options)
 	if err != nil {
 		return nil, nil, err
 	}
-
 	content, err := fileContent.GetContent()
 	if err != nil {
 		return nil, nil, err

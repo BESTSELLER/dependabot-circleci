@@ -28,7 +28,7 @@ type WorkerPayload struct {
 
 var wg sync.WaitGroup
 
-func controllerHandler(w http.ResponseWriter, r *http.Request) {
+func controllerHandler(w http.ResponseWriter, _ *http.Request) {
 	log.Debug().Msg("controllerHandler called")
 
 	orgs, err := pullRepos()
@@ -80,14 +80,16 @@ func shouldRun(schedule string) bool {
 	// check if an update should be run
 	t := time.Now()
 	schedule = strings.ToLower(schedule)
-	if schedule == "monthly" {
-		return (t.Day() == 1)
-	} else if schedule == "weekly" {
-		return (t.Weekday() == 1)
-	} else if schedule == "daily" || schedule == "" {
+	switch schedule {
+	case "daily", "":
 		return true
+	case "weekly":
+		return t.Weekday() == 1
+	case "monthly":
+		return t.Day() == 1
+	default:
+		return false
 	}
-	return false
 }
 
 // PostJSON posts the structs as json to the specified url
