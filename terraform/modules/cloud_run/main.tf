@@ -58,7 +58,7 @@ resource "google_cloud_run_v2_service" "main" {
           path = "/healthz"
           port = 3000
         }
-        initial_delay_seconds = 2
+        initial_delay_seconds = 4
       }
     }
     containers {
