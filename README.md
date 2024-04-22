@@ -60,7 +60,6 @@ You must store this file in the .github directory of your repository.
 | [`reviewers`](#reviewers)         |          | Reviewers to set on pull requests                                                              | n/a                        |
 | [`target-branch`](#target-branch) |          | Branch to create pull requests against                                                         | Default branch in the repo |
 | [`directory`](#directory)         |          | Path to the circleci config file, or folder to be scanned                                      | `/.circleci/config.yml`    |
-| [`scan-depth`](#scan-depth)       |          | If config-path is a folder, how deep to traverse the dir structure in search for config files. | 1                          |
 | [`schedule`](#schedule)           |          | When to look for updates                                                                       | daily                      |
 
 ---
