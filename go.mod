@@ -19,7 +19,7 @@ require (
 	github.com/uptrace/bun/driver/pgdriver v1.2.1
 	goji.io v2.0.2+incompatible
 	google.golang.org/api v0.175.0
-	gopkg.in/DataDog/dd-trace-go.v1 v1.62.0
+	gopkg.in/DataDog/dd-trace-go.v1 v1.63.1
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -32,7 +32,7 @@ require (
 	github.com/DataDog/datadog-agent/pkg/obfuscate v0.48.0 // indirect
 	github.com/DataDog/datadog-agent/pkg/remoteconfig/state v0.48.1 // indirect
 	github.com/DataDog/datadog-go/v5 v5.3.0 // indirect
-	github.com/DataDog/go-libddwaf/v2 v2.3.2 // indirect
+	github.com/DataDog/go-libddwaf/v2 v2.4.2 // indirect
 	github.com/DataDog/go-tuf v1.0.2-0.5.2 // indirect
 	github.com/DataDog/sketches-go v1.4.2 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
