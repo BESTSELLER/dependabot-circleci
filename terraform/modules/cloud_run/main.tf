@@ -124,7 +124,10 @@ resource "google_cloud_run_v2_service" "main" {
     }
     volumes {
       name = "secrets"
-      empty_dir {}
+      empty_dir {
+        medium = "MEMORY"
+        size_limit = "1Mi"
+      }
     }
     volumes {
       name = "cloudsql"
