@@ -125,7 +125,7 @@ resource "google_cloud_run_v2_service" "main" {
     volumes {
       name = "secrets"
       empty_dir {
-        medium = "MEMORY"
+        medium     = "MEMORY"
         size_limit = "1Mi"
       }
     }

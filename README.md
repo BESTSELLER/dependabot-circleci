@@ -53,14 +53,14 @@ dependabot-circleci will recursively scan all the files and folders in the direc
 The `dependabot-circleci` configuration file, dependabot-circleci.yml, uses YAML syntax.
 You must store this file in the .github directory of your repository.
 
-| Option                            | Required | Description                                                                                    | Default                    |
-|:----------------------------------|:--------:|:-----------------------------------------------------------------------------------------------|----------------------------|
-| [`assignees`](#assignees)         |          | Assignees to set on pull requests                                                              | n/a                        |
-| [`labels`](#labels)               |          | Labels to set on pull requests                                                                 | n/a                        |
-| [`reviewers`](#reviewers)         |          | Reviewers to set on pull requests                                                              | n/a                        |
-| [`target-branch`](#target-branch) |          | Branch to create pull requests against                                                         | Default branch in the repo |
-| [`directory`](#directory)         |          | Path to the circleci config file, or folder to be scanned                                      | `/.circleci/config.yml`    |
-| [`schedule`](#schedule)           |          | When to look for updates                                                                       | daily                      |
+| Option                            | Required | Description                                               | Default                    |
+| :-------------------------------- | :------: | :-------------------------------------------------------- | -------------------------- |
+| [`assignees`](#assignees)         |          | Assignees to set on pull requests                         | n/a                        |
+| [`labels`](#labels)               |          | Labels to set on pull requests                            | n/a                        |
+| [`reviewers`](#reviewers)         |          | Reviewers to set on pull requests                         | n/a                        |
+| [`target-branch`](#target-branch) |          | Branch to create pull requests against                    | Default branch in the repo |
+| [`directory`](#directory)         |          | Path to the circleci config file, or folder to be scanned | `/.circleci/config.yml`    |
+| [`schedule`](#schedule)           |          | When to look for updates                                  | daily                      |
 
 ---
 <br/>
@@ -72,11 +72,11 @@ We are open for issues, pull requests etc.
 ## Running locally
 
 1. Clone the repository
-2. Make sure to have your secrets file in place  
+2. Make sure to have your secrets file in place
    2.1 BESTSELLER folks can use Harpocrates to get them from Vault.
       ```bash
       harpocrates -f secrets-local.yaml --vault-token $(vault token create -format=json | jq -r '.auth.client_token')
-      ```  
+      ```
    2.2 Others will have to fill out this template in any other way.
       ```json
       {
@@ -119,6 +119,6 @@ We are open for issues, pull requests etc.
    --header 'Content-Type: application/json' \
    --data '{"Org":"BESTSELLER","Repos": ["dependabot-circleci"]}'
    ```
-5. If you want to debug the worker without docker: 
+5. If you want to debug the worker without docker:
    1. Add the env vars from the docker-compose file to your local environment to match the worker
    2. Run/Debug in your IDE with the `-worker` flag
