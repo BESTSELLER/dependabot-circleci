@@ -5,12 +5,12 @@ go 1.22
 require (
 	github.com/CircleCI-Public/circleci-cli v0.1.30549
 	github.com/google/go-containerregistry v0.19.1
-	github.com/google/go-github/v60 v60.0.0
+	github.com/google/go-github/v62 v62.0.0
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
 	github.com/hashicorp/go-version v1.6.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/palantir/go-baseapp v0.5.2
-	github.com/palantir/go-githubapp v0.24.1
+	github.com/palantir/go-githubapp v0.26.0
 	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.33.0
 	github.com/stretchr/testify v1.9.0
@@ -55,6 +55,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
+	github.com/google/go-github/v60 v60.0.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/s2a-go v0.1.7 // indirect
 	github.com/google/uuid v1.6.0 // indirect
@@ -79,7 +80,7 @@ require (
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/rs/xid v1.5.0 // indirect
 	github.com/secure-systems-lab/go-securesystemslib v0.7.0 // indirect
-	github.com/shurcooL/githubv4 v0.0.0-20240120211514-18a1ae0e79dc // indirect
+	github.com/shurcooL/githubv4 v0.0.0-20240429030203-be2daab69064 // indirect
 	github.com/shurcooL/graphql v0.0.0-20181231061246-d48a9a75455f // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
