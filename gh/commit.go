@@ -10,7 +10,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// CheckPR .
+// CheckPR looks through the existing PRs and makes a list of the ones that need to be cleaned up. Returns early if the PR dependabot would make already exists.
 func CheckPR(ctx context.Context, client *github.Client, repoOwner string, repoName string, expectedTitle string, component string) (bool, []*github.PullRequest, error) {
 	var PRsToBeClosed []*github.PullRequest
 	pullReqs, _, _ := client.PullRequests.List(ctx, repoOwner, repoName, nil)
