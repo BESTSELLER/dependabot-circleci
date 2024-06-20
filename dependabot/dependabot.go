@@ -77,7 +77,8 @@ func checkRepo(ctx context.Context, client *github.Client, repo *github.Reposito
 			return
 		}
 		prTitle := generatePRTitle(updateInfo, newVerName)
-		exists, oldPRs, err := gh.CheckPR(ctx, client, repoInfo.repoOwner, repoInfo.repoName, prTitle, updateInfo.CurrentName)
+		component := updateInfo.SplitCurrentVersion()[0]
+		exists, oldPRs, err := gh.CheckPR(ctx, client, repoInfo.repoOwner, repoInfo.repoName, prTitle, component)
 		if err != nil {
 			log.Error().Err(err).Msgf("could not get old branch in %s", repoInfo.repoName)
 			return
