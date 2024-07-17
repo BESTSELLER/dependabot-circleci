@@ -67,7 +67,7 @@ func findNewestOrbVersion(currentVersion string, parameters *map[string]*yaml.No
 		return orbName, currentTag, currentTag
 	}
 
-	if len(orbInfo.Orb.HighestVersion) == 0 {
+	if len(orbInfo.Orb.HighestVersion) == 0 || strings.HasPrefix(orbInfo.Orb.HighestVersion, currentTag) {
 		cache[currentVersion] = currentTag
 		return orbName, currentTag, currentTag
 	}
