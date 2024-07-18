@@ -72,6 +72,7 @@ func findNewestOrbVersion(currentVersion string, parameters *map[string]*yaml.No
 		return orbName, currentTag, currentTag
 	}
 
-	cache[currentVersion] = orbInfo.Orb.HighestVersion
-	return orbName, currentTag, orbInfo.Orb.HighestVersion
+	newVersion := TrimSemver(currentTag, orbInfo.Orb.HighestVersion)
+	cache[currentVersion] = newVersion
+	return orbName, currentTag, newVersion
 }

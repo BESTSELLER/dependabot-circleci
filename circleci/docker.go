@@ -113,7 +113,7 @@ func findNewestDockerVersion(currentVersion string, parameters *map[string]*yaml
 		cache[currentVersion] = currentTag
 		return imageName, currentTag, currentTag
 	}
-	newVersion := newest.Original()
+	newVersion := TrimSemver(currentTag, newest.Original())
 	cache[currentVersion] = newVersion
 	return imageName, currentTag, newVersion
 }

@@ -170,3 +170,12 @@ func ExtractParameterName(param string) string {
 	}
 	return ""
 }
+
+func TrimSemver(currentTag, newTag string) string {
+	currentSplit := strings.Split(currentTag, ".")
+	newSplit := strings.Split(newTag, ".")
+	if len(currentSplit) > len(newSplit) {
+		return newTag
+	}
+	return strings.Join(newSplit[0:len(currentSplit)], ".")
+}
