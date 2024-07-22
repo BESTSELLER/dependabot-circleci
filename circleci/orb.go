@@ -2,6 +2,7 @@ package circleci
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-version"
 	"net/http"
 	"strings"
 
@@ -52,6 +53,12 @@ func findNewestOrbVersion(currentVersion string, parameters *map[string]*yaml.No
 		currentTag = paramDefault.Value
 	}
 
+	currentTagParsed, err := version.NewVersion(currentTag)
+	if err != nil {
+		log.Error().Err(err).Msgf("error parsing current version for orb: %s", orbSplitString[0])
+		return orbName, currentTag, currentTag
+	}
+
 	CCIApiToken := ""
 	if config.AppConfig.BestsellerSpecific.Running {
 		log.Debug().Msg("Using Bestseller specific token to handle private orbs")
@@ -66,13 +73,21 @@ func findNewestOrbVersion(currentVersion string, parameters *map[string]*yaml.No
 		log.Error().Err(err).Msgf("error finding latests orb version failed for orb: %s", orbSplitString[0])
 		return orbName, currentTag, currentTag
 	}
-
-	if len(orbInfo.Orb.HighestVersion) == 0 || strings.HasPrefix(orbInfo.Orb.HighestVersion, currentTag) {
+	highestVersion, err := version.NewVersion(orbInfo.Orb.HighestVersion)
+	if err != nil {
+		log.Error().Err(err).Msgf("error parsing highest version for orb: %s", orbSplitString[0])
+		return orbName, currentTag, currentTag
+	}
+	if currentTagParsed.GreaterThan(highestVersion) {
 		cache[currentVersion] = currentTag
 		return orbName, currentTag, currentTag
 	}
+	if highestVersion.Prerelease() != currentTagParsed.Prerelease() {
+		log.Debug().Msgf("version %s skipped different preprelease field than current version", highestVersion.Original())
+		return orbName, currentTag, currentTag
+	}
 
-	newVersion := TrimSemver(currentTag, orbInfo.Orb.HighestVersion)
+	newVersion := TrimSemver(currentTag, highestVersion.Original())
 	cache[currentVersion] = newVersion
 	return orbName, currentTag, newVersion
 }

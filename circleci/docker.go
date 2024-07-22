@@ -87,13 +87,22 @@ func findNewestDockerVersion(currentVersion string, parameters *map[string]*yaml
 		}
 
 	}
-
+	currentv, _ := version.NewVersion(versionParts["version"])
 	errorList := []string{}
 	versions := []*version.Version{}
 	for _, raw := range newTagsList {
 		v, err := version.NewVersion(raw)
 		if err != nil {
 			errorList = append(errorList, fmt.Sprintf("%s", err))
+			continue
+		}
+
+		if v.Prerelease() != currentv.Prerelease() {
+			log.Debug().Msgf("version %s skipped different preprelease field than current version", v.Original())
+			continue
+		}
+		if trimmed := TrimSemver(currentv.Original(), v.Original()); len(trimmed) != len(v.Original()) {
+			log.Debug().Msgf("version %s skipped, must have the same ammount of segments as old version %s", v.Original(), currentv.Original())
 			continue
 		}
 
@@ -108,12 +117,11 @@ func findNewestDockerVersion(currentVersion string, parameters *map[string]*yaml
 
 	newest := versions[len(versions)-1]
 
-	currentv, _ := version.NewVersion(versionParts["version"])
 	if currentv.GreaterThan(newest) {
 		cache[currentVersion] = currentTag
 		return imageName, currentTag, currentTag
 	}
-	newVersion := TrimSemver(currentTag, newest.Original())
+	newVersion := newest.Original()
 	cache[currentVersion] = newVersion
 	return imageName, currentTag, newVersion
 }
