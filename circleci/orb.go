@@ -82,10 +82,6 @@ func findNewestOrbVersion(currentVersion string, parameters *map[string]*yaml.No
 		cache[currentVersion] = currentTag
 		return orbName, currentTag, currentTag
 	}
-	if highestVersion.Prerelease() != currentTagParsed.Prerelease() {
-		log.Debug().Msgf("version %s skipped different preprelease field than current version", highestVersion.Original())
-		return orbName, currentTag, currentTag
-	}
 
 	newVersion := TrimSemver(currentTag, highestVersion.Original())
 	cache[currentVersion] = newVersion
