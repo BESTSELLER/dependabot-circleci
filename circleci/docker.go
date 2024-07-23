@@ -97,8 +97,8 @@ func findNewestDockerVersion(currentVersion string, parameters *map[string]*yaml
 			continue
 		}
 
-		if v.Prerelease() != currentv.Prerelease() {
-			log.Debug().Msgf("version %s skipped different preprelease field than current version", v.Original())
+		if len(v.Prerelease()) > 0 {
+			log.Debug().Msgf("version %s skipped, prerelease", v.Original())
 			continue
 		}
 		if trimmed := TrimSemver(currentv.Original(), v.Original()); len(trimmed) != len(v.Original()) {
