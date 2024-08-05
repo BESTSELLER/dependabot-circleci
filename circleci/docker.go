@@ -115,6 +115,11 @@ func findNewestDockerVersion(currentVersion string, parameters *map[string]*yaml
 
 	sort.Sort(version.Collection(versions))
 
+	if len(versions) == 0 {
+		cache[currentVersion] = currentTag
+		return imageName, currentTag, currentTag
+	}
+
 	newest := versions[len(versions)-1]
 
 	if currentv.GreaterThan(newest) {
