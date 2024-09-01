@@ -18,15 +18,15 @@ require (
 	github.com/uptrace/bun/dialect/pgdialect v1.2.1
 	github.com/uptrace/bun/driver/pgdriver v1.2.1
 	goji.io v2.0.2+incompatible
-	google.golang.org/api v0.190.0
+	google.golang.org/api v0.195.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.66.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
-	cloud.google.com/go/auth v0.7.3 // indirect
-	cloud.google.com/go/auth/oauth2adapt v0.2.3 // indirect
+	cloud.google.com/go/auth v0.9.1 // indirect
+	cloud.google.com/go/auth/oauth2adapt v0.2.4 // indirect
 	cloud.google.com/go/compute/metadata v0.5.0 // indirect
 	github.com/DataDog/appsec-internal-go v1.6.0 // indirect
 	github.com/DataDog/datadog-agent/pkg/obfuscate v0.48.0 // indirect
@@ -39,7 +39,7 @@ require (
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/bluekeyes/hatpear v0.1.1 // indirect
 	github.com/bradleyfalzon/ghinstallation/v2 v2.11.0 // indirect
-	github.com/cespare/xxhash/v2 v2.2.0 // indirect
+	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/containerd/stargz-snapshotter/estargz v0.14.3 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
@@ -99,18 +99,18 @@ require (
 	go.opentelemetry.io/otel/metric v1.24.0 // indirect
 	go.opentelemetry.io/otel/trace v1.24.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
-	golang.org/x/crypto v0.25.0 // indirect
+	golang.org/x/crypto v0.26.0 // indirect
 	golang.org/x/mod v0.17.0 // indirect
-	golang.org/x/net v0.27.0 // indirect
-	golang.org/x/oauth2 v0.21.0 // indirect
-	golang.org/x/sync v0.7.0 // indirect
+	golang.org/x/net v0.28.0 // indirect
+	golang.org/x/oauth2 v0.22.0 // indirect
+	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.24.0 // indirect
-	golang.org/x/text v0.16.0 // indirect
-	golang.org/x/time v0.5.0 // indirect
+	golang.org/x/text v0.17.0 // indirect
+	golang.org/x/time v0.6.0 // indirect
 	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240730163845-b1a4ccb954bf // indirect
-	google.golang.org/grpc v1.64.1 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240823204242-4ba0660f739c // indirect
+	google.golang.org/grpc v1.65.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gotest.tools/v3 v3.5.1 // indirect
 	mellium.im/sasl v0.3.1 // indirect
