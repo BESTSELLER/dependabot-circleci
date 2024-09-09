@@ -19,7 +19,7 @@ resource "google_sql_database_instance" "main" {
       enabled = true
     }
     ip_configuration {
-      ssl_mode = "ENCRYPTED_ONLY"
+      ssl_mode = "TRUSTED_CLIENT_CERTIFICATE_REQUIRED"
     }
     insights_config {
       query_insights_enabled = true
