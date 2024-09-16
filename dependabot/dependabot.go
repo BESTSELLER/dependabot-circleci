@@ -178,8 +178,12 @@ func gatherUpdates(wg *sync.WaitGroup, entityCount *atomic.Int32, ctx context.Co
 	log.Info().Msgf("Processing: %s", pathInRepo)
 	// 1. Get directory contents
 	options := &github.RepositoryContentGetOptions{Ref: repoInfo.targetBranch}
-	fileContent, directoryContent, _, err := client.Repositories.GetContents(context.Background(), repoInfo.repoOwner, repoInfo.repoName, pathInRepo, options)
+	fileContent, directoryContent, resp, err := client.Repositories.GetContents(context.Background(), repoInfo.repoOwner, repoInfo.repoName, pathInRepo, options)
 	if err != nil {
+		if resp != nil && resp.StatusCode == 404 {
+			log.Error().Err(err).Msgf("file not found %s", repoInfo.repoName)
+			return
+		}
 		log.Error().Err(err).Msgf("could not parseRepoContent %s", repoInfo.repoName)
 		return
 	}
