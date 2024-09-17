@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-
 	"github.com/BESTSELLER/dependabot-circleci/config"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
@@ -69,4 +68,16 @@ func GetRepos(ctx context.Context) (repos []RepoData, err error) {
 		return nil, err
 	}
 	return repos, nil
+}
+
+func DeleteRepo(repo RepoData, ctx context.Context) error {
+	db := DBClient()
+	_, err := db.NewDelete().
+		Model(&repo).
+		Where("id = ?", repo.ID).
+		Exec(ctx)
+	if err != nil {
+		return err
+	}
+	return nil
 }
