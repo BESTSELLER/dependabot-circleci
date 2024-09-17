@@ -58,10 +58,15 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, _, _ string, payload []
 		return err
 	}
 
+	// Sometimes the commit is not found, we don't know why but should exit early
 	_, _, err = client.Git.GetRef(ctx, Githubinfo.Owner, Githubinfo.RepoName, commitSHA)
 	if err != nil {
-		log.Warn().Err(err).Msg("event.GetAfter() SHA not found")
-		return nil // we dont care
+		var acceptedError *github.AcceptedError
+		// AcceptedError is returned when the commit is not "ready"
+		if !errors.As(err, &acceptedError) {
+			log.Warn().Err(err).Msg("event.GetAfter() SHA not found")
+			return nil // we drop the error
+		}
 	}
 
 	// get content
