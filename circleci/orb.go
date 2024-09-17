@@ -70,7 +70,7 @@ func findNewestOrbVersion(currentVersion string, parameters *map[string]*yaml.No
 	// if requests fails, return current version
 	orbInfo, err := api.OrbInfo(client, orbName)
 	if err != nil {
-		log.Error().Err(err).Msgf("error finding latests orb version failed for orb: %s", orbSplitString[0])
+		log.Warn().Err(err).Msgf("error finding latests orb version failed for orb: %s", orbSplitString[0])
 		return orbName, currentTag, currentTag
 	}
 	highestVersion, err := version.NewVersion(orbInfo.Orb.HighestVersion)
