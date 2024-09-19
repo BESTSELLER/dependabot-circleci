@@ -36,7 +36,7 @@ func (h *ConfigCheckHandler) Handles() []string {
 }
 
 // Handle has ALL the logic! ;)
-func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID string, payload []byte) error {
+func (h *ConfigCheckHandler) Handle(ctx context.Context, _, _ string, payload []byte) error {
 	start := time.Now()
 	var event github.PushEvent
 	if err := json.Unmarshal(payload, &event); err != nil {
@@ -56,6 +56,17 @@ func (h *ConfigCheckHandler) Handle(ctx context.Context, eventType, deliveryID s
 	if err != nil {
 		log.Error().Err(err).Msgf("Inserting into bigquery table, had the following error: %s", err)
 		return err
+	}
+
+	// Sometimes the commit is not found, we don't know why but should exit early
+	_, _, err = client.Git.GetRef(ctx, Githubinfo.Owner, Githubinfo.RepoName, commitSHA)
+	if err != nil {
+		var acceptedError *github.AcceptedError
+		// AcceptedError is returned when the commit is not "ready"
+		if !errors.As(err, &acceptedError) {
+			log.Warn().Err(err).Msg("event.GetAfter() SHA not found")
+			return nil // we drop the error
+		}
 	}
 
 	// get content

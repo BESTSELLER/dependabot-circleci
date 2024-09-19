@@ -64,9 +64,14 @@ func controllerHandler(w http.ResponseWriter, _ *http.Request) {
 				return
 			}
 
-			err = PostJSON(fmt.Sprintf("%s/start", config.EnvVars.WorkerURL), payloadBytes)
+			resp, err := PostJSON(fmt.Sprintf("%s/start", config.EnvVars.WorkerURL), payloadBytes)
 			if err != nil {
-				log.Error().Err(err).Msgf("error triggering worker for org %s", org)
+				if resp != nil && resp.StatusCode == http.StatusNotAcceptable {
+					log.Warn().Err(err).Msgf("dependabot-circleci not installed on org %s, cleaning up repos", org)
+					deleteRepos(&repos)
+				} else {
+					log.Error().Err(err).Msgf("error triggering worker for org %s", org)
+				}
 			} else {
 				log.Debug().Msgf("Dependency check has started for org: %s", org)
 			}
@@ -75,6 +80,17 @@ func controllerHandler(w http.ResponseWriter, _ *http.Request) {
 
 	wg.Wait()
 	log.Debug().Msg("All workers finished")
+}
+
+func deleteRepos(repos *[]db.RepoData) {
+	for _, repo := range *repos {
+		err := db.DeleteRepo(repo, context.Background())
+		if err != nil {
+			log.Error().Err(err).Msgf("error deleting repo %s from db", repo.Repo)
+		} else {
+			log.Info().Msgf("repo %s deleted from db", repo.Repo)
+		}
+	}
 }
 func shouldRun(schedule string) bool {
 	// check if an update should be run
@@ -93,8 +109,7 @@ func shouldRun(schedule string) bool {
 }
 
 // PostJSON posts the structs as json to the specified url
-func PostJSON(url string, payload []byte) error {
-
+func PostJSON(url string, payload []byte) (*http.Response, error) {
 	var myClient *http.Client
 	clientWithAuth, err := idtoken.NewClient(context.Background(), url)
 	if err != nil {
@@ -107,13 +122,13 @@ func PostJSON(url string, payload []byte) error {
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	if err != nil {
-		return fmt.Errorf("unable to create request: %s", err)
+		return nil, fmt.Errorf("unable to create request: %s", err)
 	}
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", config.AppConfig.HTTP.Token))
 	r, err := myClient.Do(req)
 	if err != nil {
-		return fmt.Errorf("unable to do request: %s", err)
+		return nil, fmt.Errorf("unable to do request: %s", err)
 	}
 	defer r.Body.Close()
 
@@ -121,9 +136,9 @@ func PostJSON(url string, payload []byte) error {
 	if r.StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(r.Body)
 		bodyString := string(bodyBytes)
-		return fmt.Errorf("request failed, expected status: %d got: %d, error message: %s", http.StatusOK, r.StatusCode, bodyString)
+		return r, fmt.Errorf("request failed, expected status: %d got: %d, error message: %s", http.StatusOK, r.StatusCode, bodyString)
 	}
-	return nil
+	return r, nil
 }
 
 func pullRepos() (repos map[string][]db.RepoData, err error) {

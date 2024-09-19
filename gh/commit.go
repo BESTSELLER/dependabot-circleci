@@ -109,7 +109,7 @@ func CreatePR(ctx context.Context, client *github.Client, repoOwner string, repo
 	if len(singleReviewers) > 0 || len(teamReviewers) > 0 {
 		_, _, err = client.PullRequests.RequestReviewers(ctx, repoOwner, repoName, pr.GetNumber(), github.ReviewersRequest{Reviewers: singleReviewers, TeamReviewers: teamReviewers})
 		if err != nil {
-			log.Error().Str("repo_name", repoName).Err(err).Msg("Failed to request reviewers")
+			log.Warn().Str("repo_name", repoName).Err(err).Msg("Failed to request reviewers")
 		}
 	}
 
