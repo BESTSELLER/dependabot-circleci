@@ -67,13 +67,8 @@ func controllerHandler(w http.ResponseWriter, _ *http.Request) {
 			resp, err := PostJSON(fmt.Sprintf("%s/start", config.EnvVars.WorkerURL), payloadBytes)
 			if err != nil {
 				if resp != nil && resp.StatusCode == http.StatusNotAcceptable {
-					log.Warn().Err(err).Msgf("dependabot-circleci not installed on org %s ", org)
-					for _, repo := range repos {
-						err := db.DeleteRepo(repo, context.Background())
-						if err != nil {
-							log.Error().Err(err).Msgf("error deleting repo %s", repo.Repo)
-						}
-					}
+					log.Warn().Err(err).Msgf("dependabot-circleci not installed on org %s, cleaning up repos", org)
+					deleteRepos(&repos)
 				} else {
 					log.Error().Err(err).Msgf("error triggering worker for org %s", org)
 				}
@@ -85,6 +80,17 @@ func controllerHandler(w http.ResponseWriter, _ *http.Request) {
 
 	wg.Wait()
 	log.Debug().Msg("All workers finished")
+}
+
+func deleteRepos(repos *[]db.RepoData) {
+	for _, repo := range *repos {
+		err := db.DeleteRepo(repo, context.Background())
+		if err != nil {
+			log.Error().Err(err).Msgf("error deleting repo %s from db", repo.Repo)
+		} else {
+			log.Info().Msgf("repo %s deleted from db", repo.Repo)
+		}
+	}
 }
 func shouldRun(schedule string) bool {
 	// check if an update should be run
