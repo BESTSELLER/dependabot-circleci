@@ -181,7 +181,7 @@ func gatherUpdates(wg *sync.WaitGroup, entityCount *atomic.Int32, ctx context.Co
 	fileContent, directoryContent, resp, err := client.Repositories.GetContents(context.Background(), repoInfo.repoOwner, repoInfo.repoName, pathInRepo, options)
 	if err != nil {
 		if resp != nil && resp.StatusCode == 404 {
-			log.Error().Err(err).Msgf("file not found %s", repoInfo.repoName)
+			log.Warn().Err(err).Msgf("file not found %s", repoInfo.repoName)
 			return
 		}
 		log.Error().Err(err).Msgf("could not parseRepoContent %s", repoInfo.repoName)
