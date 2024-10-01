@@ -10,7 +10,7 @@ require (
 	github.com/hashicorp/go-version v1.6.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/palantir/go-baseapp v0.5.2
-	github.com/palantir/go-githubapp v0.27.0
+	github.com/palantir/go-githubapp v0.29.0
 	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.33.0
 	github.com/stretchr/testify v1.9.0
@@ -55,6 +55,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/google/go-github/v62 v62.0.0 // indirect
+	github.com/google/go-github/v65 v65.0.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/s2a-go v0.1.8 // indirect
 	github.com/google/uuid v1.6.0 // indirect
@@ -83,7 +84,7 @@ require (
 	github.com/rs/xid v1.5.0 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/secure-systems-lab/go-securesystemslib v0.7.0 // indirect
-	github.com/shurcooL/githubv4 v0.0.0-20240429030203-be2daab69064 // indirect
+	github.com/shurcooL/githubv4 v0.0.0-20240727222349-48295856cce7 // indirect
 	github.com/shurcooL/graphql v0.0.0-20181231061246-d48a9a75455f // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
