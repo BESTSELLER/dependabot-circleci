@@ -1,6 +1,7 @@
 module github.com/BESTSELLER/dependabot-circleci
 
 go 1.22
+toolchain go1.22.5
 
 require (
 	github.com/CircleCI-Public/circleci-cli v0.1.30995
@@ -19,7 +20,7 @@ require (
 	github.com/uptrace/bun/driver/pgdriver v1.2.3
 	goji.io v2.0.2+incompatible
 	google.golang.org/api v0.199.0
-	gopkg.in/DataDog/dd-trace-go.v1 v1.67.1
+	gopkg.in/DataDog/dd-trace-go.v1 v1.68.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 )
