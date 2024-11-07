@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/google/go-github/v63/github"
+	"github.com/google/go-github/v66/github"
 	"github.com/rs/zerolog/log"
 )
 
