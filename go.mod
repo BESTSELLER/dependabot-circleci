@@ -18,14 +18,14 @@ require (
 	github.com/uptrace/bun/dialect/pgdialect v1.2.5
 	github.com/uptrace/bun/driver/pgdriver v1.2.5
 	goji.io v2.0.2+incompatible
-	google.golang.org/api v0.204.0
+	google.golang.org/api v0.205.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.67.1
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
-	cloud.google.com/go/auth v0.10.0 // indirect
+	cloud.google.com/go/auth v0.10.1 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.5 // indirect
 	cloud.google.com/go/compute/metadata v0.5.2 // indirect
 	github.com/DataDog/appsec-internal-go v1.7.0 // indirect
