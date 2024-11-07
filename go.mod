@@ -1,6 +1,9 @@
 module github.com/BESTSELLER/dependabot-circleci
 
-go 1.23
+go 1.23.0
+
+toolchain go1.23.2
+
 require (
 	github.com/CircleCI-Public/circleci-cli v0.1.30995
 	github.com/google/go-containerregistry v0.20.2
