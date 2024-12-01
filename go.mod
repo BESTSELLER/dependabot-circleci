@@ -7,7 +7,7 @@ toolchain go1.23.2
 require (
 	github.com/CircleCI-Public/circleci-cli v0.1.30995
 	github.com/google/go-containerregistry v0.20.2
-	github.com/google/go-github/v63 v63.0.0
+	github.com/google/go-github/v66 v66.0.0
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
 	github.com/hashicorp/go-version v1.6.0
 	github.com/kelseyhightower/envconfig v1.4.0
@@ -15,7 +15,7 @@ require (
 	github.com/palantir/go-githubapp v0.30.0
 	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.33.0
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	github.com/uptrace/bun v1.2.5
 	github.com/uptrace/bun/dialect/pgdialect v1.2.5
 	github.com/uptrace/bun/driver/pgdriver v1.2.5
@@ -57,7 +57,6 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.1 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/google/go-github/v62 v62.0.0 // indirect
-	github.com/google/go-github/v66 v66.0.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/s2a-go v0.1.8 // indirect
 	github.com/google/uuid v1.6.0 // indirect
