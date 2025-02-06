@@ -1,13 +1,11 @@
 module github.com/BESTSELLER/dependabot-circleci
 
-go 1.23.0
-
-toolchain go1.23.2
+go 1.23.5
 
 require (
 	github.com/CircleCI-Public/circleci-cli v0.1.31151
 	github.com/google/go-containerregistry v0.20.3
-	github.com/google/go-github/v66 v66.0.0
+	github.com/google/go-github/v68 v68.0.0
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
 	github.com/hashicorp/go-version v1.7.0
 	github.com/kelseyhightower/envconfig v1.4.0
@@ -65,7 +63,6 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.1 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
-	github.com/google/go-github/v68 v68.0.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/google/uuid v1.6.0 // indirect
