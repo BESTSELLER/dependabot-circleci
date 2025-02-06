@@ -3,7 +3,7 @@ resource "google_cloud_run_v2_service" "main" {
   name         = var.name
   location     = var.location
   project      = var.project_id
-  launch_stage = "BETA"
+  launch_stage = "GA"
   labels = {
     env     = var.env
     service = var.service
