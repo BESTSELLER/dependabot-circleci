@@ -142,7 +142,7 @@ func handlePR(ctx context.Context, client *github.Client, info *RepoInfo, branch
 		Title:               github.String(prTitle),
 		Head:                github.String(branchName),
 		Base:                github.String(info.targetBranch),
-		Body:                github.String(branchName),
+		Body:                github.String(fmt.Sprintf("> [!WARNING]\n> We are shutting down the managed version of `dependabot-circleci` on May 1, 2025. So after this date, you will no longer receive any more pull requests.\n\n%s", branchName)),
 		MaintainerCanModify: github.Bool(true),
 	})
 	if err != nil {

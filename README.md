@@ -8,19 +8,19 @@
 
 <br/>
 
-## 🚨 Repository Deprecation Notice 🚨  
+## 🚨 Repository Deprecation Notice 🚨
 
-This repository is no longer actively maintained. As part of our migration to GitHub Actions, we have discontinued development and will **shut down the managed version of `dependabot-circleci` on May 1, 2025**.  
+This repository is no longer actively maintained. As part of our migration to GitHub Actions, we have discontinued development and will **shut down the managed version of `dependabot-circleci` on May 1, 2025**.
 
-### What This Means  
-- No further updates, bug fixes, or support will be provided.  
-- The managed version will stop running on **May 1, 2025**.  
-- The repository will remain available in its current state for reference.  
+### What This Means
+- No further updates, bug fixes, or support will be provided.
+- The managed version will stop running on **May 1, 2025**.
+- The repository will remain available in its current state for reference.
 
-### Interested in Maintaining This Project?  
-If you are interested in adopting or maintaining this project, please open an issue. We’d be happy to discuss potential transfers or collaborations.  
+### Interested in Maintaining This Project?
+If you are interested in adopting or maintaining this project, please open an issue. We’d be happy to discuss potential transfers or collaborations.
 
-Thank you to everyone who has used and contributed to this project! 🚀  
+Thank you to everyone who has used and contributed to this project! 🚀
 
 ---
 
