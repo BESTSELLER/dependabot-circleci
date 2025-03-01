@@ -16,7 +16,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/uptrace/bun v1.2.10
 	github.com/uptrace/bun/dialect/pgdialect v1.2.9
-	github.com/uptrace/bun/driver/pgdriver v1.2.9
+	github.com/uptrace/bun/driver/pgdriver v1.2.10
 	goji.io v2.0.2+incompatible
 	google.golang.org/api v0.223.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.71.1
