@@ -122,6 +122,8 @@ github.com/google/go-containerregistry v0.20.3 h1:oNx7IdTI936V8CQRveCjaxOiegWwvM
 github.com/google/go-containerregistry v0.20.3/go.mod h1:w00pIgBRDVUDFM6bq+Qx8lwNWK+cxgCuX1vd3PIBDNI=
 github.com/google/go-github/v68 v68.0.0 h1:ZW57zeNZiXTdQ16qrDiZ0k6XucrxZ2CGmoTvcCyQG6s=
 github.com/google/go-github/v68 v68.0.0/go.mod h1:K9HAUBovM2sLwM408A18h+wd9vqdLOEqTUCbnRIcx68=
+github.com/google/go-github/v69 v69.0.0 h1:YnFvZ3pEIZF8KHmI8xyQQe3mYACdkhnaTV2hr7CP2/w=
+github.com/google/go-github/v69 v69.0.0/go.mod h1:xne4jymxLR6Uj9b7J7PyTpkMYstEMMwGZa0Aehh1azM=
 github.com/google/go-querystring v1.1.0 h1:AnCroh3fv4ZBgVIf1Iwtovgjaw/GiKJo8M8yD/fhyJ8=
 github.com/google/go-querystring v1.1.0/go.mod h1:Kcdr2DB4koayq7X8pmAG4sNG59So17icRSOU623lUBU=
 github.com/google/gofuzz v1.0.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/M65Eg=
@@ -214,8 +216,8 @@ github.com/outcaste-io/ristretto v0.2.3 h1:AK4zt/fJ76kjlYObOeNwh4T3asEuaCmp26pOv
 github.com/outcaste-io/ristretto v0.2.3/go.mod h1:W8HywhmtlopSB1jeMg3JtdIhf+DYkLAr0VN/s4+MHac=
 github.com/palantir/go-baseapp v0.5.2 h1:b1ukx7AXo2/E4NkUvTFlW+185uwCcifzd2XzLrG4oS8=
 github.com/palantir/go-baseapp v0.5.2/go.mod h1:uijQMPfmgV69oiMu2jkskum/4HiYuEP/gzrnphD+/Co=
-github.com/palantir/go-githubapp v0.32.1 h1:l+nSk6pjN4+WeJlbQ9iZqmID53kZyW7QBuRC288b8k4=
-github.com/palantir/go-githubapp v0.32.1/go.mod h1:/4mdcMoxJG4/2w260cnnfCZ8fopffom4xt7l7ZQSUrU=
+github.com/palantir/go-githubapp v0.33.0 h1:4oH4WZI2wWjJDbaIqwn8SeXa8sEvOfsKcnRwF1lSkAk=
+github.com/palantir/go-githubapp v0.33.0/go.mod h1:q7mdUDC9ErLob//RLcjo1KGYaePVBRpN/5iwCD8PeR8=
 github.com/patrickmn/go-cache v2.1.0+incompatible h1:HRMgzkcYKYpi3C8ajMPV8OFXaaRUnok+kx1WdO15EQc=
 github.com/patrickmn/go-cache v2.1.0+incompatible/go.mod h1:3Qf8kWWT7OJRJbdiICTKqZju1ZixQ/KpMGzzAfe6+WQ=
 github.com/philhofer/fwd v1.1.3-0.20240612014219-fbbf4953d986 h1:jYi87L8j62qkXzaYHAQAhEapgukhenIMZRBKTNRLHJ4=
