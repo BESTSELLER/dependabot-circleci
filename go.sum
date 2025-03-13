@@ -301,8 +301,8 @@ github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc h1:9lRDQMhESg+zvGYm
 github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc/go.mod h1:bciPuU6GHm1iF1pBvUfxfsH0Wmnc2VbpgvbI9ZWuIRs=
 github.com/uptrace/bun v1.2.11 h1:l9dTymsdZZAoSZ1+Qo3utms0RffgkDbIv+1UGk8N1wQ=
 github.com/uptrace/bun v1.2.11/go.mod h1:ww5G8h59UrOnCHmZ8O1I/4Djc7M/Z3E+EWFS2KLB6dQ=
-github.com/uptrace/bun/dialect/pgdialect v1.2.10 h1:+PAGCVyWDoAjMuAgn0+ud7fu3It8+Xvk7HQAJ5wCXMQ=
-github.com/uptrace/bun/dialect/pgdialect v1.2.10/go.mod h1:hv0zsoc3PeW5fl3JeBglZT1vl2FoERY+QwvuvKsKATA=
+github.com/uptrace/bun/dialect/pgdialect v1.2.11 h1:n0VKWm1fL1dwJK5TRxYYLaRKRe14BOg2+AQgpvqzG/M=
+github.com/uptrace/bun/dialect/pgdialect v1.2.11/go.mod h1:NvV1S/zwtwBnW8yhJ3XEKAQEw76SkeH7yUhfrx3W1Eo=
 github.com/uptrace/bun/driver/pgdriver v1.2.11 h1:nqU0ORMh8cESUqGZNGPAMdFF6YrU2Rr2liRs6bZNRDc=
 github.com/uptrace/bun/driver/pgdriver v1.2.11/go.mod h1:suBR8qaazdzlPAjVIlmC93yGCUzP6Au71WVgySfv6Qw=
 github.com/vbatts/tar-split v0.11.6 h1:4SjTW5+PU11n6fZenf2IPoV8/tz3AaYHMWjf23envGs=
