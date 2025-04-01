@@ -20,7 +20,7 @@ require (
 	github.com/uptrace/bun/driver/pgdriver v1.2.11
 	goji.io v2.0.2+incompatible
 	google.golang.org/api v0.228.0
-	gopkg.in/DataDog/dd-trace-go.v1 v1.72.1
+	gopkg.in/DataDog/dd-trace-go.v1 v1.72.2
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 )
