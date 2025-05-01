@@ -6,8 +6,8 @@ cloud.google.com/go/compute/metadata v0.6.0 h1:A6hENjEsCDtC1k8byVsgwvVcioamEHvZ4
 cloud.google.com/go/compute/metadata v0.6.0/go.mod h1:FjyFAW1MW0C203CEOMDTu3Dk1FlqW3Rga40jzHL4hfg=
 github.com/BESTSELLER/go-version v1.2.5 h1:naMdfH4XsfyfAQVMSNDmye6pAQx0sIYClV6rPhVBqHg=
 github.com/BESTSELLER/go-version v1.2.5/go.mod h1:fltr4n8CU8Ke44wwGCBoEymUuxUHl09ZGVZPK5anwXA=
-github.com/CircleCI-Public/circleci-cli v0.1.31543 h1:QYabplHfE7nv8RMq7K85KKPZFrynCJJXH2Oo6r9Aszk=
-github.com/CircleCI-Public/circleci-cli v0.1.31543/go.mod h1:YSS8c5nPCC57fwUL+kFXsTay9DXC+7pqtkV8K66HYM4=
+github.com/CircleCI-Public/circleci-cli v0.1.31632 h1:tK9UdQz/69bC8vdsGGaJ5E147ERQ7NBSg62rnLBheKI=
+github.com/CircleCI-Public/circleci-cli v0.1.31632/go.mod h1:YSS8c5nPCC57fwUL+kFXsTay9DXC+7pqtkV8K66HYM4=
 github.com/DataDog/appsec-internal-go v1.9.0 h1:cGOneFsg0JTRzWl5U2+og5dbtyW3N8XaYwc5nXe39Vw=
 github.com/DataDog/appsec-internal-go v1.9.0/go.mod h1:wW0cRfWBo4C044jHGwYiyh5moQV2x0AhnwqMuiX7O/g=
 github.com/DataDog/datadog-agent/pkg/obfuscate v0.58.0 h1:nOrRNCHyriM/EjptMrttFOQhRSmvfagESdpyknb5VPg=

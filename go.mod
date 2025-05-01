@@ -5,7 +5,7 @@ go 1.23.5
 toolchain go1.24.1
 
 require (
-	github.com/CircleCI-Public/circleci-cli v0.1.31543
+	github.com/CircleCI-Public/circleci-cli v0.1.31632
 	github.com/google/go-containerregistry v0.20.3
 	github.com/google/go-github/v69 v69.2.0
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79
